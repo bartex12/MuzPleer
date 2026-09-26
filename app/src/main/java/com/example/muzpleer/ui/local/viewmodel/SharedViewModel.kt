@@ -975,9 +975,17 @@ class SharedViewModel(
                 _songs.value = _songs.value?.map { song ->
                     if (song.id == songId) {
                         song.copy(
+                            id = song.id,
                             title = title,
                             artist = artist,
+                            artistId = song.artistId,
+                            duration = song.duration,
+                            mediaUri = song.mediaUri,
+                            artUri = song.artUri,
+                            isLocal = song.isLocal,
                             albumName = album,
+                            albumId = song.albumId,
+                            folderPath = song.folderPath,
                             author = author,
                             genre = genre,
                             year = year
@@ -989,9 +997,17 @@ class SharedViewModel(
 
                 _filteredSongs.value = _filteredSongs.value?. map{filteredSong->
                     if (filteredSong.id == songId) filteredSong.copy(
+                        id = filteredSong.id,
                         title = title,
                         artist = artist,
+                        artistId = filteredSong.artistId,
+                        duration = filteredSong.duration,
+                        mediaUri = filteredSong.mediaUri,
+                        artUri = filteredSong.artUri,
+                        isLocal = filteredSong.isLocal,
                         albumName = album,
+                        albumId = filteredSong.albumId,
+                        folderPath = filteredSong.folderPath,
                         author = author,
                         genre = genre,
                         year = year
@@ -1002,9 +1018,17 @@ class SharedViewModel(
                 _selectedSong.value?.let { selected ->
                     if (selected.id == songId) {
                         _selectedSong.value = selected.copy(
+                            id = selected.id,
                             title = title,
                             artist = artist,
+                            artistId = selected.artistId,
+                            duration = selected.duration,
+                            mediaUri = selected.mediaUri,
+                            artUri = selected.artUri,
+                            isLocal = selected.isLocal,
                             albumName = album,
+                            albumId = selected.albumId,
+                            folderPath = selected.folderPath,
                             author = author,
                             genre = genre,
                             year = year
@@ -1016,9 +1040,17 @@ class SharedViewModel(
                 _currentSong.value?.let { current ->
                     if (current.id == songId) {
                         _currentSong.value = current.copy(
+                            id = current.id,
                             title = title,
                             artist = artist,
+                            artistId = current.artistId,
+                            duration = current.duration,
+                            mediaUri = current.mediaUri,
+                            artUri = current.artUri,
+                            isLocal = current.isLocal,
                             albumName = album,
+                            albumId = current.albumId,
+                            folderPath = current.folderPath,
                             author = author,
                             genre = genre,
                             year = year

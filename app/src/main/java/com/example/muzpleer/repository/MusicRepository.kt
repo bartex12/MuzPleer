@@ -241,10 +241,13 @@ class MusicRepository(
         genre: String?,
         year: Int?
     ) {
-        Log.d(TAG, "8*** MusicRepository updateSongInfo title = $title author = $author")
+        val currentSong = songDao.getById(songId)
+        Log.d(TAG, "8*** MusicRepository updateSongInfo currentSong.arturi =  = ${currentSong?.artUri} title = ${currentSong?.title}")
+        Log.d(TAG, "8-1*** MusicRepository updateSongInfo title = $title author = $author")
         songDao.updateSongInfo(songId, title, artist, album.toString(), author, genre, year)
         // Также обновляем lastModified чтобы изменения сохранились при следующем сканировании
         val updatedFile = songDao.getSongWithDetails(songId)
+        Log.d(TAG, "8-2*** MusicRepository updateSongInfo updatedFile.arturi =  = ${updatedFile?.artUri} title = ${updatedFile?.title}")
         updatedFile?.let {
             songDao.update(it.copy(lastModified = System.currentTimeMillis()))
         }
