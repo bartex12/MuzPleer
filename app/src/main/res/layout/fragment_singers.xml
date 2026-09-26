@@ -27,18 +27,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/imageHolder3Singers" />
 
-    <!--    <TextView-->
-    <!--        android:id="@+id/tvEmpty"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:text="Музыка не найдена"-->
-    <!--        android:visibility="gone"-->
-    <!--        app:layout_constraintBottom_toBottomOf="parent"-->
-    <!--        app:layout_constraintEnd_toEndOf="parent"-->
-    <!--        app:layout_constraintHorizontal_bias="0.5"-->
-    <!--        app:layout_constraintStart_toStartOf="parent"-->
-    <!--        app:layout_constraintTop_toTopOf="parent"-->
-    <!--        app:layout_constraintVertical_bias="0.3" />-->
+    <TextView
+        android:id="@+id/tvEmptySinger"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="У вас пока нет исполнителей"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginTop="36dp"
+        android:visibility="gone"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageHolder3Singers"
+        app:layout_constraintVertical_bias="0.19"
+        tools:visibility="visible" />
+
     <ImageView
         android:id="@+id/imageHolder3Singers"
         android:layout_width="180dp"

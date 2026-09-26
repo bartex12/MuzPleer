@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentFoldersBinding
+import com.example.muzpleer.model.Folder
+import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.adapters.FoldersAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -31,9 +33,10 @@ class FolderFragment : Fragment(){
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
     private lateinit var adapter: FoldersAdapter
-
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
+    // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
+    private var isSearchActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +55,9 @@ class FolderFragment : Fragment(){
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Изначально показываем картинку-заглушку и крутилку
+        showLoadingState()
 
         adapter = FoldersAdapter(viewModel){ folder ->
             val playlist = getSortedDataSong(folder.songs)
@@ -81,13 +87,48 @@ class FolderFragment : Fragment(){
 
         viewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
             Log.d(TAG,"35 FolderFragment onViewCreated filteredFolders.observe: filteredFolders.size= ${filteredFolders.size} ")
-            if (viewModel.getSongs().isEmpty()) binding.progressBarFolder.visibility = View.VISIBLE else binding.progressBarFolder.visibility = View.GONE
-            if (filteredFolders.isEmpty()) binding.imageHolder3Folder.visibility = View.VISIBLE else binding.imageHolder3Folder.visibility = View.GONE
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.folders = filteredFolders  //передаём данные в адаптер
+            // Управляем видимостью в зависимости от состояния
+            updateEmptyState(filteredFolders)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
         binding.foldersRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionFolder())
+    }
+
+    /**
+     * Показать состояние загрузки: картинка + прогрессбар, текст скрыт.
+     * Вызывается при открытии фрагмента.
+     */
+    private fun showLoadingState() {
+        binding.imageHolder3Folder.visibility = View.VISIBLE
+        binding.progressBarFolder.visibility = View.VISIBLE
+        binding.tvEmptyFolder.visibility = View.GONE
+    }
+
+    /**
+     * Обновить состояние пустого списка.
+     * @param playlists текущий список (после фильтрации).
+     */
+    private fun updateEmptyState(playlists: List<Folder>) {
+        if (playlists.isEmpty()) {
+            // Список пуст — скрываем прогрессбар, показываем картинку и текст
+            binding.progressBarFolder.visibility = View.GONE
+            binding.imageHolder3Folder.visibility = View.VISIBLE
+            binding.tvEmptyFolder.visibility = View.VISIBLE
+
+            // Выбираем текст в зависимости от того, активен ли поиск
+            binding.tvEmptyFolder.text = if (isSearchActive) {
+                "По вашему запросу ничего не найдено"
+            } else {
+                "У вас пока нет папок"
+            }
+        } else {
+            // Список не пуст — всё скрываем
+            binding.progressBarFolder.visibility = View.GONE
+            binding.imageHolder3Folder.visibility = View.GONE
+            binding.tvEmptyFolder.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
@@ -164,7 +205,19 @@ class FolderFragment : Fragment(){
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Устанавливаем флаг, что поиск активен, если есть текст
+                isSearchActive = !newText.isNullOrEmpty()
                 viewModel.filterFolders(newText.orEmpty())
+                return true
+            }
+        })
+        // Сбрасываем флаг поиска при закрытии SearchView
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                isSearchActive = false
+                viewModel.filterFolders("") // сброс фильтра
                 return true
             }
         })

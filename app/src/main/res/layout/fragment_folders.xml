@@ -18,6 +18,22 @@
         app:layout_constraintTop_toTopOf="parent"
         tools:listitem="@layout/item_folder"/>
 
+    <TextView
+        android:id="@+id/tvEmptyFolder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="У вас пока нет папок"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:layout_marginTop="36dp"
+        android:visibility="gone"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/imageHolder3Folder"
+        app:layout_constraintVertical_bias="0.19"
+        tools:visibility="visible" />
+
     <ProgressBar
         android:id="@+id/progressBarFolder"
         style="?android:attr/progressBarStyleLarge"

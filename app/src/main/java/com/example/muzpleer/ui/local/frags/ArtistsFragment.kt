@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentSingersBinding
+import com.example.muzpleer.model.Artist
+import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.ArtistsAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -29,9 +31,10 @@ class ArtistsFragment:Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
     private lateinit var adapter: ArtistsAdapter
-
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
+    // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
+    private var isSearchActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +52,9 @@ class ArtistsFragment:Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Изначально показываем картинку-заглушку и крутилку
+        showLoadingState()
 
         adapter = ArtistsAdapter(viewModel) { artist ->
             val playlist = getSortedDataSong(artist.songs)
@@ -85,14 +91,50 @@ class ArtistsFragment:Fragment() {
 
         viewModel.filteredArtists.observe(viewLifecycleOwner) { filteredArtists ->
             Log.d(TAG,"34 ArtistsFragment onViewCreated filteredArtists.observe: filteredArtists.size= ${filteredArtists.size} ")
-            if (viewModel.getSongs().isEmpty()) binding.progressBarSingers.visibility = View.VISIBLE else binding.progressBarSingers.visibility = View.GONE
-            if (filteredArtists.isEmpty()) binding.imageHolder3Singers.visibility = View.VISIBLE else binding.imageHolder3Singers.visibility = View.GONE
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.artists = filteredArtists  //передаём данные в адаптер
+            // Управляем видимостью в зависимости от состояния
+            updateEmptyState(filteredArtists)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
         binding.singersRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionArtist())
     }
+
+    /**
+     * Показать состояние загрузки: картинка + прогрессбар, текст скрыт.
+     * Вызывается при открытии фрагмента.
+     */
+    private fun showLoadingState() {
+        binding.imageHolder3Singers.visibility = View.VISIBLE
+        binding.progressBarSingers.visibility = View.VISIBLE
+        binding.tvEmptySinger.visibility = View.GONE
+    }
+
+    /**
+     * Обновить состояние пустого списка.
+     * @param playlists текущий список (после фильтрации).
+     */
+    private fun updateEmptyState(playlists: List<Artist>) {
+        if (playlists.isEmpty()) {
+            // Список пуст — скрываем прогрессбар, показываем картинку и текст
+            binding.progressBarSingers.visibility = View.GONE
+            binding.imageHolder3Singers.visibility = View.VISIBLE
+            binding.tvEmptySinger.visibility = View.VISIBLE
+
+            // Выбираем текст в зависимости от того, активен ли поиск
+            binding.tvEmptySinger.text = if (isSearchActive) {
+                "По вашему запросу ничего не найдено"
+            } else {
+                "У вас пока нет исполнителей"
+            }
+        } else {
+            // Список не пуст — всё скрываем
+            binding.progressBarSingers.visibility = View.GONE
+            binding.imageHolder3Singers.visibility = View.GONE
+            binding.tvEmptySinger.visibility = View.GONE
+        }
+    }
+
 
     override fun onResume() {
         super.onResume()
@@ -147,7 +189,19 @@ class ArtistsFragment:Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Устанавливаем флаг, что поиск активен, если есть текст
+                isSearchActive = !newText.isNullOrEmpty()
                 viewModel.filterArtists(newText.orEmpty())
+                return true
+            }
+        })
+        // Сбрасываем флаг поиска при закрытии SearchView
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                isSearchActive = false
+                viewModel.filterArtists("") // сброс фильтра
                 return true
             }
         })
@@ -227,10 +281,6 @@ class ArtistsFragment:Fragment() {
             isEditMode = false
             adapter.setEditMode(false)
             itemTouchHelper.attachToRecyclerView(null)
-
-            // Сохраняем изменения порядка
-           // adapter.onDrop() // Сохраняем порядок в БД
-
             Log.d(TAG, "PlaylistFragment: Режим редактирования сброшен при уходе")
         }
     }
