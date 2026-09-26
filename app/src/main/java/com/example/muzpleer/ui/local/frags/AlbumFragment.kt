@@ -17,6 +17,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlbumBinding
+import com.example.muzpleer.model.Album
+import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.AlbumsAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -32,6 +34,8 @@ class AlbumFragment: Fragment() {
     private lateinit var adapter: AlbumsAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
+    // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
+    private var isSearchActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,6 +53,9 @@ class AlbumFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Изначально показываем картинку-заглушку и крутилку
+        showLoadingState()
 
         adapter = AlbumsAdapter (viewModel){ album ->
             val playlist = getSortedDataSong(album.songs)
@@ -82,13 +89,48 @@ class AlbumFragment: Fragment() {
 
         viewModel.filteredAlbums.observe(viewLifecycleOwner) { filteredAlbums ->
             Log.d(TAG,"33 AlbumFragment onViewCreated filteredAlbums.observe: filteredAlbums.size= ${filteredAlbums.size} ")
-            if (viewModel.getSongs().isEmpty()) binding.progressBarAlbum.visibility = View.VISIBLE else binding.progressBarAlbum.visibility = View.GONE
-            if (filteredAlbums.isEmpty()) binding.imageHolder3Album.visibility = View.VISIBLE else binding.imageHolder3Album.visibility = View.GONE
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.albums = filteredAlbums  //передаём данные в адаптер
+            // Управляем видимостью в зависимости от состояния
+            updateEmptyState(filteredAlbums)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
         binding.albumRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionAlbum())
+    }
+
+    /**
+     * Показать состояние загрузки: картинка + прогрессбар, текст скрыт.
+     * Вызывается при открытии фрагмента.
+     */
+    private fun showLoadingState() {
+        binding.imageHolder3Album.visibility = View.VISIBLE
+        binding.progressBarAlbum.visibility = View.VISIBLE
+        binding.tvEmptyAlbum.visibility = View.GONE
+    }
+
+    /**
+     * Обновить состояние пустого списка.
+     * @param playlists текущий список (после фильтрации).
+     */
+    private fun updateEmptyState(playlists: List<Album>) {
+        if (playlists.isEmpty()) {
+            // Список пуст — скрываем прогрессбар, показываем картинку и текст
+            binding.progressBarAlbum.visibility = View.GONE
+            binding.imageHolder3Album.visibility = View.VISIBLE
+            binding.tvEmptyAlbum.visibility = View.VISIBLE
+
+            // Выбираем текст в зависимости от того, активен ли поиск
+            binding.tvEmptyAlbum.text = if (isSearchActive) {
+                "По вашему запросу ничего не найдено"
+            } else {
+                "У вас пока нет папок"
+            }
+        } else {
+            // Список не пуст — всё скрываем
+            binding.progressBarAlbum.visibility = View.GONE
+            binding.imageHolder3Album.visibility = View.GONE
+            binding.tvEmptyAlbum.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
@@ -143,7 +185,19 @@ class AlbumFragment: Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Устанавливаем флаг, что поиск активен, если есть текст
+                isSearchActive = !newText.isNullOrEmpty()
                 viewModel.filterAlbums(newText.orEmpty())
+                return true
+            }
+        })
+        // Сбрасываем флаг поиска при закрытии SearchView
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                isSearchActive = false
+                viewModel.filterAlbums("") // сброс фильтра
                 return true
             }
         })

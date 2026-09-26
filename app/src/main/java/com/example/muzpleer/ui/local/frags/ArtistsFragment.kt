@@ -281,6 +281,8 @@ class ArtistsFragment:Fragment() {
             isEditMode = false
             adapter.setEditMode(false)
             itemTouchHelper.attachToRecyclerView(null)
+            // Сохраняем изменения порядка
+            adapter.onDrop() // Сохраняем порядок в БД
             Log.d(TAG, "PlaylistFragment: Режим редактирования сброшен при уходе")
         }
     }
