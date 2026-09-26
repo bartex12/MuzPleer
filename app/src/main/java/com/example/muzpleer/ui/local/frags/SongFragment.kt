@@ -18,6 +18,8 @@ import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentSongsBinding
 import com.example.muzpleer.di.App
+import com.example.muzpleer.model.Playlist
+import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
@@ -34,6 +36,8 @@ class SongFragment : Fragment() {
     private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
     private lateinit var navController: NavController
+    // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
+    private var isSearchActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,6 +55,9 @@ class SongFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // Изначально показываем картинку-заглушку и крутилку
+        showLoadingState()
 
         appPreferences =PreferenceHelperImpl(App.instance)
         navController = findNavController()
@@ -74,17 +81,11 @@ class SongFragment : Fragment() {
 
         viewModel.filteredSongs.observe(viewLifecycleOwner) { filteredSongs ->
             Log.d( TAG,"32 SongsFragment onViewCreated filteredSongs.observe: filteredSongs.size= ${filteredSongs.size} ")
-            val sortedData = getSortedDataSong(filteredSongs)
+            val sortedData = getSortedDataSong(filteredSongs) //здесь песни отсортированы
             adapter.data = sortedData  //передаём данные в адаптер
-            //вывод заголовков всех песен
-            //Log.d( TAG,"32 SongsFragment onViewCreated sortedData = ${sortedData.map{it.title}} ")
-            //Log.d( TAG,"32 SongsFragment onViewCreated sortedData.size = ${sortedData.size} ")
-            if (filteredSongs.isEmpty()) {
-                binding.imageHolder3.visibility = View.VISIBLE
-            } else {
-                binding.progressBar.visibility = View.GONE
-                binding.imageHolder3.visibility = View.GONE
-            }
+
+            // Управляем видимостью в зависимости от состояния
+            updateEmptyState(filteredSongs)
         }
 
         //обновление обложки при её замене
@@ -96,15 +97,41 @@ class SongFragment : Fragment() {
            }
             adapter.notifyDataSetChanged()
         }
-//        viewModel.loading.observe (viewLifecycleOwner) {loading->
-//            if(loading){
-//                binding.progressBar.visibility = View.VISIBLE
-//                binding.imageHolder3.visibility = View.VISIBLE
-//            } else {
-//                binding.progressBar.visibility = View.GONE
-//                binding.imageHolder3.visibility = View.GONE
-//            }
-//        }
+    }
+
+    /**
+     * Показать состояние загрузки: картинка + прогрессбар, текст скрыт.
+     * Вызывается при открытии фрагмента.
+     */
+    private fun showLoadingState() {
+        binding.imageHolder3.visibility = View.VISIBLE
+        binding.progressBar.visibility = View.VISIBLE
+        binding.tvEmpty.visibility = View.GONE
+    }
+
+    /**
+     * Обновить состояние пустого списка.
+     * @param playlists текущий список (после фильтрации).
+     */
+    private fun updateEmptyState(songs: List<Song>) {
+        if (songs.isEmpty()) {
+            // Список пуст — скрываем прогрессбар, показываем картинку и текст
+            binding.progressBar.visibility = View.GONE
+            binding.imageHolder3.visibility = View.VISIBLE
+            binding.tvEmpty.visibility = View.VISIBLE
+
+            // Выбираем текст в зависимости от того, активен ли поиск
+            binding.tvEmpty.text = if (isSearchActive) {
+                "По вашему запросу ничего не найдено"
+            } else {
+                "У вас пока нет музыкальных треков"
+            }
+        } else {
+            // Список не пуст — всё скрываем
+            binding.progressBar.visibility = View.GONE
+            binding.imageHolder3.visibility = View.GONE
+            binding.tvEmpty.visibility = View.GONE
+        }
     }
 
     override fun onResume() {
@@ -165,7 +192,19 @@ class SongFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Устанавливаем флаг, что поиск активен, если есть текст
+                isSearchActive = !newText.isNullOrEmpty()
                 viewModel.filterSongs(newText.orEmpty())
+                return true
+            }
+        })
+        // Сбрасываем флаг поиска при закрытии SearchView
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                isSearchActive = false
+                viewModel.filterSongs("") // сброс фильтра
                 return true
             }
         })
