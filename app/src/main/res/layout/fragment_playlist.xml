@@ -20,16 +20,27 @@
 
     <ImageView
         android:id="@+id/emptyImageViewPlaylists"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_marginTop="24dp"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:layout_marginTop="16dp"
         android:scaleType="centerCrop"
+        android:src="@drawable/answer300"
         android:visibility="gone"
-        android:src="@drawable/muz_player62"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible"/>
+        tools:visibility="visible" />
+
+    <ProgressBar
+        android:id="@+id/progressBarPlaylists"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/emptyImageViewPlaylists"
+        />
 
     <TextView
         android:id="@+id/tvEmptyPlaylists"
@@ -40,6 +51,7 @@
         android:textSize="18sp"
         android:layout_marginTop="36dp"
         android:visibility="gone"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/emptyImageViewPlaylists"

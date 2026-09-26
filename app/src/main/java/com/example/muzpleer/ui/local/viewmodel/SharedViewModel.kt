@@ -1793,4 +1793,8 @@ class SharedViewModel(
         return newShuffleState
     }
 
+    fun getFilteredPlaylists() :List<Playlist>{
+       return filteredPlaylists.value
+    }
+
 }

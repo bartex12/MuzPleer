@@ -80,7 +80,6 @@ class SongFragment : Fragment() {
             //Log.d( TAG,"32 SongsFragment onViewCreated sortedData = ${sortedData.map{it.title}} ")
             //Log.d( TAG,"32 SongsFragment onViewCreated sortedData.size = ${sortedData.size} ")
             if (filteredSongs.isEmpty()) {
-                binding.progressBar.visibility = View.VISIBLE
                 binding.imageHolder3.visibility = View.VISIBLE
             } else {
                 binding.progressBar.visibility = View.GONE

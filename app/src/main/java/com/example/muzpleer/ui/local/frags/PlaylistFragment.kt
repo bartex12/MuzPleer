@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentPlaylistBinding
+import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.adapters.PlaylistAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -37,6 +38,8 @@ class PlaylistFragment():Fragment() {
     private lateinit var adapter: PlaylistAdapter
     private var isEditMode = false
     private lateinit var itemTouchHelper: ItemTouchHelper
+    // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
+    private var isSearchActive = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +59,9 @@ class PlaylistFragment():Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         //viewModel.setAppBarTitle("Плейлисты") //сбивает правильные заголовки для TabFragment
+
+        // Изначально показываем картинку-заглушку и крутилку
+        showLoadingState()
 
         adapter = PlaylistAdapter (viewModel){ playlist ->
             //здесь setPlaylist и setSongAndPlaylist не делаем, так как здесь нет песен
@@ -90,17 +96,46 @@ class PlaylistFragment():Fragment() {
 
         viewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
             Log.d(TAG,"53 PlaylistFragment onViewCreated filteredPlaylists.observe: filteredPlaylists.size= ${filteredPlaylists.size} ")
-            //if  (viewModel.getSongs().isEmpty()) binding.emptyImageViewPlaylists.visibility = View.VISIBLE else  View.GONE
-            if (filteredPlaylists.isEmpty()) {
-                binding.tvEmptyPlaylists.visibility = View.VISIBLE
-                binding.tvEmptyPlaylists.text = "По вашему запросу ничего не найдено."
-            } else{
-                binding.tvEmptyPlaylists.visibility = View.GONE
-                binding.tvEmptyPlaylists.text = "У вас пока нет плейлистов"
-            }
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.playlist = filteredPlaylists  //передаём данные в адаптер
 
+            // Управляем видимостью в зависимости от состояния
+            updateEmptyState(filteredPlaylists)
+        }
+    }
+
+    /**
+     * Показать состояние загрузки: картинка + прогрессбар, текст скрыт.
+     * Вызывается при открытии фрагмента.
+     */
+    private fun showLoadingState() {
+        binding.emptyImageViewPlaylists.visibility = View.VISIBLE
+        binding.progressBarPlaylists.visibility = View.VISIBLE
+        binding.tvEmptyPlaylists.visibility = View.GONE
+    }
+
+    /**
+     * Обновить состояние пустого списка.
+     * @param playlists текущий список (после фильтрации).
+     */
+    private fun updateEmptyState(playlists: List<Playlist>) {
+        if (playlists.isEmpty()) {
+            // Список пуст — скрываем прогрессбар, показываем картинку и текст
+            binding.progressBarPlaylists.visibility = View.GONE
+            binding.emptyImageViewPlaylists.visibility = View.VISIBLE
+            binding.tvEmptyPlaylists.visibility = View.VISIBLE
+
+            // Выбираем текст в зависимости от того, активен ли поиск
+            binding.tvEmptyPlaylists.text = if (isSearchActive) {
+                "По вашему запросу ничего не найдено"
+            } else {
+                "У вас пока нет плейлистов"
+            }
+        } else {
+            // Список не пуст — всё скрываем
+            binding.progressBarPlaylists.visibility = View.GONE
+            binding.emptyImageViewPlaylists.visibility = View.GONE
+            binding.tvEmptyPlaylists.visibility = View.GONE
         }
     }
 
@@ -157,7 +192,20 @@ class PlaylistFragment():Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
+                // Устанавливаем флаг, что поиск активен, если есть текст
+                isSearchActive = !newText.isNullOrEmpty()
                 viewModel.filterPlaylists(newText.orEmpty())
+                return true
+            }
+        })
+
+        // Сбрасываем флаг поиска при закрытии SearchView
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                isSearchActive = false
+                viewModel.filterPlaylists("") // сброс фильтра
                 return true
             }
         })
@@ -263,8 +311,10 @@ class PlaylistFragment():Fragment() {
             val name=editText.text.toString().trim()
             if (name.isNotEmpty()) {
                 viewModel.createPlaylist(name){
-                    binding.emptyImageViewPlaylists.visibility =  View.GONE
-                    binding.tvEmptyPlaylists.visibility = View.GONE
+                    // После создания плейлиста состояние обновится автоматически
+                    // через observer filteredPlaylists
+                    //binding.emptyImageViewPlaylists.visibility =  View.GONE
+                    //binding.tvEmptyPlaylists.visibility = View.GONE
                 }
                 dialog.dismiss()
             } else {
