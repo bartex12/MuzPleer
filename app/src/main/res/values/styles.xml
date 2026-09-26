@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="PlayerButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:tint">@color/white</item>
+    </style>
+
+    <style name="TabWidget" parent="TextAppearance.Design.Tab">
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="FrameStyle" >
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="WebViewStyle" parent="FrameStyle">
+        <item name="android:layout_height">300dp</item>
+        <item name="android:visibility">visible</item>
+    </style>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.MaterialComponents.Light.NoActionBar">
+    <!--        свои атрибуты-->
+    <item name="colorBottomIcon">?colorPrimary</item>
+    <item name="favorite"> @style/ButtonFavoriteStyle</item>
+    <item name="favoriteRemove"> @style/ButtonFavoriteStyle</item>
+    <item name="bottom_sheet_view_background"> @color/bright_gray</item>
+    <item name="bottom_sheet_root_background"> @color/whisper</item>
+    <item name="card_background_tint"> @color/whisper2</item>
+
+    <!--        <item name="android:forceDarkAllowed"> true </item>-->
+</style>
+
+    <style name="ButtonFavoriteStyle" parent="Widget.MaterialComponents.Button.OutlinedButton.Icon">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:textColor">?colorPrimary</item>
+        <item name="android:textSize">12sp</item>
+        <item name="strokeColor">?colorPrimary</item>
+    </style>
+
+    <!-- Новый стиль для белого TextInputLayout -->
+    <style name="WhiteTextInputLayoutOverlay" parent="">
+        <!-- Цвет рамки в фокусе, иконки поиска при нажатии и курсора -->
+        <item name="colorPrimary">@android:color/white</item>
+        <!-- Цвет рамки без фокуса, текста-подсказки (hint) и счётчика символов -->
+        <item name="colorOnSurface">@android:color/white</item>
+    </style>
+
+
+</resources>

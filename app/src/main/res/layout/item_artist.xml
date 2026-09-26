@@ -1,0 +1,84 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/item_list_effects"
+    >
+
+    <ImageView
+        android:id="@+id/ivArtistArtwork"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/placeholder2"
+        android:padding="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        />
+
+    <TextView
+        android:id="@+id/tvArtistName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="@color/song_text_color"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:text="Имя артиста может быть длинным и даже очень длинным и занимать две строки"
+        app:layout_constraintStart_toEndOf="@id/ivArtistArtwork"
+        app:layout_constraintTop_toTopOf="@id/ivArtistArtwork"
+        app:layout_constraintEnd_toStartOf="@id/artist_dragHandle"
+        />
+
+    <TextView
+        android:id="@+id/tvTracksCount"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="14sp"
+        android:textColor="@color/whisper"
+        app:layout_constraintStart_toEndOf="@id/ivArtistArtwork"
+        app:layout_constraintTop_toBottomOf="@id/tvArtistName"
+        app:layout_constraintEnd_toStartOf="@id/artist_dragHandle"
+        tools:text="12 песен"/>
+    <ImageView
+        android:id="@+id/artist_menu_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="4dp"
+        android:src="@drawable/squere_vertical_menu_icon_white_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/artist_dragHandle"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        android:src="@drawable/up_down5"
+        app:layout_constraintBottom_toBottomOf="@id/artist_menu_button"
+        app:layout_constraintEnd_toStartOf="@id/artist_menu_button"
+        app:layout_constraintTop_toTopOf="@id/artist_menu_button"
+        tools:visibility="visible"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/colorPrimaryBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+         />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

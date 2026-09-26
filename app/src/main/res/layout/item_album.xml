@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    android:background="@drawable/item_list_effects"
+    >
+
+    <!-- Обложка альбома -->
+    <ImageView
+        android:id="@+id/albumArt"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/placeholder2"
+        android:padding="4dp"
+        android:contentDescription="@string/album_art_description"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+         />
+
+    <!-- Название альбома -->
+    <TextView
+        android:id="@+id/albumTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textStyle="bold"
+        android:text="Название альбома может быть длинным и даже очень длинным и занимать две строки"
+        android:textColor="@color/song_text_color"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toStartOf="@id/album_dragHandle"
+        app:layout_constraintStart_toEndOf="@id/albumArt"
+        app:layout_constraintTop_toTopOf="@+id/albumArt" />
+
+    <TextView
+        android:id="@+id/albumArtist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/whisper"
+        android:text="Исполнитель песни очень известный и популярный"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+        app:layout_constraintEnd_toEndOf="@+id/albumTitle"
+        app:layout_constraintStart_toEndOf="@id/tracksCount"
+        app:layout_constraintTop_toBottomOf="@+id/albumTitle" />
+
+    <TextView
+        android:id="@+id/tracksCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+        android:textColor="@color/whisper"
+        app:layout_constraintBottom_toBottomOf="@+id/albumArtist"
+        app:layout_constraintStart_toEndOf="@id/albumArt"
+        app:layout_constraintEnd_toStartOf="@id/albumArtist"
+        app:layout_constraintTop_toTopOf="@+id/albumArtist"
+        tools:text="12 треков" />
+
+    <ImageView
+        android:id="@+id/album_menu_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/squere_vertical_menu_icon_white_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/album_dragHandle"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        android:src="@drawable/up_down5"
+        app:layout_constraintBottom_toBottomOf="@id/album_menu_button"
+        app:layout_constraintEnd_toStartOf="@id/album_menu_button"
+        app:layout_constraintTop_toTopOf="@id/album_menu_button"
+        tools:visibility="visible"/>
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/view"
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/colorPrimaryBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

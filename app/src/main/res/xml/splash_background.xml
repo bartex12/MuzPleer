@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Фон -->
+    <item>
+        <shape>
+            <solid android:color="@color/colorPrimaryBlack" />
+        </shape>
+    </item>
+
+    <!-- Картинка, растянутая на весь экран -->
+    <item>
+        <bitmap
+            android:src="@drawable/muz_player62"
+            android:gravity="fill" />
+    </item>
+</layer-list>

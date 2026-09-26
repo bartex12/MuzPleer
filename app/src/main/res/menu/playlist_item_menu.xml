@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/add_song_to_playlist"
+        android:title="Добавить песни в плейлист"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_song_from_playlist"
+        android:title="Удалить песни из плейлиста"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_change_cover_playlist"
+        android:title="Изменить обложку плейлиста"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/rename_playlist"
+        android:title="Переименовать плейлист"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/delete_playlist"
+        android:title="Удалить плейлист"
+        app:showAsAction="never"/>
+
+
+</menu>

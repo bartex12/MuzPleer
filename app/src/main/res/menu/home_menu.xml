@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/nav_settings"
+        android:orderInCategory="30"
+        android:icon="@drawable/ic_action_setting"
+        android:title="Настройки"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/nav_help"
+        android:orderInCategory="40"
+        android:icon="@drawable/ic_action_help"
+        android:title="Справка"
+        app:showAsAction="never"/>
+</menu>

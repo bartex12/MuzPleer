@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Фон на случай, если картинка не загрузится -->
+    <item>
+        <shape>
+            <solid android:color="@color/colorPrimaryBlack" />
+        </shape>
+    </item>
+
+    <!-- Картинка с центрированием и обрезанием -->
+    <item>
+        <bitmap
+            android:src="@drawable/muz_player_800_1400"
+            android:gravity="fill" />
+        <clip
+            android:drawable="@drawable/muz_player_800_1400"
+            android:gravity="fill" />
+    </item>
+</layer-list>

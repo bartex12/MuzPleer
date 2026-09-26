@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@id/tabLocalFragment">
+
+    <fragment
+        android:id="@+id/playerFragment"
+        android:name="com.example.muzpleer.ui.player.PlayerFragment"
+        android:label="Воспроизведение"
+        tools:layout="@layout/fragment_player"/>
+    <fragment
+        android:id="@+id/songFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongFragment"
+        android:label="Музыкальные треки"
+        tools:layout="@layout/fragment_songs">
+    </fragment>
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.muzpleer.setting.SettingsFragment"
+        android:label="Настройки" />
+    <fragment
+        android:id="@+id/tabLocalFragment"
+        android:name="com.example.muzpleer.ui.local.TabLocalFragment"
+        android:label="Музыка на ладони"
+        tools:layout="@layout/fragment_tabslocal">
+        <action
+            android:id="@+id/action_tabsLocalFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+        <action
+            android:id="@+id/action_tabLocalFragment_to_editSongFragment"
+            app:destination="@id/editSongFragment" />
+        <action
+            android:id="@+id/action_tabLocalFragment_to_addSongsSourceFragment"
+            app:destination="@id/addSongsSourceFragment" />
+        <action
+            android:id="@+id/action_tabLocalFragment_to_removeSongsFromPlaylistFragment"
+            app:destination="@id/removeSongsFromPlaylistFragment" />
+        <action
+            android:id="@+id/action_showChoosePlaylistFragment"
+            app:destination="@id/choosePlaylistFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/albumFragment"
+        android:name="com.example.muzpleer.ui.local.frags.AlbumFragment"
+        android:label="AlbumFragment"
+        tools:layout="@layout/fragment_album"/>
+    <fragment
+        android:id="@+id/artistsFragment"
+        android:name="com.example.muzpleer.ui.local.frags.ArtistsFragment"
+        android:label="ArtistsFragment"
+        tools:layout="@layout/fragment_singers"/>
+    <fragment
+        android:id="@+id/folderFragment"
+        android:name="com.example.muzpleer.ui.local.frags.FolderFragment"
+        android:label="FolderFragment"
+        tools:layout="@layout/fragment_folders"/>
+
+<!--    <fragment-->
+<!--        android:id="@+id/alltracksFragment"-->
+<!--        android:name="com.example.muzpleer.ui.local.frags.SongListFragment"-->
+<!--        android:label="Музыкальные треки"-->
+<!--        tools:layout="@layout/fragment_alltracks">-->
+<!--        <action-->
+<!--            android:id="@+id/action_alltracksFragment_to_playerFragment"-->
+<!--            app:destination="@id/playerFragment" />-->
+<!--    </fragment>-->
+
+    <fragment
+        android:id="@+id/coverChangeFragment"
+        android:name="com.example.muzpleer.ui.local.frags.CoverChangeFragment"
+        android:label="Изменить обложку"
+        tools:layout="@layout/fragment_cover_change">
+        <action
+            android:id="@+id/action_to_coverChangeFragment"
+            app:destination="@id/coverChangeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/editSongFragment"
+        android:name="com.example.muzpleer.ui.local.frags.EditSongFragment"
+        android:label="Редактирование песни"
+        tools:layout="@layout/fragment_edit_song">
+        <action
+            android:id="@+id/action_editSongFragment_to_tabLocalFragment"
+            app:destination="@id/tabLocalFragment"
+            app:popUpTo="@id/tabLocalFragment"
+            app:popUpToInclusive="true"/>
+    </fragment>
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.example.muzpleer.ui.local.frags.FavoritesFragment"
+        android:label="FavoritesFragment"
+        tools:layout="@layout/fragment_favorite">
+        <action
+            android:id="@+id/action_favoritesFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/addSongsSourceFragment"
+        android:name="com.example.muzpleer.ui.local.frags.AddSongsSourceFragment"
+        android:label="Добавить песни"
+        tools:layout="@layout/fragment_add_songs_source">
+
+        <argument
+            android:name="playlistId"
+            app:argType="long"/>
+
+        <action
+            android:id="@+id/action_addSongsSource_to_songsSelection"
+            app:destination="@id/songsSelectionFragment"/>
+
+        <action
+            android:id="@+id/action_addSongsSource_to_albumsSelection"
+            app:destination="@id/albumsSelectionFragment">
+            <argument
+                android:name="playlistId"
+                app:argType="long"/>
+            <argument
+                android:name="selectionType"
+                app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+        </action>
+
+        <action
+            android:id="@+id/action_addSongsSource_to_artistsSelection"
+            app:destination="@id/artistsSelectionFragment">
+            <argument
+                android:name="playlistId"
+                app:argType="long"/>
+            <argument
+                android:name="selectionType"
+                app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+        </action>
+
+        <action
+            android:id="@+id/action_addSongsSource_to_foldersSelection"
+            app:destination="@id/foldersSelectionFragment">
+            <argument
+                android:name="playlistId"
+                app:argType="long"/>
+            <argument
+                android:name="selectionType"
+                app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+        </action>
+
+        <action
+            android:id="@+id/action_addSongsSourceFragment_to_playlistsSelectionFragment"
+            app:destination="@id/playlistsSelectionFragment" >
+        <argument
+            android:name="playlistId"
+            app:argType="long"/>
+        <argument
+            android:name="selectionType"
+            app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+        </action>
+    </fragment>
+
+    <fragment
+        android:id="@+id/albumsSelectionFragment"
+        android:name="com.example.muzpleer.ui.local.frags.AlbumSelectionFragment"
+        android:label="Выбор альбома">
+        <argument
+            android:name="playlistId"
+            app:argType="long"/>
+        <argument
+            android:name="selectionType"
+            app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/artistsSelectionFragment"
+        android:name="com.example.muzpleer.ui.local.frags.ArtistsSelectionFragment"
+        android:label="Выбор исполнителя"/>
+
+    <fragment
+        android:id="@+id/foldersSelectionFragment"
+        android:name="com.example.muzpleer.ui.local.frags.FoldersSelectionFragment"
+        android:label="Выбор папки"/>
+
+    <fragment
+        android:id="@+id/songsSelectionFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongsSelectionFragment"
+        android:label="Выбор песен"
+        tools:layout="@layout/fragment_songs_selection">
+
+        <argument
+            android:name="playlistId"
+            app:argType="long"/>
+        <argument
+            android:name="selectionType"
+            app:argType="com.example.muzpleer.ui.local.frags.SelectionType"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/playlistFragment"
+        android:name="com.example.muzpleer.ui.local.frags.PlaylistFragment"
+        android:label="Плейлисты"
+        tools:layout="@layout/fragment_playlist"/>
+    <fragment
+        android:id="@+id/songPlaylistFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongPlaylistFragment"
+        android:label="SongPlaylistFragment" >
+        <action
+            android:id="@+id/action_songPlaylistFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/coverChangeLevelFragment"
+        android:name="com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment"
+        android:label="Изменение обложки"
+        tools:layout="@layout/fragment_cover_change_level"/>
+    <fragment
+        android:id="@+id/removeSongsFromPlaylistFragment"
+        android:name="com.example.muzpleer.ui.local.frags.playlist.RemoveSongsFromPlaylistFragment"
+        android:label="RemoveSongsFromPlaylistFragment"
+        tools:layout="@layout/fragment_remove_songs_from_playlist">
+        <argument
+            android:name="playlistId"
+            app:argType="long" />
+
+        <argument
+            android:name="playlistName"
+            app:argType="string" />
+    </fragment>
+    <fragment
+        android:id="@+id/songListAlbumFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongListAlbumFragment"
+        android:label="SongListAlbumFragment" >
+        <action
+            android:id="@+id/action_songListAlbumFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/songListArtistFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongListArtistFragment"
+        android:label="SongListArtistFragment" >
+        <action
+            android:id="@+id/action_songListArtistFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/songListFolderFragment"
+        android:name="com.example.muzpleer.ui.local.frags.SongListFolderFragment"
+        android:label="SongListFolderFragment" >
+        <action
+            android:id="@+id/action_songListFolderFragment_to_playerFragment"
+            app:destination="@id/playerFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/choosePlaylistFragment"
+        android:name="com.example.muzpleer.ui.local.frags.ChoosePlaylistFragment"
+        android:label="Выбор плейлиста"
+        tools:layout="@layout/fragment_choose_playlist" />
+    <fragment
+        android:id="@+id/playlistsSelectionFragment"
+        android:name="com.example.muzpleer.ui.local.frags.PlaylistsSelectionFragment"
+        android:label="PlaylistsSelectionFragment" />
+
+</navigation>

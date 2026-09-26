@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/search_toolbar"
+        android:orderInCategory="100"
+        android:title="@string/search"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="always"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <item
+        android:id="@+id/action_to"
+        android:orderInCategory="200"
+        android:title="К песне"
+        android:icon="@drawable/outline_flag_24"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_shuffle"
+        android:title="Shuffle"
+        android:orderInCategory="300"
+        android:icon="@drawable/icons8_data_white_24"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/updateSongs"
+        android:orderInCategory="300"
+        android:title="Обновить данные"
+        android:icon="@drawable/outline_sync_24"
+        app:showAsAction="collapseActionView|ifRoom"/>
+
+</menu>

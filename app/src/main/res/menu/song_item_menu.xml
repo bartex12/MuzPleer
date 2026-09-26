@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_add_to_favorites"
+        android:title="Добавить в избранное"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_remove_from_favorites"
+        android:title="Удалить из избранного"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_add_to_playlist"
+        android:title="Добавить в плейлист"
+        app:showAsAction="never"/>
+
+    <item
+        android:id="@+id/action_change_cover"
+        android:title="Изменить обложку"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/edit_song_info"
+        android:title="Изменить информацию о песне"
+        android:icon="@drawable/baseline_change_circle_24"
+        app:showAsAction="never"/>
+
+    <!-- Новый пункт меню - Поделиться -->
+    <item
+        android:id="@+id/action_send"
+        android:title="Поделиться"
+        android:icon="@drawable/baseline_share_24"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/action_song_info"
+        android:title="О песне"
+        android:icon="@drawable/baseline_info_outline_24"
+        app:showAsAction="never"/>
+    <!-- Другие пункты меню -->
+</menu>

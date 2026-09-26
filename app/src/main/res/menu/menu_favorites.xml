@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_go_to_song_favorite"
+        android:orderInCategory="200"
+        android:title="К песне"
+        android:icon="@drawable/outline_flag_24"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_edit_order_favorite"
+        android:title="Редактировать порядок"
+        android:orderInCategory="300"
+        android:icon="@drawable/baseline_edit_note_24"
+        app:showAsAction="ifRoom"/>
+</menu>

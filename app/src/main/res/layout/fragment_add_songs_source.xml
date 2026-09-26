@@ -1,0 +1,183 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://android.com"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app1="http://schemas.android.com/apk/res-auto"
+    android:padding="16dp"
+    android:background="@drawable/item_list_effects_revers">
+
+    <!-- Карточка: Все песни -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardAllSongs"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintTop_toTopOf="parent"
+        >
+
+        <TextView
+            android:id="@+id/allSongsOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_music_note_2_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть все песни"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Карточка: Альбомы -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardAlbums"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintTop_toBottomOf="@+id/cardAllSongs"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <TextView
+            android:id="@+id/albumsOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_album_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть альбомы"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Карточка: Исполнители -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardArtists"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintTop_toBottomOf="@+id/cardAlbums"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <TextView
+            android:id="@+id/artistsOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_frame_person_mic_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть исполнителей"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Карточка: Папки -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardFolders"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintTop_toBottomOf="@+id/cardArtists"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <TextView
+            android:id="@+id/foldersOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_folder_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть папки"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Карточка: Избранное -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardFavorites"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintTop_toBottomOf="@+id/cardFolders"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <TextView
+            android:id="@+id/favoritesOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_favorite_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть избранное"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+    <!-- Карточка: Плейлисты -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardPlaylists"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        app1:layout_constraintEnd_toEndOf="parent"
+        app1:layout_constraintStart_toStartOf="parent"
+        app1:layout_constraintTop_toBottomOf="@+id/cardFavorites"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="2dp">
+
+        <TextView
+            android:id="@+id/playlistsOption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/item_list_effects"
+            android:drawableStart="@drawable/outline_queue_music_24"
+            android:drawablePadding="12dp"
+            android:padding="18dp"
+            android:text="Посмотреть плейлисты"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

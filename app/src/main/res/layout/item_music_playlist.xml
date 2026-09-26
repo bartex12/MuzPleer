@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="72dp"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/item_list_effects"
+    >
+
+    <ImageView
+        android:id="@+id/trackArtworkPlaylist"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/placeholder2"
+        android:padding="4dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <!-- Container для текстовой информации -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/textContainerPlaylist"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/trackArtworkPlaylist"
+        app:layout_constraintEnd_toStartOf="@+id/dragHandlePlaylist"
+        app:layout_constraintStart_toEndOf="@id/trackArtworkPlaylist"
+        app:layout_constraintTop_toTopOf="@id/trackArtworkPlaylist">
+
+        <TextView
+            android:id="@+id/trackTitlePlaylist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
+            android:textSize="16sp"
+            android:text="Название песни может быть длинным и даже очень длинным и занимать две строки"
+            android:textColor="@color/song_text_color"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <LinearLayout
+            android:id="@+id/bottomInfoPlaylist"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/trackTitlePlaylist">
+
+            <TextView
+                android:id="@+id/trackDurationPlaylist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3:15"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                android:textColor="@color/whisper"/>
+
+            <TextView
+                android:id="@+id/trackArtistPlaylist"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/whisper"
+                android:text="Исполнитель песни очень известный и популярный"
+                android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
+
+
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- Divider -->
+    <View
+        android:layout_width="0dp"
+        android:layout_height="2dp"
+        android:background="@color/colorPrimaryBlack"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ImageView
+        android:id="@+id/menu_buttonPlaylist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="4dp"
+        android:src="@drawable/squere_vertical_menu_icon_white_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/dragHandlePlaylist"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="8dp"
+        android:visibility="gone"
+        android:src="@drawable/up_down5"
+        app:layout_constraintBottom_toBottomOf="@id/trackArtworkPlaylist"
+        app:layout_constraintEnd_toStartOf="@id/menu_buttonPlaylist"
+        app:layout_constraintTop_toTopOf="@id/trackArtworkPlaylist"
+        tools:visibility="visible"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory
+        android:title="@string/splash">
+        <CheckBoxPreference
+            android:key="cbScreen"
+            android:title="@string/show_hide"
+            app:defaultValue="false"
+            android:summaryOn="@string/show_screen"
+            android:summaryOff="@string/hide_screen">
+        </CheckBoxPreference>
+    </PreferenceCategory>
+
+</PreferenceScreen>

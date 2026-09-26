@@ -1,0 +1,83 @@
+<resources>
+    <string name="app_name">MuzPlayer4</string>
+    <string name="app_name2">Музыка на ладони</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Музыкальный плеер</string>
+    <string name="nav_header_subtitle">Аудиотреки в памяти телефона</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_tracks">tracksFragment</string>
+    <string name="menu_player">playerFragment</string>
+    <string name="not_permission">Разрешение отклонено. Функционал ограничен</string>
+    <string name="mytracks">Избранное</string>
+    <string name="singers">Исполнители</string>
+    <string name="mykings">МП</string>
+    <string name="local">Все песни</string>
+    <string name="albums">Альбомы</string>
+    <string name="album_art_description">Обложка альбома</string>
+    <string name="folders">Папки</string>
+    <string name="forExit">Для выхода нажмите  НАЗАД  ещё раз</string>
+    <string name="search">Поиск</string>
+    <string name="search_song">поиск трека</string>
+    <string name="search_album">поиск альбома</string>
+    <string name="search_playlist">поиск плейлиста</string>
+    <string name="search_artist">поиск исполнителя</string>
+    <string name="search_folder">поиск папки</string>
+    <string name="search_favorite">поиск в избранном</string>
+    <string name="search_text">начните вводить название</string>
+    <string name="my_tracks">Избранное</string>
+    <string name="my_playlists">Плейлисты</string>
+    <string name="input_any_text">Введите что-нибудь в строке поиска</string>
+
+    <string name="little_king">МП</string>
+
+    <string name="zoom_zoom">Сильное увеличение</string>
+
+    <string name="favorites">Избранное</string>
+    <string name="help">Справка</string>
+    <string name="share">Поделиться</string>
+    <string name="send">Оценить</string>
+    <string name="addition">Дополнительно</string>
+    <string name="settings">Настройки</string>
+    <string name="stub">Заглушка</string>
+    <string name="new_playlist">Новый плейлист</string>
+
+    <string-array name="sound_level_entry_number">
+        <item>Без звука</item>
+        <item>20%</item>
+        <item>40%</item>
+        <item>60%</item>
+        <item>80%</item>
+        <item>100%</item>
+    </string-array>
+
+    <string-array name="sound_level_entryValues_number">
+        <item>0</item>
+        <item>20</item>
+        <item>40</item>
+        <item>60</item>
+        <item>80</item>
+        <item>100</item>
+    </string-array>
+
+    <string-array name="MenuMain">
+        <item>Музыка в телефоне</item>
+        <item>Своя музыка</item>
+        <item>Настройки</item>
+    </string-array>
+
+    <string-array name="MenuSubMain">
+        <item>Музыкальные треки в папках телефона</item>
+        <item>Музыкальные треки приложения</item>
+        <item>Настройки приложения</item>
+    </string-array>
+
+    <!-- Messages Preferences -->
+    <string name="splash">Экран загрузки</string>
+    <string name="show_hide">Показать/скрыть.</string>
+    <string name="show_screen">Показываем экран загрузки</string>
+    <string name="hide_screen">Не показываем экран загрузки</string>
+
+</resources>

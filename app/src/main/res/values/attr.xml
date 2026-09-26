@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="favorite" format="reference"/>
+    <attr name="favoriteRemove" format="reference"/>
+
+    <attr name="colorBottomIcon" format="reference"/>
+    <attr name="bottom_sheet_view_background" format="reference"/>
+    <attr name="bottom_sheet_root_background" format="reference"/>
+    <attr name="card_background_tint" format="reference"/>
+
+
+</resources>

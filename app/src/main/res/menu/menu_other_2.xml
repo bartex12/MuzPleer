@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_go_to_song2"
+        android:orderInCategory="200"
+        android:title="К песне"
+        android:icon="@drawable/outline_flag_24"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/action_shuffle"
+        android:title="Shuffle"
+        android:orderInCategory="300"
+        android:icon="@drawable/icons8_data_white_24"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/action_edit_order2"
+        android:title="Редактировать порядок"
+        android:orderInCategory="300"
+        android:icon="@drawable/baseline_edit_note_24"
+        app:showAsAction="ifRoom"/>
+</menu>
