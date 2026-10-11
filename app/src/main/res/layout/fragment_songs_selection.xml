@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,11 +9,16 @@
     android:background="@drawable/item_list_effects_revers">
 
     <LinearLayout
+        android:id="@+id/buttonLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
-        android:background="@drawable/item_list_effects">
+        android:background="@drawable/item_list_effects_revers"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/songsRecyclerView"
+        app:layout_constraintBottom_toBottomOf="parent">
 
         <TextView
             android:id="@+id/selectionCount"
@@ -24,19 +30,28 @@
             android:textColor="@color/white"
             />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/selectAllButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Выбрать все"
-            android:layout_marginEnd="8dp" />
+            android:layout_marginEnd="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/addButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Добавить"
-            android:enabled="false" />
+            android:enabled="false"
+            app:strokeColor="@color/colorPrimaryBlack"
+            app:strokeWidth="1dp"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
 
     </LinearLayout>
 
@@ -56,7 +71,9 @@
         app:endIconCheckable="true"
         app:endIconDrawable="@drawable/baseline_search_24"
         app:endIconMode="custom"
+        app:endIconTint="@android:color/white"
         app:helperText="Найдите песню в списке песен"
+        app:helperTextTextColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -65,7 +82,8 @@
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/input_edit_text_search"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/white" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -73,5 +91,9 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        tools:listitem="@layout/item_song_selection"/>
-</LinearLayout>
+        tools:listitem="@layout/item_song_selection"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/input_layout_search_selection"
+        app:layout_constraintBottom_toTopOf="@id/buttonLine"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

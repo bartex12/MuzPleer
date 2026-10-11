@@ -23,6 +23,7 @@ import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.toast
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 
 class SongsSelectionFragment : Fragment() {
@@ -281,6 +282,12 @@ class SongsSelectionFragment : Fragment() {
 
     private fun updateAddButtonState(isEnabled: Boolean) {
         binding.addButton.isEnabled = isEnabled
+        val btnAdd = binding.root.findViewById<MaterialButton>(R.id.addButton)
+        if(isEnabled){
+            btnAdd.setStrokeColorResource(R.color.white)
+        }else{
+            btnAdd.setStrokeColorResource(R.color.colorPrimaryBlack)
+        }
     }
 
     private fun addSelectedSongsToPlaylist() {
