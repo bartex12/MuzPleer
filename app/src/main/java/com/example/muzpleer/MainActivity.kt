@@ -45,8 +45,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.databinding.ActivityMainBinding
+import com.example.muzpleer.databinding.ItemMusicBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.TabLocalFragment
+import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
@@ -235,13 +237,13 @@ class MainActivity : AppCompatActivity() {
                 try {
                     if (isContentProviderUri(artUri)){
                         // Загрузка обложки из  content:/com.android.providers.downloads
-                        showImageWithGlide(binding.root.context, artUri, artWork)
+                        showImageWithGlide(binding.root.context, artUri, artWork, songCurrent, binding)
                     }else  if (isContentProviderUriPicker(artUri.toString())){
                         val  photoPickerUri =artUri.toString().toUri()
-                        showImageWithGlide(binding.root.context, photoPickerUri, artWork)
+                        showImageWithGlide(binding.root.context, photoPickerUri, artWork, songCurrent, binding)
                     }else{
                         // Загрузка обложки из кэша приложения
-                        showImageWithGlide(binding.root.context, File(artUri), artWork)
+                        showImageWithGlide(binding.root.context, File(artUri), artWork, songCurrent, binding)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "❌ MainActivity exception when loading: ${e.message}")
@@ -269,13 +271,13 @@ class MainActivity : AppCompatActivity() {
                     try {
                         if (isContentProviderUri(artUri)){
                             // Загрузка обложки из  content:/com.android.providers.downloads
-                            showImageWithGlide(binding.root.context, artUri, artWork)
+                            showImageWithGlide(binding.root.context, artUri, artWork, currentSong, binding)
                         }else  if (isContentProviderUriPicker(artUri.toString())){
                             val  photoPickerUri =artUri.toString().toUri()
-                            showImageWithGlide(binding.root.context, photoPickerUri, artWork)
+                            showImageWithGlide(binding.root.context, photoPickerUri, artWork, currentSong, binding)
                         }else{
                             // Загрузка обложки из кэша приложения
-                            showImageWithGlide(binding.root.context, File(artUri), artWork)
+                            showImageWithGlide(binding.root.context, File(artUri), artWork, currentSong, binding)
                         }
                     } catch (e: Exception) {
                         Log.e(TAG, "❌Security exception when loading: ${e.message}")
@@ -600,7 +602,8 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    fun showImageWithGlide(context:Context, artUri:Any, imageView: ImageView){
+    fun showImageWithGlide(context:Context, artUri:Any, imageView: ImageView,
+                           track: Song, binding: ActivityMainBinding){
         // Загрузка обложки
         Glide.with(context)
             .load(artUri)
@@ -614,7 +617,9 @@ class MainActivity : AppCompatActivity() {
                     target: com.bumptech.glide.request.target.Target<Drawable?>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    Log.e(TAG, " ❌ Glide load failed in MainActivity for URI: $artUri", e)
+                    Log.d(TAG, "❌MainActivity Glide load failed for" +
+                            " track title = ${track.title} URI: $artUri")
+                    artWork.setImageResource(R.drawable.muz_player3)
                     return false
                 }
 

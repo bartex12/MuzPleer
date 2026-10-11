@@ -42,15 +42,14 @@
         android:id="@+id/favoriteRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="8dp"
         android:clipToPadding="false"
         android:paddingBottom="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/input_layout_search"
-        tools:listitem="@layout/item_music_playlist"/>
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:listitem="@layout/item_music" />
 
     <ImageView
         android:id="@+id/emptyImageViewFavorite"
