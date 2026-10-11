@@ -26,7 +26,9 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import com.example.muzpleer.databinding.ActivityMainBinding
 import com.example.muzpleer.databinding.FragmentCoverChangeBinding
+import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -183,7 +185,8 @@ class CoverChangeFragment : Fragment() {
                     target: com.bumptech.glide.request.target.Target<Drawable?>,
                     isFirstResource: Boolean
                 ): Boolean {
-                    Log.e(TAG, " ❌CoverChangeFragment Glide load failed for URI: $artUri", e)
+                    Log.d(TAG, "❌MainActivity Glide load failed for URI: $artUri")
+                    imageView.setImageResource(R.drawable.muz_player3)
                     return false
                 }
 
