@@ -4,7 +4,9 @@
     android:layout_height="wrap_content"
     xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/item_list_effects_revers">
+
 
     <TextView
         android:id="@+id/tvTitle"
@@ -13,6 +15,7 @@
         android:text="Добавить в плейлист"
         android:textSize="18sp"
         android:textStyle="bold"
+        android:textColor="@color/white"
         android:paddingBottom="16dp"/>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -20,6 +23,6 @@
         android:layout_width="match_parent"
         android:layout_height="300dp"
         android:padding="8dp"
-        tools:listitem="@layout/item_playlist_choose"/>
+        tools:listitem="@layout/item_playlist_choose" />
 
 </LinearLayout>

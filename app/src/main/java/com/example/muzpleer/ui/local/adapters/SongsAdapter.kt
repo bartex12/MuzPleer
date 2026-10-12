@@ -260,7 +260,6 @@ class SongsAdapter(
 //        viewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
 //            adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все песни"
 //        }
-
         // 🔧 ИСПРАВЛЕНИЕ: Используем observeForever с ручной отпиской
         val observer = Observer<List<Playlist>> { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L }
