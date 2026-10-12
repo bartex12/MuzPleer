@@ -14,6 +14,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
@@ -389,6 +390,19 @@ class FavoritesFragment: Fragment() {
                     R.id.action_edit_order_favorite -> {
                         toggleEditMode()
                         true
+                    }
+
+                    R.id.action_shuffle->{
+                        val newShuffleState = viewModel.setPlaybackMode()
+                        // Меняем иконку в зависимости от состояния
+                        if (newShuffleState) {
+                            menuItem.setIcon(R.drawable.baseline_shuffle_24) // подсвеченная иконка
+                            Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
+                        } else {
+                            menuItem.setIcon(R.drawable.icons8_data_white_24) // обычная иконка
+                            Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
+                        }
+                        return   true
                     }
                 }
                 return false

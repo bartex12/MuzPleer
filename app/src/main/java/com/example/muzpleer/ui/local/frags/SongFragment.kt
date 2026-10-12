@@ -249,8 +249,7 @@ class SongFragment : Fragment() {
                 val newShuffleState = viewModel.setPlaybackMode()
                 // Меняем иконку в зависимости от состояния
                 if (newShuffleState) {
-                    item.setIcon(R.drawable.icons8_shuffle_white_24) // подсвеченная иконка
-                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
+                    item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
                 } else {
                     item.setIcon(R.drawable.icons8_data_white_24) // обычная иконка
                     Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
