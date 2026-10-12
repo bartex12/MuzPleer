@@ -2,6 +2,7 @@ package com.example.muzpleer.ui.local.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -10,8 +11,12 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -24,6 +29,7 @@ import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemAlbumBinding
 import com.example.muzpleer.model.Album
+import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -137,23 +143,53 @@ class AlbumsAdapter(
             }
         }
     }
-
+    
     private fun showPopupMenu(view: View, album: Album) {
         val context = view.context
-        val popup = PopupMenu(context, view)
-        popup.menuInflater.inflate(R.menu.level_item_menu, popup.menu)
+        val inflater = LayoutInflater.from(context)
+        val popupView = inflater.inflate(R.layout.popup_level_menu, null)
 
-        popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_change_cover_level -> {  //изменить обложку плейлиста
-                    navigateToChangeLevelCover(view, album)
-                    true
-                }
-                else -> false
-            }
+
+        val popup =  PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true // focusable, чтобы закрывался по тапу вне
+        )
+
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
+
+        popupView.findViewById<TextView>(R.id.itemLevelChangeCover).setOnClickListener {
+            navigateToChangeLevelCover(view, album)
+            popup.dismiss()
         }
-        popup.show()
+
+        popupView.measure(
+            View.MeasureSpec.UNSPECIFIED,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
+
+//    private fun showPopupMenu2(view: View, album: Album) {
+//        val context = view.context
+//        val popup = PopupMenu(context, view)
+//        popup.menuInflater.inflate(R.menu.level_item_menu, popup.menu)
+//
+//        popup.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.action_change_cover_level -> {  //изменить обложку плейлиста
+//                    navigateToChangeLevelCover(view, album)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
+//        popup.show()
+//    }
 
     private fun navigateToChangeLevelCover(view: View,  album: Album) {
         Log.d(TAG, "-=- AlbumsAdapter navigateToChangeLevelCover: " +

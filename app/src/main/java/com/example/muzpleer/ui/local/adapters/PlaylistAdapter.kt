@@ -2,6 +2,7 @@ package com.example.muzpleer.ui.local.adapters
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -12,9 +13,13 @@ import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -27,6 +32,7 @@ import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemPlaylistBinding
 import com.example.muzpleer.model.Playlist
+import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.TabLocalFragmentDirections
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
@@ -145,54 +151,114 @@ class PlaylistAdapter(
 
     private fun showPopupMenu(view: View, playlist: Playlist) {
         val context = view.context
-        val popup = PopupMenu(context, view)
-        popup.menuInflater.inflate(R.menu.playlist_item_menu, popup.menu)
+        val inflater = LayoutInflater.from(context)
+        val popupView = inflater.inflate(R.layout.popup_playlist_menu, null)
+
+
+        val popup =  PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true // focusable, чтобы закрывался по тапу вне
+        )
+
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
 
         // Скрываем или показываем пункт в зависимости от содержимого
-        val deleteSongsItem = popup.menu.findItem(R.id.delete_song_from_playlist)
+        val deleteSongsItem = popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist)
         if (playlist.playlistSongs.isEmpty()) {
             // Если пусто - меняем текст и отключаем
-            deleteSongsItem?.title = "Плейлист пуст"
+            deleteSongsItem?.text = "Плейлист пуст"
             deleteSongsItem?.isEnabled = false
         } else {
             // Если есть песни - показываем нормальный текст
-            deleteSongsItem?.title = "Удалить песни из плейлиста"
+            deleteSongsItem?.text = "Удалить песни из плейлиста"
             deleteSongsItem?.isEnabled = true
         }
 
-        popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-
-                R.id.add_song_to_playlist -> {  //добавить песню в плейлист
-                    navigateToAddSongsSource(view, playlist)
-                    true
-                }
-                R.id.action_change_cover_playlist -> {  //изменить обложку плейлиста
-                    navigateToChangePlaylistCover(view, playlist)
-                    true
-                }
-                R.id.rename_playlist -> { //переименовать плейлист
-                    showRenameDialog(context, playlist)
-                    true
-                }
-                R.id.delete_song_from_playlist -> {
-                    if (playlist.playlistSongs.isNotEmpty()) {
-                        navigateToRemoveSongsFromPlaylist(view, playlist)
-                        true
-                    } else {
-                        // Просто игнорируем нажатие на неактивный пункт
-                        false
-                    }
-                }
-                R.id.delete_playlist -> {  //удалить плейлист
-                    showDeleteDialog(context, playlist)
-                    true
-                }
-                else -> false
-            }
+        popupView.findViewById<TextView>(R.id.itemAddSongToPlaylist).setOnClickListener {
+            navigateToAddSongsSource(view, playlist)
+            popup.dismiss() }
+        popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist).setOnClickListener {
+            if (playlist.playlistSongs.isNotEmpty()) {
+                navigateToRemoveSongsFromPlaylist(view, playlist)
+                popup.dismiss() }
         }
-        popup.show()
+
+        popupView.findViewById<TextView>(R.id.itemChangeCoverPlaylist).setOnClickListener {
+            navigateToChangePlaylistCover(view, playlist)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemRenamePlaylist).setOnClickListener {
+            showRenameDialog(context, playlist)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemDeletePlaylist).setOnClickListener {
+            showDeleteDialog(context, playlist)
+            popup.dismiss()
+        }
+
+        popupView.measure(
+            View.MeasureSpec.UNSPECIFIED,
+            View.MeasureSpec.UNSPECIFIED
+        )
+        popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
+
+//    private fun showPopupMenu(view: View, playlist: Playlist) {
+//        val context = view.context
+//        val popup = PopupMenu(context, view)
+//        popup.menuInflater.inflate(R.menu.playlist_item_menu, popup.menu)
+//
+//        // Скрываем или показываем пункт в зависимости от содержимого
+//        val deleteSongsItem = popup.menu.findItem(R.id.delete_song_from_playlist)
+//        if (playlist.playlistSongs.isEmpty()) {
+//            // Если пусто - меняем текст и отключаем
+//            deleteSongsItem?.title = "Плейлист пуст"
+//            deleteSongsItem?.isEnabled = false
+//        } else {
+//            // Если есть песни - показываем нормальный текст
+//            deleteSongsItem?.title = "Удалить песни из плейлиста"
+//            deleteSongsItem?.isEnabled = true
+//        }
+//
+//        popup.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
+//
+//                R.id.add_song_to_playlist -> {  //добавить песню в плейлист
+//                    navigateToAddSongsSource(view, playlist)
+//                    true
+//                }
+//                R.id.action_change_cover_playlist -> {  //изменить обложку плейлиста
+//                    navigateToChangePlaylistCover(view, playlist)
+//                    true
+//                }
+//                R.id.rename_playlist -> { //переименовать плейлист
+//                    showRenameDialog(context, playlist)
+//                    true
+//                }
+//                R.id.delete_song_from_playlist -> {
+//                    if (playlist.playlistSongs.isNotEmpty()) {
+//                        navigateToRemoveSongsFromPlaylist(view, playlist)
+//                        true
+//                    } else {
+//                        // Просто игнорируем нажатие на неактивный пункт
+//                        false
+//                    }
+//                }
+//                R.id.delete_playlist -> {  //удалить плейлист
+//                    showDeleteDialog(context, playlist)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
+//        popup.show()
+//    }
 
     // Новый метод для навигации к удалению песен
     private fun navigateToRemoveSongsFromPlaylist(view: View, playlist: Playlist) {
