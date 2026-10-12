@@ -216,7 +216,7 @@ class PlayerFragment : Fragment() {
 
         viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
             binding.playPauseButton.setImageResource(
-                if (isPlaying) R.drawable.ic_pause else R.drawable.ic_play
+                if (isPlaying) R.drawable.ic_pause_white else R.drawable.ic_play_white
             )
         }
 
