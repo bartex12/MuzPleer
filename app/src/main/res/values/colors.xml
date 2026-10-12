@@ -39,4 +39,7 @@
     <color name="whisper2Black">#15424242</color>
     <color name="colorAccent40Alfa">#662962FF</color>
     <color name="colorBack">#FFE0B6</color>
+
+    <color name="popup_divider30">#4DFFFFFF</color>  <!-- белый 30% -->
+    <color name="popup_divider20">#33FFFFFF</color>  <!-- белый 20%, деликатнее -->
 </resources>

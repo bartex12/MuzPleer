@@ -5,6 +5,8 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -14,6 +16,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
@@ -42,6 +45,8 @@ import com.example.muzpleer.util.formatFileSize
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.view.isVisible
 
 
 class SongsAdapter(
@@ -152,56 +157,70 @@ class SongsAdapter(
 
     private fun showPopupMenu(view: View, song: Song) {
         val context = view.context
-        val popup = PopupMenu(context, view)
-        popup.menuInflater.inflate(R.menu.song_item_menu, popup.menu)
+        val inflater = LayoutInflater.from(context)
+        val popupView = inflater.inflate(R.layout.popup_song_menu, null)
+
+
+        val popup =  PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true // focusable, чтобы закрывался по тапу вне
+        )
+
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
+
+        // Видимость пунктов избранного
+        val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddToFavorites)
+        val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveFromFavorites)
 
         viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
-            popup.menu.findItem(R.id.action_add_to_favorites).isVisible = !isFavorite
-            popup.menu.findItem(R.id.action_remove_from_favorites).isVisible = isFavorite
+            itemAddFav.isVisible = !isFavorite
+            itemRemFav.isVisible = isFavorite
         }
 
-        popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_add_to_favorites -> {
-                    viewModel.toggleFavorite(song)
-                    true
-                }
-                R.id.action_remove_from_favorites -> {
-                    viewModel.toggleFavorite(song)
-                    true
-                }
-                R.id.action_add_to_playlist -> {
-                    // 🔧 Навигация к фрагменту с передачей параметров через Bundle
-                    navigateToChoosePlaylistFragment(context, song)
-                    true
-                }
-                R.id.action_change_cover -> {  //сменить обложку
-                    Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover:" +
-                            "song title = ${song.title} song artUri =  ${song.artUri}")
-                    //запоминаем во ViewModel выбранную песню  - потом в CoverChange Fragment понадобится
-                    viewModel.setSelectedSong(song)
-                    //идём во фрагмент замены обложки с источником вызова адаптера
-                    view.findNavController().navigate(R.id.coverChangeFragment)
-                    true
-                }
-                R.id.edit_song_info -> { //изменить информацию о песне
-                    viewModel.setSelectedSong(song)
-                    // Переходим к редактированию
-                    view.findNavController().navigate(R.id.editSongFragment)
-                    true
-                }
-                R.id.action_send -> {
-                    shareSong(context, song) // Вызов функции для отправки песни
-                    true
-                }
-                R.id.  action_song_info -> {
-                    showSongInfoDialog(context, song)
-                    true
-                }
-                else -> false
-            }
+        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        popupView.findViewById<TextView>(R.id.itemAddToPlaylist).setOnClickListener {
+            navigateToChoosePlaylistFragment(context, song); popup.dismiss()
         }
-        popup.show()
+
+        popupView.findViewById<TextView>(R.id.itemChangeCover).setOnClickListener {
+            //сменить обложку
+            Log.d(TAG, "!!!SongsAdapter showPopupMenu itemChangeCover:" +
+                    "song title = ${song.title} song artUri =  ${song.artUri}")
+            //запоминаем во ViewModel выбранную песню  - потом в CoverChange Fragment понадобится
+            viewModel.setSelectedSong(song)
+            //идём во фрагмент замены обложки с источником вызова адаптера
+            view.findNavController().navigate(R.id.coverChangeFragment)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemEditSongInfo).setOnClickListener {
+            viewModel.setSelectedSong(song)
+            // Переходим к редактированию
+            view.findNavController().navigate(R.id.editSongFragment)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemSend).setOnClickListener {
+            shareSong(context, song) // Вызов функции для отправки песни
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemSongInfo).setOnClickListener {
+            showSongInfoDialog(context, song)
+            popup.dismiss()
+        }
+
+        popupView.measure(
+            View.MeasureSpec.UNSPECIFIED,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
 
     /**

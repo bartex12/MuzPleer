@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="8dp"
+    android:background="@drawable/popup_menu_bg"
+    android:elevation="8dp">
+
+    <TextView
+        android:id="@+id/itemAddToFavorites"
+        style="@style/PopupMenuItem"
+        android:text="Добавить в избранное" />
+
+    <TextView
+        android:id="@+id/itemRemoveFromFavorites"
+        style="@style/PopupMenuItem"
+        android:text="Удалить из избранного" />
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemAddToPlaylist"
+        style="@style/PopupMenuItem"
+        android:text="Добавить в плейлист" />
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemChangeCover"
+        style="@style/PopupMenuItem"
+        android:text="Изменить обложку" />
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemEditSongInfo"
+        style="@style/PopupMenuItem"
+        android:text="Изменить информацию о песне" />
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemSend"
+        style="@style/PopupMenuItem"
+        android:text="Поделиться" />
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemSongInfo"
+        style="@style/PopupMenuItem"
+        android:text="О песне" />
+
+</LinearLayout>
