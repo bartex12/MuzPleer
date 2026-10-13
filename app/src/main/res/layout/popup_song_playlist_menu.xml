@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:paddingVertical="8dp"
+    android:background="@drawable/popup_menu_bg"
+    android:elevation="8dp">
+
+    <TextView
+        android:id="@+id/itemAddSongToFavorites"
+        style="@style/PopupMenuItem"
+        android:text="Добавить трек в избранное"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/baseline_favorite_24"
+        app:drawableTint="@color/white"/>
+
+    <TextView
+        android:id="@+id/itemRemoveSongFromFavorites"
+        style="@style/PopupMenuItem"
+        android:text="Удалить трек из избранного"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/baseline_favorite_border_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemRemoveSongFromPlaylist"
+        style="@style/PopupMenuItem"
+        android:text="Удалить трек из плейлиста"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_playlist_remove_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemChangePlaylistSongCover"
+        style="@style/PopupMenuItem"
+        android:text="Изменить обложку трека"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_edit_square_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemEditPlaylistSongInfo"
+        style="@style/PopupMenuItem"
+        android:text="Изменить информацию о треке"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_edit_note_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemSendSongPlaylist"
+        style="@style/PopupMenuItem"
+        android:text="Поделиться треком"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_share_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemPlaylistSongInfo"
+        style="@style/PopupMenuItem"
+        android:text="О треке"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_info_24"
+        app:drawableTint="@color/white"/>
+
+</LinearLayout>

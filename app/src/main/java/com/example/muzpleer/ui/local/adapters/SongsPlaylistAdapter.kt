@@ -5,6 +5,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.util.Log
@@ -14,11 +15,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -173,65 +177,136 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
 
     private fun showPopupMenu(view: View, song: Song) {
         val context = view.context
-        val popup = PopupMenu(context, view)
-        popup.menuInflater.inflate(R.menu.song_playlist_item_menu, popup.menu)
+        val inflater = LayoutInflater.from(context)
+        val popupView = inflater.inflate(R.layout.popup_song_playlist_menu, null)
+
+
+        val popup =  PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true // focusable, чтобы закрывался по тапу вне
+        )
+
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
+
+        // Видимость пунктов избранного
+        val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddSongToFavorites)
+        val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveSongFromFavorites)
 
         viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
-            popup.menu.findItem(R.id.action_add_to_favorites_playlist).isVisible = !isFavorite
-            popup.menu.findItem(R.id.action_remove_from_favorites_playlist).isVisible = isFavorite
+            itemAddFav.isVisible = !isFavorite
+            itemRemFav.isVisible = isFavorite
         }
 
-        popup.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.action_add_to_favorites_playlist -> {
-                    viewModel.toggleFavorite(song)
-                    true
-                }
-                R.id.action_remove_from_favorites_playlist -> {
-                    viewModel.toggleFavorite(song)
-                    true
-                }
-
-                R.id.action_delete_from_playlist -> {
-                    // Удаляем песню из плейлиста
-                    viewModel.deleteSongFromPlaylist(song.id)
-                    // Показываем уведомление
-                    Toast.makeText(context, "Песня удалена из плейлиста", Toast.LENGTH_SHORT).show()
-                    true
-                }
-
-                R.id.action_change_cover_playlist -> {  //сменить обложку
-                    Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover:" +
-                            "song title = ${song.title} song artUri =  ${song.artUri}")
-                    //запоминаем во ViewModel выбранную песню
-                    viewModel.setSelectedSong(song)
-                    //идём во фрагмент замены обложки с источником вызова адаптера
-                    view.findNavController().navigate(R.id.coverChangeFragment)
-                    true
-                }
-                R.id.edit_song_info_playlist -> { //изменить информацию о песне
-                    viewModel.setSelectedSong(song)
-                    // Переходим к редактированию
-                    view.findNavController().navigate(R.id.editSongFragment)
-                    true
-                }
-                R.id.action_send_playlist -> {
-                    viewModel.getSongById(song.id){song->
-                     song?. let{
-                         shareSong(context, it) // Вызов функции для отправки песни
-                     }  ?: Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover Песня не найдена: = ${song?.title} ")
-                    }
-                    true
-                }
-                R.id.  action_song_info_playlist -> {
-                    showSongInfoDialog(context, song)
-                    true
-                }
-                else -> false
-            }
-        }
-        popup.show()
+        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        popupView.findViewById<TextView>(R.id.itemRemoveSongFromPlaylist).setOnClickListener {
+         //Удаляем песню из плейлиста
+        viewModel.deleteSongFromPlaylist(song.id)
+        // Показываем уведомление
+        Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
+        popup.dismiss()
     }
+
+        popupView.findViewById<TextView>(R.id.itemChangePlaylistSongCover).setOnClickListener {
+            Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover:" +
+                    "song title = ${song.title} song artUri =  ${song.artUri}")
+            //запоминаем во ViewModel выбранную песню
+            viewModel.setSelectedSong(song)
+            //идём во фрагмент замены обложки с источником вызова адаптера
+            view.findNavController().navigate(R.id.coverChangeFragment)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemEditPlaylistSongInfo).setOnClickListener {
+            viewModel.setSelectedSong(song)
+            // Переходим к редактированию
+            view.findNavController().navigate(R.id.editSongFragment)
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemSendSongPlaylist).setOnClickListener {
+            shareSong(context, song) // Вызов функции для отправки песни
+            popup.dismiss()
+        }
+
+        popupView.findViewById<TextView>(R.id.itemPlaylistSongInfo).setOnClickListener {
+            showSongInfoDialog(context, song)
+            popup.dismiss()
+        }
+
+        popupView.measure(
+            View.MeasureSpec.UNSPECIFIED,
+            View.MeasureSpec.UNSPECIFIED
+        )
+
+        popup.showAsDropDown(view, 0, - popupView.measuredHeight)
+    }
+
+//    private fun showPopupMenu(view: View, song: Song) {
+//        val context = view.context
+//        val popup = PopupMenu(context, view)
+//        popup.menuInflater.inflate(R.menu.song_playlist_item_menu, popup.menu)
+//
+//        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+//            popup.menu.findItem(R.id.action_add_to_favorites_playlist).isVisible = !isFavorite
+//            popup.menu.findItem(R.id.action_remove_from_favorites_playlist).isVisible = isFavorite
+//        }
+//
+//        popup.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.action_add_to_favorites_playlist -> {
+//                    viewModel.toggleFavorite(song)
+//                    true
+//                }
+//                R.id.action_remove_from_favorites_playlist -> {
+//                    viewModel.toggleFavorite(song)
+//                    true
+//                }
+//
+//                R.id.action_delete_from_playlist -> {
+//                    // Удаляем песню из плейлиста
+//                    viewModel.deleteSongFromPlaylist(song.id)
+//                    // Показываем уведомление
+//                    Toast.makeText(context, "Песня удалена из плейлиста", Toast.LENGTH_SHORT).show()
+//                    true
+//                }
+//
+//                R.id.action_change_cover_playlist -> {  //сменить обложку
+//                    Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover:" +
+//                            "song title = ${song.title} song artUri =  ${song.artUri}")
+//                    //запоминаем во ViewModel выбранную песню
+//                    viewModel.setSelectedSong(song)
+//                    //идём во фрагмент замены обложки с источником вызова адаптера
+//                    view.findNavController().navigate(R.id.coverChangeFragment)
+//                    true
+//                }
+//                R.id.edit_song_info_playlist -> { //изменить информацию о песне
+//                    viewModel.setSelectedSong(song)
+//                    // Переходим к редактированию
+//                    view.findNavController().navigate(R.id.editSongFragment)
+//                    true
+//                }
+//                R.id.action_send_playlist -> {
+//                    viewModel.getSongById(song.id){song->
+//                     song?. let{
+//                         shareSong(context, it) // Вызов функции для отправки песни
+//                     }  ?: Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover Песня не найдена: = ${song?.title} ")
+//                    }
+//                    true
+//                }
+//                R.id.  action_song_info_playlist -> {
+//                    showSongInfoDialog(context, song)
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
+//        popup.show()
+//    }
 
     private fun showSongInfoDialog(context:Context,song: Song) {
         val dialog = Dialog(context)

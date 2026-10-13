@@ -49,7 +49,7 @@
     <TextView
         android:id="@+id/itemEditSongInfo"
         style="@style/PopupMenuItem"
-        android:text="Изменить информацию о песне"
+        android:text="Изменить информацию о треке"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_edit_note_24"
         app:drawableTint="@color/white"/>
@@ -69,7 +69,7 @@
     <TextView
         android:id="@+id/itemSongInfo"
         style="@style/PopupMenuItem"
-        android:text="О песне"
+        android:text="О треке"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_info_24"
         app:drawableTint="@color/white"/>
