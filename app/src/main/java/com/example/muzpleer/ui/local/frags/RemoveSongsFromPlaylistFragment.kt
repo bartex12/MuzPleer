@@ -58,7 +58,7 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
                 // Обновляем текст кнопки
                 val count = selectedSongs.size
                 binding.btnDeleteSelected.text =
-                    if (count > 0) "Удалить выбранное ($count)" else "Удалить выбранное"
+                    if (count > 0) "Удалить($count)" else "Удалить"
                 binding.btnDeleteSelected.isEnabled = count > 0
             }
         )

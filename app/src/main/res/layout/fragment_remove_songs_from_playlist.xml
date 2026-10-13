@@ -4,48 +4,47 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-<!--    <com.google.android.material.appbar.MaterialToolbar-->
-<!--        android:id="@+id/toolbar"-->
-<!--        android:layout_width="0dp"-->
-<!--        android:layout_height="?attr/actionBarSize"-->
-<!--        android:background="?attr/colorPrimary"-->
-<!--        app:layout_constraintEnd_toEndOf="parent"-->
-<!--        app:layout_constraintStart_toStartOf="parent"-->
-<!--        app:layout_constraintTop_toTopOf="parent"-->
-<!--        app:title="Удалить песни из плейлиста" />-->
+    android:layout_height="match_parent"
+    android:background="@drawable/item_list_effects_revers">
 
     <!-- Кнопки действий -->
     <LinearLayout
         android:id="@+id/buttonContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
         android:orientation="horizontal"
         android:gravity="center"
+        android:background="@drawable/item_list_effects_revers"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/recyclerView"
+        >
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSelectAll"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginEnd="4dp"
             android:text="Выбрать все"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDeleteSelected"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
             android:layout_marginStart="4dp"
-            android:text="Удалить выбранное"
+            android:text="Удалить"
             android:enabled="false"
-            style="@style/Widget.MaterialComponents.Button" />
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
 
     </LinearLayout>
 
@@ -54,7 +53,6 @@
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -76,6 +74,3 @@
         app:layout_constraintTop_toTopOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-<!--    app:icon="@drawable/ic_delete"-->
-<!--     app:iconGravity="start"-->
-<!--    app:navigationIcon="@drawable/ic_arrow_back"-->
