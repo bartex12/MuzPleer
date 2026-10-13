@@ -18,6 +18,7 @@ import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toDrawable
@@ -34,6 +35,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemMusicPlaylistBinding
+import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -202,13 +204,12 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         }
 
         itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+
         itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+
         popupView.findViewById<TextView>(R.id.itemRemoveSongFromPlaylist).setOnClickListener {
-         //Удаляем песню из плейлиста
-        viewModel.deleteSongFromPlaylist(song.id)
-        // Показываем уведомление
-        Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
-        popup.dismiss()
+            showDeleteDialog(context, song)
+            popup.dismiss()
     }
 
         popupView.findViewById<TextView>(R.id.itemChangePlaylistSongCover).setOnClickListener {
@@ -244,6 +245,22 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         )
 
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
+    }
+
+    fun showDeleteDialog(context:Context, song: Song) {
+        val deleteDialog = AlertDialog.Builder(context)
+        deleteDialog.setTitle("Удалить: Вы уверены?")
+        deleteDialog.setPositiveButton("Нет") { _, _ ->
+            //ничего не делаем
+            deleteDialog.create().dismiss()
+        }
+        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
+            //Удаляем песню из плейлиста
+            viewModel.deleteSongFromPlaylist(song.id)
+            // Показываем уведомление
+            Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
+        }
+        deleteDialog.show()
     }
 
 //    private fun showPopupMenu(view: View, song: Song) {
