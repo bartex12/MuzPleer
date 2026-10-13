@@ -3,6 +3,7 @@ package com.example.muzpleer.ui.local.adapters
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageView
@@ -40,6 +42,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
 import java.io.File
 import java.util.Collections
@@ -290,52 +293,113 @@ class PlaylistAdapter(
     }
 
     private fun showRenameDialog(context: Context, playlist: Playlist) {
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_rename_playlist, null)
+        val dialogView = LayoutInflater.from(context)
+            .inflate(R.layout.dialog_rename_playlist_new, null)
+
         val editText = dialogView.findViewById<EditText>(R.id.rename_edit_text)
         val textLayout = dialogView.findViewById<TextInputLayout>(R.id.rename_text_layout)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnRenameCancel)
+        val btnSave = dialogView.findViewById<MaterialButton>(R.id.btnRenameSave)
 
+        // Предзаполнение
         editText.setText(playlist.playlistName)
         editText.setSelection(playlist.playlistName.length)
 
+        // Диалог без стандартных кнопок/заголовка — всё внутри макета
         val dialog = AlertDialog.Builder(context)
-            .setTitle("Переименовать плейлист")
             .setView(dialogView)
-            .setPositiveButton("Сохранить", null) // Обработчик установим позже
-            .setNegativeButton("Отмена") { dialog, _ ->
-                dialog.dismiss()
-            }
             .create()
 
-        // Показываем клавиатуру
+        // Прозрачный фон, чтобы не было белых углов вокруг нашего макета
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        // Фокус + клавиатура
         dialog.setOnShowListener {
             editText.requestFocus()
             val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
             imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
         }
 
-        // Обработка кнопки Сохранить с валидацией
-        dialog.setOnShowListener {
-            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-            positiveButton.setOnClickListener {
-                val newName = editText.text.toString().trim()
+        // Отмена
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
 
-                when {
-                    newName.isEmpty() -> {
-                        textLayout.error = "Название не может быть пустым"
-                    }
-                    newName == playlist.playlistName -> {
-                        dialog.dismiss()
-                    }
-                    else -> {
-                        viewModel.renamePlaylist(playlist.id, newName)
-                        dialog.dismiss()
-                    }
+        // Сохранить с валидацией
+        btnSave.setOnClickListener {
+            val newName = editText.text.toString().trim()
+            when {
+                newName.isEmpty() -> {
+                    textLayout.error = "Название не может быть пустым"
+                }
+                newName == playlist.playlistName -> {
+                    dialog.dismiss()
+                }
+                else -> {
+                    viewModel.renamePlaylist(playlist.id, newName)
+                    dialog.dismiss()
                 }
             }
         }
 
+        // Enter на клавиатуре = сохранить (опционально)
+        editText.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                btnSave.performClick()
+                true
+            } else false
+        }
+
         dialog.show()
     }
+
+//    private fun showRenameDialog(context: Context, playlist: Playlist) {
+//        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_rename_playlist, null)
+//        val editText = dialogView.findViewById<EditText>(R.id.rename_edit_text)
+//        val textLayout = dialogView.findViewById<TextInputLayout>(R.id.rename_text_layout)
+//
+//        editText.setText(playlist.playlistName)
+//        editText.setSelection(playlist.playlistName.length)
+//
+//        val dialog = AlertDialog.Builder(context)
+//            .setTitle("Переименовать плейлист")
+//            .setView(dialogView)
+//            .setPositiveButton("Сохранить", null) // Обработчик установим позже
+//            .setNegativeButton("Отмена") { dialog, _ ->
+//                dialog.dismiss()
+//            }
+//            .create()
+//
+//        // Показываем клавиатуру
+//        dialog.setOnShowListener {
+//            editText.requestFocus()
+//            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+//            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+//        }
+//
+//        // Обработка кнопки Сохранить с валидацией
+//        dialog.setOnShowListener {
+//            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+//            positiveButton.setOnClickListener {
+//                val newName = editText.text.toString().trim()
+//
+//                when {
+//                    newName.isEmpty() -> {
+//                        textLayout.error = "Название не может быть пустым"
+//                    }
+//                    newName == playlist.playlistName -> {
+//                        dialog.dismiss()
+//                    }
+//                    else -> {
+//                        viewModel.renamePlaylist(playlist.id, newName)
+//                        dialog.dismiss()
+//                    }
+//                }
+//            }
+//        }
+//
+//        dialog.show()
+//    }
 
     private fun navigateToAddSongsSource(view: View,  playlist: Playlist) {
         val action =TabLocalFragmentDirections.actionTabLocalFragmentToAddSongsSourceFragment(

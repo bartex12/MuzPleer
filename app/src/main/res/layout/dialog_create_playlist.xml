@@ -97,7 +97,7 @@
             app:strokeColor="@color/white"
             app:strokeWidth="1dp"
             android:textColor="@color/white"
-            app:backgroundTint="@color/colorSecondaryBlue"
+            app:backgroundTint="@color/colorPrimary"
             app:cornerRadius="8dp"/>
 
     </LinearLayout>
