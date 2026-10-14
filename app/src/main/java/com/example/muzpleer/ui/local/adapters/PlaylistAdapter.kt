@@ -3,7 +3,6 @@ package com.example.muzpleer.ui.local.adapters
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -18,10 +17,8 @@ import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
-import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -34,7 +31,6 @@ import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemPlaylistBinding
 import com.example.muzpleer.model.Playlist
-import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.TabLocalFragmentDirections
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType

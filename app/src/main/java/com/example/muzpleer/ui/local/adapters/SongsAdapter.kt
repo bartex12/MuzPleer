@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
@@ -19,10 +18,10 @@ import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
-import androidx.fragment.app.Fragment
+import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
@@ -45,8 +44,6 @@ import com.example.muzpleer.util.formatFileSize
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
-import androidx.core.graphics.drawable.toDrawable
-import androidx.core.view.isVisible
 
 
 class SongsAdapter(

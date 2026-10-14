@@ -13,10 +13,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
-import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import androidx.navigation.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -29,7 +27,6 @@ import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemAlbumBinding
 import com.example.muzpleer.model.Album
-import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -143,7 +140,7 @@ class AlbumsAdapter(
             }
         }
     }
-    
+
     private fun showPopupMenu(view: View, album: Album) {
         val context = view.context
         val inflater = LayoutInflater.from(context)

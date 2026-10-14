@@ -1,13 +1,13 @@
 package com.example.muzpleer.ui.local.frags.playlist
 
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -20,7 +20,6 @@ import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.toast
 import com.google.android.material.button.MaterialButton
-import androidx.core.graphics.drawable.toDrawable
 
 
 //класс для удаления песен из плейлиста с экрана списка плейлистов

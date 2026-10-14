@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
-import androidx.appcompat.widget.PopupMenu
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleOwner
@@ -27,7 +26,6 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemFolderBinding
-import com.example.muzpleer.model.Album
 import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
