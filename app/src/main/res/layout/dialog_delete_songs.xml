@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/item_list_effects_revers">
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/tvDeleteSongsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Удаление песен"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Пояснение: количество и название плейлиста подставляем из кода -->
+    <TextView
+        android:id="@+id/tvDeleteSongsMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textAlignment="center"
+        android:textColor="@color/secondary_text"
+        android:layout_marginBottom="24dp"
+        tools:text="Удалить 3 песен из плейлиста &quot;Мой плейлист&quot;?" />
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <!-- Удалить — слева -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteSongsConfirm"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="Удалить"
+            android:background="@drawable/item_list_effects_button"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="8dp" />
+
+        <!-- Отмена — справа -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteSongsCancel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Отмена"
+            android:background="@drawable/item_list_effects_button"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>

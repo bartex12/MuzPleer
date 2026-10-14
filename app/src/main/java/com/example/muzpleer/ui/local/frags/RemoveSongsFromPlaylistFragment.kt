@@ -1,19 +1,26 @@
 package com.example.muzpleer.ui.local.frags.playlist
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentRemoveSongsFromPlaylistBinding
+import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.toast
+import com.google.android.material.button.MaterialButton
+import androidx.core.graphics.drawable.toDrawable
 
 
 //класс для удаления песен из плейлиста с экрана списка плейлистов
@@ -97,18 +104,56 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
         binding.btnDeleteSelected.isEnabled = false
     }
 
-    private fun showDeleteConfirmationDialog(selectedSongs: List<com.example.muzpleer.model.Song>) {
-        AlertDialog.Builder(requireContext())
-            .setTitle("Удаление песен")
-            .setMessage("Удалить ${selectedSongs.size} песен из плейлиста \"$playlistName\"?")
-            .setPositiveButton("Удалить") { _, _ ->
-                val songIds = selectedSongs.map { it.id }
-                viewModel.removeSongsFromPlaylist(playlistId, songIds)
-                findNavController().navigateUp()
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
+    private fun showDeleteConfirmationDialog(selectedSongs: List<Song>) {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_delete_songs, null)
+
+        val tvMessage = dialogView.findViewById<TextView>(R.id.tvDeleteSongsMessage)
+        val btnConfirm = dialogView.findViewById<MaterialButton>(R.id.btnDeleteSongsConfirm)
+        val btnCancel = dialogView.findViewById<MaterialButton>(R.id.btnDeleteSongsCancel)
+
+        // Подставляем количество и название плейлиста
+        //tvMessage.text = "Удалить ${selectedSongs.size} песен из плейлиста \"$playlistName\"?"
+        tvMessage.text = resources.getQuantityString(
+            R.plurals.delete_songs_message,
+            selectedSongs.size,
+            selectedSongs.size,
+            playlistName
+        )
+
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Прозрачный фон окна — чтобы не было белой подложки вокруг нашего макета
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        btnConfirm.setOnClickListener {
+            val songIds = selectedSongs.map { it.id }
+            viewModel.removeSongsFromPlaylist(playlistId, songIds)
+            dialog.dismiss()
+            findNavController().navigateUp()
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
+
+//    private fun showDeleteConfirmationDialog(selectedSongs: List<Song>) {
+//        AlertDialog.Builder(requireContext())
+//            .setTitle("Удаление песен")
+//            .setMessage("Удалить ${selectedSongs.size} песен из плейлиста \"$playlistName\"?")
+//            .setPositiveButton("Удалить") { _, _ ->
+//                val songIds = selectedSongs.map { it.id }
+//                viewModel.removeSongsFromPlaylist(playlistId, songIds)
+//                findNavController().navigateUp()
+//            }
+//            .setNegativeButton("Отмена", null)
+//            .show()
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

@@ -80,4 +80,11 @@
     <string name="show_screen">Показываем экран загрузки</string>
     <string name="hide_screen">Не показываем экран загрузки</string>
 
+    <plurals name="delete_songs_message">
+        <item quantity="one">Удалить %1$d песню из плейлиста &quot;%2$s&quot;?</item>
+        <item quantity="few">Удалить %1$d песни из плейлиста &quot;%2$s&quot;?</item>
+        <item quantity="many">Удалить %1$d песен из плейлиста &quot;%2$s&quot;?</item>
+        <item quantity="other">Удалить %1$d песен из плейлиста &quot;%2$s&quot;?</item>
+    </plurals>
+
 </resources>

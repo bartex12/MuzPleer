@@ -14,21 +14,22 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="8dp"
+        android:gravity="center"
         android:background="@drawable/item_list_effects_revers"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/songsRecyclerView"
         app:layout_constraintBottom_toBottomOf="parent">
 
-        <TextView
-            android:id="@+id/selectionCount"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:padding="8dp"
-            android:text="Выбрано: 0"
-            android:textColor="@color/white"
-            />
+<!--        <TextView-->
+<!--            android:id="@+id/selectionCount"-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:padding="8dp"-->
+<!--            android:text="Выбрано: 0"-->
+<!--            android:textColor="@color/white"-->
+<!--            />-->
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/selectAllButton"

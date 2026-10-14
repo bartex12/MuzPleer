@@ -25,6 +25,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.toast
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputLayout
+import kotlin.compareTo
 
 class SongsSelectionFragment : Fragment() {
     private lateinit var binding: FragmentSongsSelectionBinding
@@ -91,8 +92,7 @@ class SongsSelectionFragment : Fragment() {
         adapter = SongSelectionAdapter(
             sharedViewModel = viewModel,
         onSelectionChanged =  { selectedSongs ->
-            updateSelectionCount(selectedSongs.size)
-            updateAddButtonState(selectedSongs.isNotEmpty())
+            updateAddButton(selectedSongs)
             }
         )
         binding.songsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -107,7 +107,7 @@ class SongsSelectionFragment : Fragment() {
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs
                     //adapter.data = getSortedDataSong(songs)
-                    updateSelectionCount(0)
+                    //updateSelectionCount(0)
                 }
             }
             SelectionType.FAVORITES -> {
@@ -115,7 +115,7 @@ class SongsSelectionFragment : Fragment() {
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs  //не сортируем, чтобы менять порядок
-                    updateSelectionCount(0)
+                    //updateSelectionCount(0)
                 }
             }
             SelectionType.ALBUM ->{
@@ -125,7 +125,7 @@ class SongsSelectionFragment : Fragment() {
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs
                     //adapter.data = getSortedDataSong(songs)
-                    updateSelectionCount(0)
+                    //updateSelectionCount(0)
                 }
             }
             SelectionType.ARTIST ->{
@@ -135,7 +135,7 @@ class SongsSelectionFragment : Fragment() {
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs
                     //adapter.data = getSortedDataSong(songs)
-                    updateSelectionCount(0)
+                    //updateSelectionCount(0)
                 }
             }
             SelectionType.FOLDER ->{
@@ -145,7 +145,7 @@ class SongsSelectionFragment : Fragment() {
                     viewModel.setListSelectedSong(folderSongs)
                     adapter.data = folderSongs
                     //adapter.data = getSortedDataSong(folderSongs)
-                    updateSelectionCount(0)
+                    //updateSelectionCount(0)
                 }
             }
 
@@ -276,11 +276,26 @@ class SongsSelectionFragment : Fragment() {
         imm.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
     }
 
-    private fun updateSelectionCount(count: Int) {
-        binding.selectionCount.text = "Выбрано: $count"
+//    private fun updateSelectionCount(count: Int) {
+//        binding.selectionCount.text = "Выбрано: $count"
+//    }
+
+    private fun updateAddButton(selectedSong:List<Song>){
+        val count = selectedSong.size
+        val isEnable = count > 0
+        val btnAdd = binding.root.findViewById<MaterialButton>(R.id.addButton)
+        btnAdd.isEnabled = isEnable
+        btnAdd.text =  if (count > 0) "Добавить($count)" else "Добавить"
+
+        if(isEnable){
+            btnAdd.setStrokeColorResource(R.color.white)
+        }else{
+            btnAdd.setStrokeColorResource(R.color.colorPrimaryBlack)
+        }
     }
 
     private fun updateAddButtonState(isEnabled: Boolean) {
+
         binding.addButton.isEnabled = isEnabled
         val btnAdd = binding.root.findViewById<MaterialButton>(R.id.addButton)
         if(isEnabled){
