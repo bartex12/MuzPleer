@@ -44,6 +44,7 @@ import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
+import com.google.android.material.button.MaterialButton
 import java.io.File
 import java.util.Collections
 
@@ -247,83 +248,34 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
 
-    fun showDeleteDialog(context:Context, song: Song) {
-        val deleteDialog = AlertDialog.Builder(context)
-        deleteDialog.setTitle("Удалить: Вы уверены?")
-        deleteDialog.setPositiveButton("Нет") { _, _ ->
-            //ничего не делаем
-            deleteDialog.create().dismiss()
-        }
-        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
+    fun showDeleteDialog(context: Context, song:Song) {
+        val dialogView = LayoutInflater.from(context)
+            .inflate(R.layout.dialog_delete_trek_from_playlist, null)
+
+        val btnYes = dialogView.findViewById<MaterialButton>(R.id.btnDeleteTrekYes)
+        val btnNo  = dialogView.findViewById<MaterialButton>(R.id.btnDeleteTrekNo)
+
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .create()
+
+        // Прозрачный фон окна — чтобы не было белой подложки вокруг нашего макета
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        btnYes.setOnClickListener {
             //Удаляем песню из плейлиста
             viewModel.deleteSongFromPlaylist(song.id)
             // Показываем уведомление
             Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
         }
-        deleteDialog.show()
-    }
 
-//    private fun showPopupMenu(view: View, song: Song) {
-//        val context = view.context
-//        val popup = PopupMenu(context, view)
-//        popup.menuInflater.inflate(R.menu.song_playlist_item_menu, popup.menu)
-//
-//        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
-//            popup.menu.findItem(R.id.action_add_to_favorites_playlist).isVisible = !isFavorite
-//            popup.menu.findItem(R.id.action_remove_from_favorites_playlist).isVisible = isFavorite
-//        }
-//
-//        popup.setOnMenuItemClickListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.action_add_to_favorites_playlist -> {
-//                    viewModel.toggleFavorite(song)
-//                    true
-//                }
-//                R.id.action_remove_from_favorites_playlist -> {
-//                    viewModel.toggleFavorite(song)
-//                    true
-//                }
-//
-//                R.id.action_delete_from_playlist -> {
-//                    // Удаляем песню из плейлиста
-//                    viewModel.deleteSongFromPlaylist(song.id)
-//                    // Показываем уведомление
-//                    Toast.makeText(context, "Песня удалена из плейлиста", Toast.LENGTH_SHORT).show()
-//                    true
-//                }
-//
-//                R.id.action_change_cover_playlist -> {  //сменить обложку
-//                    Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover:" +
-//                            "song title = ${song.title} song artUri =  ${song.artUri}")
-//                    //запоминаем во ViewModel выбранную песню
-//                    viewModel.setSelectedSong(song)
-//                    //идём во фрагмент замены обложки с источником вызова адаптера
-//                    view.findNavController().navigate(R.id.coverChangeFragment)
-//                    true
-//                }
-//                R.id.edit_song_info_playlist -> { //изменить информацию о песне
-//                    viewModel.setSelectedSong(song)
-//                    // Переходим к редактированию
-//                    view.findNavController().navigate(R.id.editSongFragment)
-//                    true
-//                }
-//                R.id.action_send_playlist -> {
-//                    viewModel.getSongById(song.id){song->
-//                     song?. let{
-//                         shareSong(context, it) // Вызов функции для отправки песни
-//                     }  ?: Log.d(TAG, "!!!SongsAdapter showPopupMenu action_change_cover Песня не найдена: = ${song?.title} ")
-//                    }
-//                    true
-//                }
-//                R.id.  action_song_info_playlist -> {
-//                    showSongInfoDialog(context, song)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
-//        popup.show()
-//    }
+        btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
 
     private fun showSongInfoDialog(context:Context,song: Song) {
         val dialog = Dialog(context)

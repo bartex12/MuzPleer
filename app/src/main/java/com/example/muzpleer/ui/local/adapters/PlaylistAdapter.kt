@@ -278,19 +278,44 @@ class PlaylistAdapter(
         )
     }
 
+    fun showDeleteDialog(context: Context, playlist: Playlist) {
+        val dialogView = LayoutInflater.from(context)
+            .inflate(R.layout.dialog_delete_playlist, null)
 
-    fun showDeleteDialog(context:Context, playlist: Playlist) {
-        val deleteDialog = AlertDialog.Builder(context)
-        deleteDialog.setTitle("Удалить: Вы уверены?")
-        deleteDialog.setPositiveButton("Нет") { _, _ ->
-            //ничего не делаем
-            deleteDialog.create().dismiss()
-        }
-        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
+        val btnYes = dialogView.findViewById<MaterialButton>(R.id.btnDeleteYes)
+        val btnNo  = dialogView.findViewById<MaterialButton>(R.id.btnDeleteNo)
+
+        val dialog = AlertDialog.Builder(context)
+            .setView(dialogView)
+            .create()
+
+        // Прозрачный фон окна — чтобы не было белой подложки вокруг нашего макета
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        btnYes.setOnClickListener {
             viewModel.deletePlaylist(playlist.id)
+            dialog.dismiss()
         }
-        deleteDialog.show()
+
+        btnNo.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
     }
+
+//    fun showDeleteDialog(context:Context, playlist: Playlist) {
+//        val deleteDialog = AlertDialog.Builder(context)
+//        deleteDialog.setTitle("Удалить: Вы уверены?")
+//        deleteDialog.setPositiveButton("Нет") { _, _ ->
+//            //ничего не делаем
+//            deleteDialog.create().dismiss()
+//        }
+//        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
+//            viewModel.deletePlaylist(playlist.id)
+//        }
+//        deleteDialog.show()
+//    }
 
     private fun showRenameDialog(context: Context, playlist: Playlist) {
         val dialogView = LayoutInflater.from(context)

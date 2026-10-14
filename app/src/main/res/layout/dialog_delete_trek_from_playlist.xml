@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/item_list_effects_revers">
+
+    <!-- Заголовок -->
+    <TextView
+        android:id="@+id/tvDeleteTrekTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Удалить: Вы уверены?"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Пояснение (опционально) -->
+    <TextView
+        android:id="@+id/tvDeleteTrekMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Трек будет удалён из плейлиста."
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textAlignment="center"
+        android:textColor="@color/secondary_text"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Кнопки -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <!-- Да — слева -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteTrekYes"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:text="Да"
+            android:background="@drawable/item_list_effects_button"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="8dp" />
+
+        <!-- Нет — справа -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteTrekNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Нет"
+            android:background="@drawable/item_list_effects_button"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            app:cornerRadius="8dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
