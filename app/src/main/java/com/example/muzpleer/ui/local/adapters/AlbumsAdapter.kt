@@ -30,6 +30,7 @@ import com.example.muzpleer.model.Album
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -38,6 +39,7 @@ import java.util.Collections
 
 class AlbumsAdapter(
     private val viewModel: SharedViewModel,
+    private val albumsViewModel: AlbumsViewModel,
     private val onAlbumClick: (Album) -> Unit
 ) : RecyclerView.Adapter<AlbumsAdapter.AlbumViewHolder>(),
     ItemTouchHelperAdapter {
@@ -90,20 +92,20 @@ class AlbumsAdapter(
                         // Загрузка обложки из  content:/com.android.providers.downloads
                         showImageWithGlide(binding.root.context, artUri, binding.albumArt, album.title){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateAlbumArtUri(binding.root.context, album)
+                            albumsViewModel.updateAlbumArtUri(binding.root.context, album)
                         }
                     }else  if (isContentProviderUriPicker(artUri.toString())){
                         // Загрузка обложки из picker
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.albumArt, album.title){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateAlbumArtUri(binding.root.context, album)
+                            albumsViewModel.updateAlbumArtUri(binding.root.context, album)
                         }
                     }else{
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.albumArt, album.title){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateAlbumArtUri(binding.root.context, album)
+                            albumsViewModel.updateAlbumArtUri(binding.root.context, album)
                         }
                     }
                 } catch (e: Exception) {
@@ -191,7 +193,8 @@ class AlbumsAdapter(
     private fun navigateToChangeLevelCover(view: View,  album: Album) {
         Log.d(TAG, "-=- AlbumsAdapter navigateToChangeLevelCover: " +
                 "album = ${album.title} id = ${album.id} albumId = ${album.albumId} artworkUri = ${album.artworkUri.toString()}")
-        viewModel.setCurrentAlbum(album)
+        albumsViewModel.setCurrentAlbum(album)
+        viewModel.setCoverImageUriLevel(album.artworkUri)
         val bundle: Bundle  = Bundle().apply{
             putLong("levelId", album.id)
             putSerializable("levelType", LevelType.ALBUM)
@@ -234,7 +237,7 @@ class AlbumsAdapter(
     override fun onDrop() {
         // Сохраняем окончательный порядок
         albums = dragData.toList()
-        viewModel.updateAlbumsOrder(albums)
+        albumsViewModel.updateAlbumsOrder(albums)
     }
 
     override fun onItemDismiss(position: Int) {

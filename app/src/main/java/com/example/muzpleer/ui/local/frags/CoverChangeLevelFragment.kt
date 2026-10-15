@@ -30,6 +30,8 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentCoverChangeLevelBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -44,6 +46,7 @@ class CoverChangeLevelFragment: Fragment() {
     private val binding get() = _binding!!
     private var isExpanded = false
     private val viewModel: SharedViewModel by activityViewModels()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
 
     private var levelId: Long = -1
     private var levelType: LevelType = LevelType.PLAYLIST
@@ -76,6 +79,12 @@ class CoverChangeLevelFragment: Fragment() {
     ): View {
         _binding = FragmentCoverChangeLevelBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    //для альбомов: показываем новую обложку и сохраняем её в базу
+    private fun saveAlbumCover(uri: Uri, albumId: Long) {
+        viewModel.setCoverImageUriLevel(uri)
+        albumsViewModel.saveCoverAlbumToDatabase(requireContext(), uri, albumId)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -126,7 +135,7 @@ class CoverChangeLevelFragment: Fragment() {
             val uri:Uri = getDefaultCoverUri()
            when(levelType){
                 LevelType.PLAYLIST ->{ viewModel.updateCoverImageLevelAndSave(uri, levelId)}
-                LevelType.ALBUM ->{viewModel.updateCoverImageAlbumAndSave(uri, levelId)}
+                LevelType.ALBUM ->{ saveAlbumCover(uri, levelId) }
                 LevelType.ARTIST ->{viewModel.updateCoverImageArtistsAndSave(uri, levelId)}
                 LevelType.FOLDER ->{viewModel.updateCoverImageFolderAndSave(uri, levelId)}
             }
@@ -137,7 +146,7 @@ class CoverChangeLevelFragment: Fragment() {
                 Log.d(TAG, "4--- CoverChangeLevelFragment saveButtonLevel: curUri = $curUri")
                 when (levelType) {
                     LevelType.PLAYLIST -> viewModel.updateCoverImageLevelAndSave(curUri, levelId) //+
-                    LevelType.ALBUM -> { viewModel.updateCoverImageAlbumAndSave(curUri, levelId) }
+                    LevelType.ALBUM -> { saveAlbumCover(curUri, levelId) }
                     LevelType.ARTIST -> { viewModel.updateCoverImageArtistsAndSave(curUri, levelId) } //+
                     LevelType.FOLDER -> { viewModel.updateCoverImageFolderAndSave(curUri, levelId) } //+
                 }
