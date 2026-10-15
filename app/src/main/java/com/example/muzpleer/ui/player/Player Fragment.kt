@@ -38,6 +38,7 @@ class PlayerFragment : Fragment() {
     private var _binding: FragmentPlayerBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
     private var isExpanded = false
     private var previousTitle: String = "" // Сохраняем предыдущий заголовок
 
@@ -76,51 +77,51 @@ class PlayerFragment : Fragment() {
 
     private fun setupControls() {
         binding.playPauseButton.setOnClickListener {
-            viewModel.togglePlayPause()
+            playerViewModel.togglePlayPause()
         }
 
         binding.previousButton.setOnClickListener {
             // Переход к предыдущему треку
-            viewModel.playPrevious()
+            playerViewModel.playPrevious()
         }
 
         binding.nextButton.setOnClickListener {
             // Переход к следующему треку
-            viewModel.playNext()
+            playerViewModel.playNext()
         }
 
         binding.rewindBackButton.setOnClickListener {
-            viewModel.seekRelative(-5000) // -5 секунд
+            playerViewModel.seekRelative(-5000) // -5 секунд
         }
         binding.rewindForwardButton.setOnClickListener {
-            viewModel.seekRelative(15000) // +15 секунд
+            playerViewModel.seekRelative(15000) // +15 секунд
         }
 
         // Новые кнопки перемотки
         binding.btnRewind30.setOnClickListener {
-            viewModel.seekRelative(-30000) // -30 секунд
+            playerViewModel.seekRelative(-30000) // -30 секунд
         }
         binding.btnRewind10.setOnClickListener {
-            viewModel.seekRelative(-10000) // -10 секунд
+            playerViewModel.seekRelative(-10000) // -10 секунд
         }
         binding.btnRewind5.setOnClickListener {
-            viewModel.seekRelative(-5000) // -5 секунд
+            playerViewModel.seekRelative(-5000) // -5 секунд
         }
         binding.btnForward5.setOnClickListener {
-            viewModel.seekRelative(5000) // +5 секунд
+            playerViewModel.seekRelative(5000) // +5 секунд
         }
         binding.btnForward10.setOnClickListener {
-            viewModel.seekRelative(10000) // +10 секунд
+            playerViewModel.seekRelative(10000) // +10 секунд
         }
         binding.btnForward30.setOnClickListener {
-            viewModel.seekRelative(30000) // +30 секунд
+            playerViewModel.seekRelative(30000) // +30 секунд
         }
 
 
         binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    viewModel.seekTo(progress.toLong())
+                    playerViewModel.seekTo(progress.toLong())
                 }
             }
 
@@ -214,26 +215,26 @@ class PlayerFragment : Fragment() {
             }
         }
 
-        viewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
+        playerViewModel.isPlaying.observe(viewLifecycleOwner) { isPlaying ->
             binding.playPauseButton.setImageResource(
                 if (isPlaying) R.drawable.ic_pause_white else R.drawable.ic_play_white
             )
         }
 
-        viewModel.currentPosition.observe(viewLifecycleOwner) { position ->
+        playerViewModel.currentPosition.observe(viewLifecycleOwner) { position ->
             binding.tvCurrentTime.text = formatTime(position)
             binding.seekBar.progress = position.toInt()
         }
 
-        viewModel.duration.observe(viewLifecycleOwner) { duration ->
+        playerViewModel.duration.observe(viewLifecycleOwner) { duration ->
             binding.tvTotalTime.text = formatTime(duration)
             binding.seekBar.max = duration.toInt()
         }
 
-        viewModel.errorMessage.observe(viewLifecycleOwner) { message ->
+        playerViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
             message?.let {
                 Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
-                viewModel.clearError()
+                playerViewModel.clearError()
             }
         }
     }
@@ -300,11 +301,11 @@ class PlayerFragment : Fragment() {
     }
 
     private fun hideActivityPlayer() {
-        viewModel.setPlayerVisibility(false)
+        playerViewModel.setPlayerVisibility(false)
     }
 
     private fun showActivityPlayer() {
-        viewModel.setPlayerVisibility(true)
+        playerViewModel.setPlayerVisibility(true)
     }
 
     fun showImageWithGlide(context: Context, artUri: Any, imageView: ImageView){

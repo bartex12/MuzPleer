@@ -31,6 +31,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
 import com.google.android.material.textfield.TextInputLayout
@@ -41,6 +42,7 @@ class SongListAlbumFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
     private var albumName: String? = null //Название альбома
     private lateinit var navController: NavController
@@ -345,7 +347,7 @@ class SongListAlbumFragment:Fragment() {
                         return true
                     }
                     R.id.action_shuffle->{
-                        val newShuffleState = viewModel.setPlaybackMode()
+                        val newShuffleState = playerViewModel.setPlaybackMode()
                         // Меняем иконку в зависимости от состояния
                         if (newShuffleState) {
                             menuItem.setIcon(R.drawable.baseline_shuffle_24) // подсвеченная иконка

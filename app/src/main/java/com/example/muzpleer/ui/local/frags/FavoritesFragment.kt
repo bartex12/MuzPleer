@@ -32,6 +32,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -41,6 +42,7 @@ class FavoritesFragment: Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var adapter: FavoritesAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
@@ -393,7 +395,7 @@ class FavoritesFragment: Fragment() {
                     }
 
                     R.id.action_shuffle->{
-                        val newShuffleState = viewModel.setPlaybackMode()
+                        val newShuffleState = playerViewModel.setPlaybackMode()
                         // Меняем иконку в зависимости от состояния
                         if (newShuffleState) {
                             menuItem.setIcon(R.drawable.baseline_shuffle_24) // подсвеченная иконка

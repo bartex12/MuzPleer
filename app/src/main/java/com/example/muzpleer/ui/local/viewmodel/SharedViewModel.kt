@@ -31,7 +31,6 @@ import com.example.muzpleer.room.entity.FavoriteSong
 import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileToSong
-import com.example.muzpleer.service.MusicServiceHandler
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.getSortedDataSong
 import kotlinx.coroutines.Dispatchers
@@ -48,17 +47,10 @@ class SharedViewModel(
     private val repository: MusicRepository,
     private val albumRepository: AlbumRepository,
     private val artistsRepository: ArtistRepository,
-    private val playerHandler: MusicServiceHandler,
     private val folderRepository: FolderRepository,
     private val favoriteRepository: FavoriteRepository,
     private val playlistRepository: PlaylistRepository
-) : ViewModel(), MusicServiceHandler.PlayerCallback{
-
-    init {
-        playerHandler.callback = this  //иначе не работает
-        Log.d(TAG, "PlayerViewModel init: playerHandler =$playerHandler ")
-    }
-
+) : ViewModel() {
 
     private val _songs = MutableLiveData<List<Song>>()
     val songs: LiveData<List<Song>> = _songs
@@ -129,17 +121,6 @@ class SharedViewModel(
     private val _coverImage = MutableLiveData<Bitmap?>()
     val coverImage: LiveData<Bitmap?> = _coverImage
 
-    private val _isPlaying = MutableLiveData<Boolean>(false)
-    val isPlaying: LiveData<Boolean> = _isPlaying
-
-    private val _currentPosition = MutableLiveData<Long>(0L)
-    val currentPosition: LiveData<Long> = _currentPosition
-
-    private val _duration = MutableLiveData<Long>(0L)
-    val duration: LiveData<Long> = _duration
-
-    private val _errorMessage = MutableLiveData<String?>()
-    val errorMessage: LiveData<String?> = _errorMessage
 
     //выделенная строка в адаптере песни при щелчке по ней
     private val _selectedSongPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
@@ -157,8 +138,6 @@ class SharedViewModel(
     private val _selectedPlaylistPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
     val selectedPlaylistPosition: LiveData<Int> = _selectedPlaylistPosition
 
-    private val _playerVisibility = MutableLiveData<Boolean>(true)
-    val playerVisibility: LiveData<Boolean> = _playerVisibility
 
     //индекс выбранной песни в отсортированном(!) списке песен
     private val _indexOfCurrentSong = MutableLiveData<Int>(-1)
@@ -255,47 +234,16 @@ class SharedViewModel(
         Log.d(TAG, "SharedViewModel initParamsSong songs.size = ${songs.size}")
     }
 
-    fun setPlayerVisibility(visible: Boolean) {
-        _playerVisibility.value = visible
-    }
-
     fun setSongAndPlaylist(songAndPlaylist: SongAndPlaylist){
         _songAndPlaylist.value = songAndPlaylist
-    }
-
-    fun setPlaylistForHandler(playlist: List<Song>, initialIndex: Int = 0) {
-        playerHandler.setPlaylist(playlist, initialIndex)
     }
 
     fun setPlaylist(songsList : List<Song>){
         _playlist.value = songsList
     }
 
-    fun togglePlayPause() {
-        playerHandler.togglePlayPause()
-    }
-
-    fun playNext() {
-        Log.d(TAG, "SharedViewModel playNext ")
-        playerHandler.playNext()
-    }
-
-    fun playPrevious() {
-        playerHandler.playPrevious()
-    }
-
-    fun seekTo(position: Long) {
-        playerHandler.seekTo(position)
-    }
-
-    fun seekRelative(offsetMs: Long) {
-        playerHandler.getCurrentPosition().let { currentPos ->
-            val newPosition = (currentPos + offsetMs).coerceAtLeast(0)
-            playerHandler.seekTo(newPosition)
-        }
-    }
-
-    override fun onTrackChanged(track: Song) {
+    /** Вызывается из MainActivity, когда PlayerViewModel сообщает о смене трека. */
+    fun onTrackChanged(track: Song) {
         //так не меняется автоматом- остаётся старый artUri из плейлиста
         _currentSong.value = track
         //считаем индекс выбранной песни в отсортированном списке песен,
@@ -310,19 +258,6 @@ class SharedViewModel(
                 "  currentTrack  title = ${getCurrentSong()?.title}")
     }
 
-    override fun onPlaybackStateChanged(isPlaying: Boolean) {
-        _isPlaying.value = isPlaying
-    }
-
-    override fun onPositionChanged(position: Long, duration: Long) {
-        _currentPosition.postValue(position)
-        _duration.postValue(duration)
-    }
-
-    override fun onError(message: String) {
-        _errorMessage.postValue(message)
-    }
-
     //функция для нормализации URI
     fun getNormalizedPath(uriString: String): String {
         return if (uriString.startsWith("file://")) {
@@ -330,10 +265,6 @@ class SharedViewModel(
         } else {
             uriString
         }
-    }
-
-    fun clearError() {
-        _errorMessage.value = null
     }
 
     fun getAllSongs():List<Song>{
@@ -356,11 +287,6 @@ class SharedViewModel(
 
     companion object{
         const val TAG= "33333"
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        playerHandler.release()
     }
 
     internal fun filterSongs(query: String) {
@@ -1846,13 +1772,6 @@ class SharedViewModel(
         }
         Log.d(TAG, "✅SharedViewModel setListSelectedSong songs.size =" +
                 songs?.size?.let { "songs.first = ${ if(it > 0) songs?.first()?.title ?: "" else "" }" })
-    }
-
-    fun setPlaybackMode(): Boolean {
-        // Меняем состояние на противоположное
-        val newShuffleState = !playerHandler.isShuffleMode
-        playerHandler.isShuffleMode = newShuffleState
-        return newShuffleState
     }
 
     fun getFilteredPlaylists() :List<Playlist>{
