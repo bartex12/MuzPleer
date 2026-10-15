@@ -25,6 +25,7 @@ import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -34,6 +35,7 @@ class SongFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private lateinit var adapter: SongsAdapter
     private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
@@ -233,7 +235,7 @@ class SongFragment : Fragment() {
             }
             R.id.updateSongs->{
                 val currentSong = viewModel.getCurrentSong()
-                viewModel.refreshLibrary {
+                viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
                         viewModel.setCurrentSongById(currentSong.id)

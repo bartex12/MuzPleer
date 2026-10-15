@@ -18,11 +18,14 @@ import com.example.muzpleer.databinding.FragmentAlbumSelectionBinding
 import com.example.muzpleer.ui.local.adapters.AlbumsSelectionAdapter
 import com.example.muzpleer.ui.local.frags.AlbumFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.util.getSortedDataAlbum
 
 class AlbumSelectionFragment: Fragment() {
     private lateinit var binding: FragmentAlbumSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private lateinit var adapter: AlbumsSelectionAdapter
     private var playlistId: Long = -1
     private var selectionType: SelectionType = SelectionType.ALL_SONGS
@@ -49,7 +52,7 @@ class AlbumSelectionFragment: Fragment() {
 
         viewModel.setAppBarTitle("Выбрать песни из альбома")
 
-        adapter = AlbumsSelectionAdapter (viewModel){ album ->
+        adapter = AlbumsSelectionAdapter (viewModel, albumsViewModel){ album ->
 
             // Навигация через Bundle
             val bundle = Bundle().apply {
@@ -67,7 +70,7 @@ class AlbumSelectionFragment: Fragment() {
             adapter = this@AlbumSelectionFragment.adapter
         }
 
-        viewModel.filteredAlbums.observe(viewLifecycleOwner) { filteredAlbums ->
+        albumsViewModel.filteredAlbums.observe(viewLifecycleOwner) { filteredAlbums ->
             Log.d(TAG,"AlbumSelectionFragment onViewCreated filteredAlbums.observe: filteredAlbums.size= ${filteredAlbums.size} ")
             if (viewModel.getSongs().isEmpty()) binding.progressBarAlbumSelection.visibility = View.VISIBLE else
                 binding.progressBarAlbumSelection.visibility = View.GONE
@@ -78,7 +81,7 @@ class AlbumSelectionFragment: Fragment() {
         }
 
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.albumSelectionRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionAlbum())
+        binding.albumSelectionRecyclerView.layoutManager?.scrollToPosition(albumsViewModel.getPositionAlbum())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -97,7 +100,7 @@ class AlbumSelectionFragment: Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.filterAlbums(newText.orEmpty())
+                albumsViewModel.filterAlbums(newText.orEmpty())
                 return true
             }
         })

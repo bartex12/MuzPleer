@@ -53,6 +53,7 @@ import com.example.muzpleer.ui.local.frags.SongListFolderFragment
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -71,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: SharedViewModel by viewModel()
 
     private val playerViewModel: PlayerViewModel by viewModel()
+    private val albumsViewModel: AlbumsViewModel by viewModel()
     private lateinit var playerLayout: ConstraintLayout
     private lateinit var title: AppCompatTextView
     private lateinit var artist: TextView
@@ -386,7 +388,7 @@ class MainActivity : AppCompatActivity() {
     private fun startMediaScan() {
 
         //сначала сканируем телефон, затем обновляем остальные вкладки (внутри refreshLibrary)
-        viewModel.refreshLibrary {
+        viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums() }) {
             // Восстанавливаем последнюю песню
             val savedSongId = appPreferences.getCurrentSongId()
             if (savedSongId != -1L) {
