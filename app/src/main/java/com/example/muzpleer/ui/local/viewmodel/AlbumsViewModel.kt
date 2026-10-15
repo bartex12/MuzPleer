@@ -12,8 +12,11 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.AlbumRepository
 import com.example.muzpleer.room.entity.AlbumFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
@@ -133,15 +136,25 @@ class AlbumsViewModel(
         }
     }
 
-    fun saveCoverAlbumToDatabase(uri: android.net.Uri, albumId: Long) {
+    /**
+     * Сохраняет обложку альбома. Выбранную картинку сначала копируем в память приложения:
+     * временный content-URI из picker позже перестаёт читаться, и обложка пропадала.
+     * [albumId] здесь - значение, которое приходит из экрана замены обложки (id строки в базе).
+     */
+    fun saveCoverAlbumToDatabase(context: Context, uri: android.net.Uri, albumId: Long) {
         Log.d(TAG, "6--- AlbumsViewModel saveCoverAlbumToDatabase uri = $uri albumId = $albumId")
+        val appContext = context.applicationContext
         viewModelScope.launch {
-            albumRepository.updateAlbumArtUri(albumId, uri.toString())
+            val savedPath = withContext(Dispatchers.IO) {
+                copyCoverToAppStorage(appContext, uri, "album", albumId)
+            }
+            // если скопировать не удалось, сохраняем как раньше - сам URI
+            albumRepository.updateAlbumArtUri(albumId, savedPath ?: uri.toString())
             loadAlbums() // Обновляем список альбомов
 
             //проверка
             val albumFile = albumRepository.getAlbumById(albumId)
-            Log.d(TAG, "6-1--- проверка AlbumsViewModel saveCoverAlbumToDatabase " +
+            Log.d(TAG, "6-1--- проверка AlbumsViewModel saveCoverAlbumToDatabase savedPath = $savedPath " +
                     " albumFile title = ${albumFile?.title} albumFile id = ${albumFile?.id} " +
                     "albumFile albumId = ${albumFile?.albumId} albumFile coverPath = ${albumFile?.coverPath}")
         }

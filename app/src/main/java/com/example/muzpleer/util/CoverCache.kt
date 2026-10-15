@@ -47,3 +47,31 @@ fun saveDefaultCoverToCache(context: Context): String? {
         null // Возвращаем null в случае ошибки ввода-вывода
     }
 }
+
+/**
+ * Копирует выбранную пользователем картинку (content:// из галереи/picker) в постоянное
+ * хранилище приложения и возвращает путь к файлу, либо null при ошибке.
+ *
+ * Зачем: content-URI из picker выдаётся с временным разрешением и через какое-то время
+ * перестаёт читаться, поэтому сохранять в базу сам URI нельзя. Файл кладём во filesDir
+ * (не в cacheDir, который система может очистить). Имя уникально для каждой замены.
+ * Вызывать не на главном потоке.
+ */
+fun copyCoverToAppStorage(context: Context, sourceUri: android.net.Uri, prefix: String, id: Long): String? {
+    return try {
+        val dir = File(context.filesDir, "level_covers")
+        if (!dir.exists()) dir.mkdirs()
+        val destinationFile = File(dir, "${prefix}_${id}_${System.currentTimeMillis()}.jpg")
+        val input = context.contentResolver.openInputStream(sourceUri) ?: return null
+        input.use { inputStream ->
+            FileOutputStream(destinationFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+                outputStream.flush()
+            }
+        }
+        destinationFile.absolutePath
+    } catch (e: Exception) {
+        Log.e("33333", "❌ copyCoverToAppStorage Ошибка копирования обложки: ${e.message}")
+        null
+    }
+}

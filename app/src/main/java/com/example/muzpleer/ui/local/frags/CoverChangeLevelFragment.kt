@@ -84,7 +84,7 @@ class CoverChangeLevelFragment: Fragment() {
     //для альбомов: показываем новую обложку и сохраняем её в базу
     private fun saveAlbumCover(uri: Uri, albumId: Long) {
         viewModel.setCoverImageUriLevel(uri)
-        albumsViewModel.saveCoverAlbumToDatabase(uri, albumId)
+        albumsViewModel.saveCoverAlbumToDatabase(requireContext(), uri, albumId)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
