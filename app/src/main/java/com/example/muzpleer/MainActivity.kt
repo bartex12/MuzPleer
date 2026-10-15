@@ -380,13 +380,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun startMediaScan() {
 
-        viewModel.scanMedia(){
-            //сначала сканируем телефон и собираем все музыкальные треки в базе, а потом делаем другие вкладки
-            viewModel.syncAlbums()
-            viewModel.syncArtist ()
-            viewModel.syncFolders()
-            viewModel.loadPlaylists()
-
+        //сначала сканируем телефон, затем обновляем остальные вкладки (внутри refreshLibrary)
+        viewModel.refreshLibrary {
             // Восстанавливаем последнюю песню
             val savedSongId = appPreferences.getCurrentSongId()
             if (savedSongId != -1L) {

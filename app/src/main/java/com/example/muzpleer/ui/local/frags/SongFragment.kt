@@ -231,12 +231,7 @@ class SongFragment : Fragment() {
             }
             R.id.updateSongs->{
                 val currentSong = viewModel.getCurrentSong()
-                viewModel.scanMedia(){
-                    //сначала сканируем телефон и собираем все музыкальные треки в базе, а потом делаем другие вкладки
-                    viewModel.syncAlbums()
-                    viewModel.syncArtist ()
-                    viewModel.syncFolders()
-                    viewModel.loadPlaylists()
+                viewModel.refreshLibrary {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
                         viewModel.setCurrentSongById(currentSong.id)

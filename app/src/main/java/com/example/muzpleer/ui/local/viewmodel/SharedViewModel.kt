@@ -179,6 +179,20 @@ class SharedViewModel(
     private val _loading = MutableLiveData<Boolean>()
     val loading: LiveData<Boolean> = _loading
 
+    //Число одновременно работающих загрузок. Нужен счётчик, а не просто true/false:
+    //иначе загрузка, закончившаяся первой, гасит индикатор, пока остальные ещё идут
+    private var activeLoads = 0
+
+    private fun beginLoad() {
+        activeLoads++
+        _loading.value = true
+    }
+
+    private fun endLoad() {
+        activeLoads = (activeLoads - 1).coerceAtLeast(0)
+        _loading.value = activeLoads > 0
+    }
+
     private val _coverPath = MutableLiveData<String>()
     val coverPath: LiveData<String> = _coverPath
 
@@ -212,10 +226,26 @@ class SharedViewModel(
 
      fun scanMedia(afterLoad:()->Unit) {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             initParamsSong(repository.loadMusicFromMemory())
-            _loading.value = false
+            endLoad()
             afterLoad.invoke()
+        }
+    }
+
+    /**
+     * Полное обновление библиотеки: сначала сканируем телефон и собираем все треки в базе,
+     * потом строим вкладки альбомов, исполнителей, папок и плейлистов.
+     * [afterRefresh] вызывается сразу после запуска построения вкладок, как и раньше
+     * в местах, где эта цепочка вызывалась вручную.
+     */
+    fun refreshLibrary(afterRefresh: () -> Unit = {}) {
+        scanMedia {
+            syncAlbums()
+            syncArtist()
+            syncFolders()
+            loadPlaylists()
+            afterRefresh()
         }
     }
 
@@ -592,7 +622,7 @@ class SharedViewModel(
 
     fun loadFavoriteSongs() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 val songs = favoriteRepository.getOrderedFavorites()
                 //val songs = favoriteRepository.getAllFavorites()
@@ -601,7 +631,7 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, "***SharedViewModel loadFavoriteSongs error = ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
@@ -839,7 +869,7 @@ class SharedViewModel(
     //загрузка альбомов
     fun loadAlbums() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 val albumsWithSongs = albumRepository.getAllAlbumsWithSongs()
                 Log.d(TAG, " * SharedViewModel loadAlbums albumsWithSongs size = ${albumsWithSongs.size}")
@@ -848,7 +878,7 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel loadAlbums Error loading albums ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
@@ -856,7 +886,7 @@ class SharedViewModel(
     //загрузка артистов
     fun loadArtists() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 val artistsWithSongsAndAlbums = artistsRepository.getAllArtistsWithSongsAndAlbums()
                 Log.d(TAG, " * SharedViewModel loadArtists artistsWithSongsAndAlbums size = ${artistsWithSongsAndAlbums.size}")
@@ -865,14 +895,14 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel loadArtists Error loading Artists ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
 
     fun loadFolders() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 val foldersWithSongs = folderRepository.getAllFoldersWithSongs()
                 _folders.value = foldersWithSongs
@@ -880,7 +910,7 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel loadFolders Error loading Folders ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
@@ -888,7 +918,7 @@ class SharedViewModel(
     //получение альбомов из песен и загрузка альбомов
     fun syncAlbums() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 Log.d(TAG, " * SharedViewModel syncAlbums albumRepository.syncAlbumsFromMediaFiles()")
                 albumRepository.syncAlbumsFromMediaFiles()
@@ -896,14 +926,14 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel syncAlbums Error loading albums error = ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
 
     fun syncArtist (){
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 Log.d(TAG, " * SharedViewModel syncArtist artistsRepository.syncArtistsFromMediaFiles()")
                 artistsRepository.syncArtistsFromMediaFiles()
@@ -911,21 +941,21 @@ class SharedViewModel(
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel syncArtist Error loading Artist error = ${e.message}")
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
 
     fun syncFolders() {
         viewModelScope.launch {
-            _loading.value = true
+            beginLoad()
             try {
                 folderRepository.syncFoldersFromMediaFiles()
                 loadFolders() // Перезагружаем после синхронизации
             } catch (e: Exception) {
                 Log.e("FolderViewModel", "Error syncing folders", e)
             } finally {
-                _loading.value = false
+                endLoad()
             }
         }
     }
