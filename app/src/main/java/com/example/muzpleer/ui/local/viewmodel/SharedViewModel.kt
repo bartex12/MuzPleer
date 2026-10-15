@@ -46,7 +46,6 @@ import java.util.Locale
 class SharedViewModel(
     var helper : IPreferenceHelper,
     private val repository: MusicRepository,
-    private val folderRepository: FolderRepository,
     private val favoriteRepository: FavoriteRepository,
     private val playlistRepository: PlaylistRepository
 ) : ViewModel() {
@@ -68,21 +67,6 @@ class SharedViewModel(
 
     private val _songAndPlaylist = MutableLiveData<SongAndPlaylist>()
     val songAndPlaylist: LiveData<SongAndPlaylist> = _songAndPlaylist
-
-    private val _folders = MutableLiveData<List<Folder>>()
-    val folders: LiveData<List<Folder>> = _folders
-
-    private val _currentFolder = MutableLiveData<Folder>()
-    val currentFolder: LiveData<Folder> = _currentFolder
-
-    private val _filteredFolders = MutableLiveData<List<Folder>>()
-    val filteredFolders: LiveData<List<Folder>> = _filteredFolders
-
-    private val _listFolderSong = MutableLiveData<List<Song>>()
-    val listFolderSong: LiveData<List<Song>> = _listFolderSong
-
-    private val _filteredListFolderSong = MutableLiveData<List<Song>>()
-    val filteredListFolderSong: LiveData<List<Song>> = _filteredListFolderSong
 
     private val _currentSong = MutableLiveData<Song?>()
     val currentSong: LiveData<Song?> = _currentSong
@@ -190,8 +174,7 @@ class SharedViewModel(
      */
     fun refreshLibrary(onScanned: () -> Unit = {}, afterRefresh: () -> Unit = {}) {
         scanMedia {
-            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы и исполнители)
-            syncFolders()
+            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы, исполнители и папки)
             loadPlaylists()
             afterRefresh()
         }
@@ -293,41 +276,6 @@ class SharedViewModel(
         _filteredPlaylists.value = filteredPlaylistList
     }
 
-    internal fun filterFolders(query: String) {
-        val originalFolderList: MutableList<Folder> =  (folders.value ?: listOf()).toMutableList()
-        val filteredFolderList: MutableList<Folder> = (filteredFolders.value ?: listOf()).toMutableList()
-        filteredFolderList.clear()
-        if (query.isEmpty()) {
-            filteredFolderList.addAll(originalFolderList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (folder in originalFolderList) {
-                if (folder.name.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredFolderList.add(folder)
-                }
-            }
-        }
-        _filteredFolders.value = filteredFolderList
-    }
-
-    internal fun filterFolderSongs(query: String) {
-        val originalFolderSongList: MutableList<Song> =  (listFolderSong.value ?: listOf()).toMutableList()
-        val filteredFolderSongList: MutableList<Song> = (filteredListFolderSong.value ?: listOf()).toMutableList()
-        filteredFolderSongList.clear()
-        if (query.isEmpty()) {
-            filteredFolderSongList.addAll(originalFolderSongList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (folderSong in originalFolderSongList) {
-                if (folderSong.title.lowercase(Locale.getDefault()).contains(searchQuery)||
-                    folderSong.artist.lowercase(Locale.getDefault()).contains(searchQuery))  {
-                    filteredFolderSongList.add(folderSong)
-                }
-            }
-        }
-        _filteredListFolderSong.value = filteredFolderSongList
-    }
-
     internal fun filterFavoriteSongs(query: String) {
         val originalSongsList: MutableList<Song> =  (favoriteSongs.value ?: listOf()).toMutableList()
         val filteredSongsList: MutableList<Song> = (filteredFavoriteSongs.value ?: listOf()).toMutableList()
@@ -398,9 +346,6 @@ class SharedViewModel(
 
     fun getPositionPlaylist(): Int{  return helper.getPositionPlaylist() }
     fun savePositionPlaylist(position: Int){helper.savePositionPlaylist(position)}
-
-    fun getPositionFolder(): Int{  return helper.getPositionFolder() }
-    fun savePositionFolder(position: Int){helper.savePositionFolder(position)}
 
     fun getTabsLocalPosition():Int = helper.getTabsLocalPosition()
     fun saveTabsLocalPosition(currentItem: Int) = helper.saveTabsLocalPosition(currentItem)
@@ -543,13 +488,6 @@ class SharedViewModel(
         saveCoverLevelToDatabase(uri, levelId)
     }
 
-    //для папок
-    fun updateCoverImageFolderAndSave(uri: Uri, folderId:Long) {
-        Log.d(TAG, "5--- SharedViewModel updateCoverImageFolderAndSave uri = $uri folderId =$folderId")
-        _coverImageUriLevel.value = uri
-        saveCoverFolderToDatabase(uri, folderId)
-    }
-
     fun getDefaultCoverUri(): Uri {
         return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
     }
@@ -607,18 +545,6 @@ class SharedViewModel(
        }
    }
 
-    fun  saveCoverFolderToDatabase(uri: Uri, folderId:Long){
-        Log.d(TAG, "6--- SharedViewModel saveCoverFolderToDatabase uri = $uri folderId = $folderId")
-        viewModelScope.launch {
-            folderRepository.updateFolderArtUri(folderId, uri.toString())
-            loadFolders() // Обновляем список папок
-            //проверка
-            val folderFile = folderRepository.getFolderFileById(folderId)
-            Log.d(TAG, "6-1--- проверка SharedViewModel saveCoverFolderToDatabase " +
-                    "folderFile folderName = ${folderFile?.folderName}  coverPath =${folderFile?.coverPath}")
-        }
-    }
-
     fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
         try {
             // 1. Создаем директорию album_art в кэше, если её нет
@@ -650,44 +576,6 @@ class SharedViewModel(
         } catch (e: Exception) {
             Log.e(TAG, " ❌SharedViewModel copyAlbumArtToCache Ошибка при копировании обложки в кэш", e)
             return null
-        }
-    }
-
-    fun loadFolders() {
-        viewModelScope.launch {
-            beginLoad()
-            try {
-                val foldersWithSongs = folderRepository.getAllFoldersWithSongs()
-                _folders.value = foldersWithSongs
-                _filteredFolders.value = foldersWithSongs //todo убрать?
-            } catch (e: Exception) {
-                Log.d(TAG, " SharedViewModel loadFolders Error loading Folders ${e.message}")
-            } finally {
-                endLoad()
-            }
-        }
-    }
-
-    fun syncFolders() {
-        viewModelScope.launch {
-            beginLoad()
-            try {
-                folderRepository.syncFoldersFromMediaFiles()
-                loadFolders() // Перезагружаем после синхронизации
-            } catch (e: Exception) {
-                Log.e("FolderViewModel", "Error syncing folders", e)
-            } finally {
-                endLoad()
-            }
-        }
-    }
-
-    fun getSongsByFolder(folderPath: String) {
-        viewModelScope.launch {
-            var listFolderSong: List<Song> = folderRepository.getFolderSongList(folderPath)
-            Log.d(TAG, " * SharedViewModel getSongsByFolder listFolderSong size = ${listFolderSong.size}")
-             _listFolderSong.value = listFolderSong
-            _filteredListFolderSong.value = listFolderSong
         }
     }
 
@@ -830,30 +718,6 @@ class SharedViewModel(
         }
     }
 
-    fun updateFoldersOrder(orderedFolders: List<Folder>) {
-        viewModelScope.launch {
-            val folders:List<FolderFile> = folderRepository.getAllFolderSongs()
-            val updatedFolders: MutableList<FolderFile> = mutableListOf<FolderFile>()
-
-            orderedFolders.forEachIndexed { index, folder ->
-                val folder1 = folders.find { it.folderPath == folder.path }
-                folder1?.let {
-                    updatedFolders.add(it.copy(sortOrder = index))
-                }
-            }
-            Log.d(TAG,"--#**# SharedViewModel updateFoldersOrder orderedFolders size = ${orderedFolders.size} " +
-                    "orderedFolders ids = ${orderedFolders.map{it.id}} orderedFolders paths= ${orderedFolders.map{it.path}}")
-            Log.d(TAG,"--#**# SharedViewModel updateFoldersOrder updatedFolders size = ${updatedFolders.size} " +
-                    "updatedFolders sortOrder = ${updatedFolders.map{it.sortOrder}  }")
-
-            folderRepository.updateFoldersOrder(updatedFolders)
-
-            // Обновляем LiveData
-            _folders.value = orderedFolders
-            _filteredFolders.value = orderedFolders
-        }
-    }
-
     fun getOrderedFavoriteSong() {
         viewModelScope.launch {
             val songs= favoriteRepository.getOrderedFavorites()
@@ -924,20 +788,6 @@ class SharedViewModel(
         }
     }
 
-    fun setCurrentFolderByFolderPath(folderPath:String){
-        viewModelScope.launch {
-            try {
-                var currentFolder:Folder =  folderRepository.getFolderByPath(folderPath)
-                Log.d(TAG,"@ SharedViewModel setCurrentFolderByFolderPath " +
-                        " currentFolder name =  = ${currentFolder.name}")
-                _currentFolder.value = currentFolder
-                _coverImageUriLevel.value =currentFolder.artworkUri
-            } catch (e: Exception) {
-                Log.d(TAG,"@ SharedViewModel setCurrentFolderByFolderPath  error = ${e.message}")
-            }
-        }
-    }
-
     fun getCurrentPlaylist():Playlist?{
         return currentPlaylist.value
     }
@@ -983,12 +833,6 @@ class SharedViewModel(
     fun loadFavoritesSongsForAdding() {
         viewModelScope.launch {
             _favoriteSongs.value = favoriteRepository.getOrderedFavorites()
-        }
-    }
-
-    fun loadFolderSongsForAdding(folderPath: String){
-        viewModelScope.launch {
-            _listFolderSong.value = folderRepository.getFolderSongList(folderPath)
         }
     }
 
@@ -1265,37 +1109,6 @@ class SharedViewModel(
             }
         }
     }
-
-   fun updateFolderArtUri(context: Context, folder: Folder){
-       viewModelScope.launch {
-           //сохраняем картинку из ресурсов в кэш и получаем ссылку
-           val newArtUriString = saveResourceToCache(context)
-           val newArtUri = newArtUriString?.toUri()
-           folder.artworkUri = newArtUri
-           // Обновляем папку
-           _folders.value = _folders.value?.map {f->
-               if (f.id == folder.id) f.copy(artworkUri = newArtUri) else f
-           }
-           // Обновляем папку
-           _filteredFolders.value = _filteredFolders.value?. map{ff->
-               if (ff.id == folder.id) ff.copy(artworkUri =newArtUri) else ff
-           }
-
-           // Обновляем текущую папку если нужно
-           _currentFolder.value?.let { current ->
-               if (current.id == folder.id) {
-                   _currentFolder.value = current.copy(artworkUri = newArtUri)
-               }
-           }
-           Log.d(TAG, " **??** SharedViewModel updateFolderArtUri newArtUri $newArtUri")
-           try {
-              folderRepository.updateFolderArtUri(folder.id, newArtUriString)
-               Log.d(TAG, "✅SharedViewModel updateFolderArtUri Обновлён artUri для папки  ${folder.name}  id = ${folder.id} }")
-           } catch (e: Exception) {
-               Log.e(TAG, "❌SharedViewModel updateFolderArtUri Ошибка обновления artUri для папки ${folder.name}: ${e.message}")
-           }
-       }
-   }
 
     fun updateFavoriteArtUri(context: Context, track: Song){
         viewModelScope.launch {

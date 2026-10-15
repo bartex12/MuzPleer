@@ -19,11 +19,14 @@ import com.example.muzpleer.databinding.FragmentFoldersSelectionBinding
 import com.example.muzpleer.ui.local.adapters.FoldersSelectionAdapter
 import com.example.muzpleer.ui.local.frags.AlbumFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.util.getSortedDataFolder
 
 class FoldersSelectionFragment: Fragment() {
     private lateinit var binding: FragmentFoldersSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: FoldersSelectionAdapter
     private var playlistId: Long = -1
     private var selectionType: SelectionType = SelectionType.ALL_SONGS
@@ -51,7 +54,7 @@ class FoldersSelectionFragment: Fragment() {
         
         viewModel.setAppBarTitle("Выбрать песни из папки")
 
-        adapter = FoldersSelectionAdapter (viewModel){ folder ->
+        adapter = FoldersSelectionAdapter (viewModel, foldersViewModel){ folder ->
 
             // Навигация через Bundle
             val bundle = Bundle().apply {
@@ -69,7 +72,7 @@ class FoldersSelectionFragment: Fragment() {
             adapter = this@FoldersSelectionFragment.adapter
         }
 
-        viewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
+        foldersViewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
             Log.d(TAG,"AlbumSelectionFragment onViewCreated filteredAlbums.observe: filteredFolders.size= ${filteredFolders.size} ")
             if (viewModel.getSongs().isEmpty()) binding.progressBarFolderSelection.visibility = View.VISIBLE else
                 binding.progressBarFolderSelection.visibility = View.GONE
@@ -80,7 +83,7 @@ class FoldersSelectionFragment: Fragment() {
         }
 
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.folderSelectionRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionFolder())
+        binding.folderSelectionRecyclerView.layoutManager?.scrollToPosition(foldersViewModel.getPositionFolder())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -100,7 +103,7 @@ class FoldersSelectionFragment: Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.filterFolders(newText.orEmpty())
+                foldersViewModel.filterFolders(newText.orEmpty())
                 return true
             }
         })

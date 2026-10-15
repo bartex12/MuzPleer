@@ -31,6 +31,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
@@ -45,6 +46,7 @@ class SongListFolderFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
     private var folderName: String? = null //имя папки
@@ -96,16 +98,16 @@ class SongListFolderFragment:Fragment() {
         if(arguments?.getString("folderPath") != null) {
             val folderPath = arguments?.getString("folderPath")!!
             Log.d(TAG, "46!@# SongListFolderFragment arguments folderPath  $folderPath")
-            viewModel.getSongsByFolder(folderPath)
+            foldersViewModel.getSongsByFolder(folderPath)
 
             // Слушаем ОБЩИЙ список избранных песен (не отфильтрованный)
-            viewModel.listFolderSong.observe(viewLifecycleOwner) { folderSongs ->
+            foldersViewModel.listFolderSong.observe(viewLifecycleOwner) { folderSongs ->
                 totalSongsCount = folderSongs.size
                 updateSearchVisibility()
                 Log.d(TAG, "###SongListFolderFragment totalSongsCount: $totalSongsCount")
             }
 
-            viewModel.filteredListFolderSong.observe(viewLifecycleOwner) { folderSongs ->
+            foldersViewModel.filteredListFolderSong.observe(viewLifecycleOwner) { folderSongs ->
                 Log.d(TAG, "47!@# SongListFolderFragment filteredListFolderSong.observe " +
                         "folderSongs size ${folderSongs.size} ")
                 //здесь нельзя делать сортировку, иначе собьётся перемещение !!!
@@ -193,7 +195,7 @@ class SongListFolderFragment:Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // Ищем при каждом изменении текста
                 s?.let { query ->
-                    viewModel.filterFolderSongs(query.toString())
+                    foldersViewModel.filterFolderSongs(query.toString())
                 }
             }
 
@@ -213,7 +215,7 @@ class SongListFolderFragment:Fragment() {
         binding.inputLayoutSearchAllTracks.setEndIconOnClickListener {
             if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
                 binding.inputEditTextSearchAllTracks.text?.clear()
-                viewModel.filterFolderSongs("")
+                foldersViewModel.filterFolderSongs("")
             } else {
                 performSearch()
             }
@@ -247,7 +249,7 @@ class SongListFolderFragment:Fragment() {
         //стираем текст в поле ввода и показываем весь список
         if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
             binding.inputEditTextSearchAllTracks.text?.clear()
-            viewModel.filterFolderSongs("")
+            foldersViewModel.filterFolderSongs("")
         }
 
         // Скрываем клавиатуру
@@ -259,7 +261,7 @@ class SongListFolderFragment:Fragment() {
     private fun performSearch() {
         val query = binding.inputEditTextSearchAllTracks.text.toString().trim()
         if (query.isNotEmpty()) {
-            viewModel.filterFolderSongs(query)
+            foldersViewModel.filterFolderSongs(query)
             hideKeyboard()
         } else {
             toast("Введите текст для поиска")
@@ -304,7 +306,7 @@ class SongListFolderFragment:Fragment() {
 
                 // Очищаем текст поиска
                 binding.inputEditTextSearchAllTracks.text?.clear()
-                viewModel.filterFolderSongs("")
+                foldersViewModel.filterFolderSongs("")
                 hideKeyboard()
             }
         }
@@ -328,7 +330,7 @@ class SongListFolderFragment:Fragment() {
             override fun onPrepareMenu(menu: Menu) {
                 menu.findItem(R.id.action_edit_order2).isVisible = false
                 var songsCount = 0
-                songsCount =  viewModel.filteredListFolderSong.value?.size?:0
+                songsCount =  foldersViewModel.filteredListFolderSong.value?.size?:0
                 Log.d(TAG, "$$$$$ SongListFolderFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше 7 песен
                 menu.findItem(R.id.action_go_to_song2).isVisible = songsCount > 7
@@ -338,7 +340,7 @@ class SongListFolderFragment:Fragment() {
                 when(menuItem.itemId){
                     R.id.action_go_to_song2->{
                         if(arguments?.getString("folderPath") != null) {
-                            val folderSongs = viewModel.listFolderSong.value //список песен артиста
+                            val folderSongs = foldersViewModel.listFolderSong.value //список песен артиста
                             val currentSong = viewModel.getCurrentSong()
                             if (folderSongs!=null){
                                 val indexOfSong = folderSongs.indexOfFirst { it.mediaUri == currentSong?.mediaUri }

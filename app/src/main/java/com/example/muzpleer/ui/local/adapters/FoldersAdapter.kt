@@ -30,6 +30,7 @@ import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -38,6 +39,7 @@ import java.util.Collections
 
 class FoldersAdapter(
     private val viewModel: SharedViewModel,
+    private val foldersViewModel: FoldersViewModel,
     private val onFolderClick: (Folder) -> Unit
 ) : RecyclerView.Adapter<FoldersAdapter.FolderViewHolder>(),
     ItemTouchHelperAdapter {
@@ -91,7 +93,7 @@ class FoldersAdapter(
                         // Загрузка обложки из  content:/com.android.providers.downloads
                         showImageWithGlide(binding.root.context, artUri, binding.ivFolderIcon, folder.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateFolderArtUri(binding.root.context, folder)
+                            foldersViewModel.updateFolderArtUri(binding.root.context, folder)
                         }
                         Log.d(TAG, "✅ FoldersAdapter bind Glide load success for folder = ${folder.name} URI: $artUri")
                     }else  if (isContentProviderUriPicker(artUri.toString())){
@@ -99,14 +101,14 @@ class FoldersAdapter(
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.ivFolderIcon, folder.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateFolderArtUri(binding.root.context, folder)
+                            foldersViewModel.updateFolderArtUri(binding.root.context, folder)
                         }
                         Log.d(TAG, "✅✅ FoldersAdapter bind Glide load success for folder = ${folder.name} URI: $artUri")
                     }else{
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.ivFolderIcon, folder.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateFolderArtUri(binding.root.context, folder)
+                            foldersViewModel.updateFolderArtUri(binding.root.context, folder)
                         }
                         Log.d(TAG, "✅✅✅ FoldersAdapter bind Glide load success for folder = ${folder.name} URI: $artUri")
                     }
@@ -193,7 +195,9 @@ class FoldersAdapter(
 //    }
 
     private fun navigateToChangeLevelCover(view: View,  folder: Folder) {
-        viewModel.setCurrentFolderByFolderPath(folder.path)
+        foldersViewModel.setCurrentFolderByFolderPath(folder.path) { loaded ->
+            viewModel.setCoverImageUriLevel(loaded.artworkUri)
+        }
         val bundle: Bundle  = Bundle().apply{
             putLong("levelId", folder.id)
             putSerializable("levelType", LevelType.FOLDER)
@@ -236,7 +240,7 @@ class FoldersAdapter(
     override fun onDrop() {
         // Сохраняем окончательный порядок
         folders = dragData.toList()
-        viewModel.updateFoldersOrder(folders)
+        foldersViewModel.updateFoldersOrder(folders)
     }
 
     override fun onItemDismiss(position: Int) {
