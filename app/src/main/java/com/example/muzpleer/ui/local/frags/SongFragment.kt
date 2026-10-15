@@ -25,6 +25,7 @@ import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -32,6 +33,7 @@ class SongFragment : Fragment() {
     private var _binding: FragmentSongsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var adapter: SongsAdapter
     private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
@@ -241,7 +243,7 @@ class SongFragment : Fragment() {
                 return  true
             }
             R.id.action_shuffle->{
-                val newShuffleState = viewModel.setPlaybackMode()
+                val newShuffleState = playerViewModel.setPlaybackMode()
                 // Меняем иконку в зависимости от состояния
                 if (newShuffleState) {
                     item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
