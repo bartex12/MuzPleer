@@ -30,6 +30,7 @@ import com.example.muzpleer.model.Artist
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.util.getAlbumsCountString
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
@@ -39,6 +40,7 @@ import java.util.Collections
 
 class ArtistsAdapter(
     private val viewModel: SharedViewModel,
+    private val artistsViewModel: ArtistsViewModel,
     private val onItemClick: (Artist) -> Unit
 ) : RecyclerView.Adapter<ArtistsAdapter.ArtistViewHolder>(),
     ItemTouchHelperAdapter {
@@ -99,7 +101,7 @@ class ArtistsAdapter(
                         // Загрузка обложки из  content:/com.android.providers.downloads
                         showImageWithGlide(binding.root.context, artUri, binding.ivArtistArtwork, artist.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateArtistArtUri(binding.root.context, artist)
+                            artistsViewModel.updateArtistArtUri(binding.root.context, artist)
                         }
                         Log.d(TAG, "✅ ArtistsAdapter Glide load success for URI: $artUri")
                     }else  if (isContentProviderUriPicker(artUri.toString())){
@@ -107,14 +109,14 @@ class ArtistsAdapter(
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.ivArtistArtwork, artist.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateArtistArtUri(binding.root.context, artist)
+                            artistsViewModel.updateArtistArtUri(binding.root.context, artist)
                         }
                         Log.d(TAG, "✅✅ ArtistsAdapter Glide load success for URI: $artUri")
                     }else{
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.ivArtistArtwork, artist.name){
                             // При ошибке сбрасываем в БД
-                            viewModel.updateArtistArtUri(binding.root.context, artist)
+                            artistsViewModel.updateArtistArtUri(binding.root.context, artist)
                         }
                         Log.d(TAG, "✅✅✅ ArtistsAdapter Glide load success for URI: $artUri")
                     }
@@ -203,7 +205,8 @@ class ArtistsAdapter(
     private fun navigateToChangeLevelCover(view: View,  artist: Artist) {
         Log.d(TAG, "-=- ArtistsAdapter navigateToChangeLevelCover: " +
                 "artist = ${artist.name} id = ${artist.id} artworkUri = ${artist.artworkUri.toString()}")
-        viewModel.setCurrentArtist(artist)
+        artistsViewModel.setCurrentArtist(artist)
+        viewModel.setCoverImageUriLevel(artist.artworkUri)
         val bundle: Bundle  = Bundle().apply{
             putLong("levelId", artist.id)
             putSerializable("levelType", LevelType.ARTIST)
@@ -246,7 +249,7 @@ class ArtistsAdapter(
         // Сохраняем окончательный порядок, только если были изменения
         if (dragData.isNotEmpty() && dragData != artists) {
             artists = dragData.toList()
-            viewModel.updateArtistsOrder(artists)
+            artistsViewModel.updateArtistsOrder(artists)
             Log.d(TAG, " !! ArtistsAdapter onDrop() - порядок сохранён")
         } else {
             Log.d(TAG, " !! ArtistsAdapter onDrop() - изменений нет")

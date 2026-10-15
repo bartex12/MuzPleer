@@ -46,7 +46,6 @@ import java.util.Locale
 class SharedViewModel(
     var helper : IPreferenceHelper,
     private val repository: MusicRepository,
-    private val artistsRepository: ArtistRepository,
     private val folderRepository: FolderRepository,
     private val favoriteRepository: FavoriteRepository,
     private val playlistRepository: PlaylistRepository
@@ -69,21 +68,6 @@ class SharedViewModel(
 
     private val _songAndPlaylist = MutableLiveData<SongAndPlaylist>()
     val songAndPlaylist: LiveData<SongAndPlaylist> = _songAndPlaylist
-
-    private val _artists = MutableLiveData<List<Artist>>()
-    val artists: LiveData<List<Artist>> = _artists
-
-    private val _currentArtist = MutableLiveData<Artist?>()
-    val currentArtist: LiveData<Artist?> = _currentArtist
-
-    private val _filteredArtists = MutableLiveData<List<Artist>>()
-    val filteredArtists: LiveData<List<Artist>> = _filteredArtists
-
-    private val _listArtistSong = MutableLiveData<List<Song>>()
-    val listArtistSong: LiveData<List<Song>> = _listArtistSong
-
-    private val _filteredListArtistSong = MutableLiveData<List<Song>>()
-    val filteredListArtistSong: LiveData<List<Song>> = _filteredListArtistSong
 
     private val _folders = MutableLiveData<List<Folder>>()
     val folders: LiveData<List<Folder>> = _folders
@@ -206,8 +190,7 @@ class SharedViewModel(
      */
     fun refreshLibrary(onScanned: () -> Unit = {}, afterRefresh: () -> Unit = {}) {
         scanMedia {
-            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы)
-            syncArtist()
+            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы и исполнители)
             syncFolders()
             loadPlaylists()
             afterRefresh()
@@ -308,41 +291,6 @@ class SharedViewModel(
             }
         }
         _filteredPlaylists.value = filteredPlaylistList
-    }
-
-    internal fun filterArtists(query: String) {
-        val originalArtistList: MutableList<Artist> =  (artists.value ?: listOf()).toMutableList()
-        val filteredArtistList: MutableList<Artist> = (filteredArtists.value ?: listOf()).toMutableList()
-        filteredArtistList.clear()
-        if (query.isEmpty()) {
-            filteredArtistList.addAll(originalArtistList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (artist in originalArtistList) {
-                if (artist.name.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredArtistList.add(artist)
-                }
-            }
-        }
-        _filteredArtists.value = filteredArtistList
-    }
-
-    internal fun filterArtistSongs(query: String) {
-        val originalArtistSongList = (listArtistSong.value?: listOf()).toMutableList()
-        val filteredArtistSongList: MutableList<Song> = (filteredListArtistSong.value ?: listOf()).toMutableList()
-        filteredArtistSongList.clear()
-        if (query.isEmpty()) {
-            filteredArtistSongList.addAll(originalArtistSongList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (artistSong in originalArtistSongList) {
-                if (artistSong.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    artistSong.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredArtistSongList.add(artistSong)
-                }
-            }
-        }
-        _filteredListArtistSong.value = filteredArtistSongList
     }
 
     internal fun filterFolders(query: String) {
@@ -450,9 +398,6 @@ class SharedViewModel(
 
     fun getPositionPlaylist(): Int{  return helper.getPositionPlaylist() }
     fun savePositionPlaylist(position: Int){helper.savePositionPlaylist(position)}
-
-    fun getPositionArtist(): Int{  return helper.getPositionArtist() }
-    fun savePositionArtist(position: Int){helper.savePositionArtist(position)}
 
     fun getPositionFolder(): Int{  return helper.getPositionFolder() }
     fun savePositionFolder(position: Int){helper.savePositionFolder(position)}
@@ -598,13 +543,6 @@ class SharedViewModel(
         saveCoverLevelToDatabase(uri, levelId)
     }
 
-    //для артистов
-    fun updateCoverImageArtistsAndSave(uri: Uri, artistId:Long) {
-        Log.d(TAG, "5--- SharedViewModel updateCoverImageArtistsAndSave uri = $uri artistId =$artistId")
-        _coverImageUriLevel.value = uri
-        saveCoverArtistToDatabase(uri, artistId)
-    }
-
     //для папок
     fun updateCoverImageFolderAndSave(uri: Uri, folderId:Long) {
         Log.d(TAG, "5--- SharedViewModel updateCoverImageFolderAndSave uri = $uri folderId =$folderId")
@@ -669,14 +607,6 @@ class SharedViewModel(
        }
    }
 
-    fun  saveCoverArtistToDatabase(uri: Uri, artistId:Long){
-        Log.d(TAG, "6--- SharedViewModel saveCoverArtistToDatabase uri = $uri artistId = $artistId")
-        viewModelScope.launch {
-            artistsRepository.updateArtistArtUri(artistId, uri.toString())
-            loadArtists() // Обновляем список артистов
-        }
-    }
-
     fun  saveCoverFolderToDatabase(uri: Uri, folderId:Long){
         Log.d(TAG, "6--- SharedViewModel saveCoverFolderToDatabase uri = $uri folderId = $folderId")
         viewModelScope.launch {
@@ -723,23 +653,6 @@ class SharedViewModel(
         }
     }
 
-    //загрузка артистов
-    fun loadArtists() {
-        viewModelScope.launch {
-            beginLoad()
-            try {
-                val artistsWithSongsAndAlbums = artistsRepository.getAllArtistsWithSongsAndAlbums()
-                Log.d(TAG, " * SharedViewModel loadArtists artistsWithSongsAndAlbums size = ${artistsWithSongsAndAlbums.size}")
-                _artists.value = artistsWithSongsAndAlbums
-                _filteredArtists.value = artistsWithSongsAndAlbums  //todo убрать?
-            } catch (e: Exception) {
-                Log.d(TAG, " SharedViewModel loadArtists Error loading Artists ${e.message}")
-            } finally {
-                endLoad()
-            }
-        }
-    }
-
     fun loadFolders() {
         viewModelScope.launch {
             beginLoad()
@@ -749,21 +662,6 @@ class SharedViewModel(
                 _filteredFolders.value = foldersWithSongs //todo убрать?
             } catch (e: Exception) {
                 Log.d(TAG, " SharedViewModel loadFolders Error loading Folders ${e.message}")
-            } finally {
-                endLoad()
-            }
-        }
-    }
-
-    fun syncArtist (){
-        viewModelScope.launch {
-            beginLoad()
-            try {
-                Log.d(TAG, " * SharedViewModel syncArtist artistsRepository.syncArtistsFromMediaFiles()")
-                artistsRepository.syncArtistsFromMediaFiles()
-                loadArtists() // Перезагружаем после синхронизации
-            } catch (e: Exception) {
-                Log.d(TAG, " SharedViewModel syncArtist Error loading Artist error = ${e.message}")
             } finally {
                 endLoad()
             }
@@ -781,15 +679,6 @@ class SharedViewModel(
             } finally {
                 endLoad()
             }
-        }
-    }
-
-    fun getSongsByArtist(artistId: Long){
-        viewModelScope.launch {
-            var listArtistSong:List<Song> = artistsRepository.getArtistSongList(artistId)
-            Log.d(TAG, " * SharedViewModel getSongsByArtist listArtistSong size = ${listArtistSong.size}")
-            _listArtistSong.value = listArtistSong
-            _filteredListArtistSong.value = listArtistSong
         }
     }
 
@@ -965,33 +854,6 @@ class SharedViewModel(
         }
     }
 
-    fun updateArtistsOrder(orderedArtist: List<Artist>) {
-        viewModelScope.launch {
-            val artists:List<ArtistFile> = artistsRepository.getAllArtistsSongs()
-            val updatedArtists: MutableList<ArtistFile> = mutableListOf<ArtistFile>()
-
-            orderedArtist.forEachIndexed { index, orderedArtist ->
-                val artist1 = artists.find { it.artistId == orderedArtist.artistId }
-                artist1?.let {
-                    updatedArtists.add(it.copy(sortOrder = index))
-                }
-            }
-            //val artistIds = artists.map{ it.id}
-            val artistArtistIds = artists.map{ it.artistId} //это хэши имени
-
-            Log.d(TAG,"--#**# SharedViewModel updateArtistsOrder orderedArtist artistId = ${orderedArtist.map{it.artistId}}")
-            Log.d(TAG,"--#**# SharedViewModel updateArtistsOrder artistArtistIds = $artistArtistIds")
-            Log.d(TAG,"--#**# SharedViewModel updateArtistsOrder updatedArtists size = ${updatedArtists.size} " +
-                    "updatedArtists sortOrder = ${updatedArtists.map{it.sortOrder}  }")
-
-            artistsRepository.updateArtistsOrder(updatedArtists)
-
-            // Обновляем LiveData
-            _artists.value = orderedArtist
-            _filteredArtists.value = orderedArtist
-        }
-    }
-
     fun getOrderedFavoriteSong() {
         viewModelScope.launch {
             val songs= favoriteRepository.getOrderedFavorites()
@@ -1062,17 +924,6 @@ class SharedViewModel(
         }
     }
 
-    fun setCurrentArtist(artist: Artist){
-        viewModelScope.launch {
-            try {
-                _currentArtist.value = artist  //todo не нужно?
-                _coverImageUriLevel.value =artist.artworkUri
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel setCurrentArtist Error loading playlist error = ${e.message}")
-            }
-        }
-    }
-
     fun setCurrentFolderByFolderPath(folderPath:String){
         viewModelScope.launch {
             try {
@@ -1132,12 +983,6 @@ class SharedViewModel(
     fun loadFavoritesSongsForAdding() {
         viewModelScope.launch {
             _favoriteSongs.value = favoriteRepository.getOrderedFavorites()
-        }
-    }
-
-    fun loadArtistSongsForAdding(artistId:Long){
-        viewModelScope.launch {
-            _listArtistSong.value = artistsRepository.getArtistSongList(artistId)
         }
     }
 
@@ -1417,37 +1262,6 @@ class SharedViewModel(
                 Log.d(TAG, "✅SharedViewModel updatePlaylistArtUri Обновлён artUri для плейлиста = ${playlist.playlistName}  id = ${playlist.id} }")
             } catch (e: Exception) {
                 Log.e(TAG, "❌SharedViewModel updatePlaylistArtUri Ошибка обновления для плейлиста = ${playlist.playlistName}  artUri: ${e.message}")
-            }
-        }
-    }
-
-    fun updateArtistArtUri(context: Context, artist: Artist){
-        viewModelScope.launch {
-            //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUriString = saveResourceToCache(context)
-            val newArtUri = newArtUriString?.toUri()
-            artist.artworkUri = newArtUri
-            // Обновляем артиста
-            _artists.value = _artists.value?.map {a->
-                if (a.id == artist.id) a.copy(artworkUri = newArtUri) else a
-            }
-            // Обновляем артиста
-            _filteredArtists.value = _filteredArtists.value?. map{fa->
-                if (fa.id == artist.id) fa.copy(artworkUri =newArtUri) else fa
-            }
-
-            // Обновляем текущего артиста если нужно
-            _currentArtist.value?.let { current ->
-                if (current.id == artist.id) {
-                    _currentArtist.value = current.copy(artworkUri = newArtUri)
-                }
-            }
-            Log.d(TAG, " **??** SharedViewModel updateArtistArtUri newArtUri $newArtUri")
-            try {
-                artistsRepository.updateArtistArtUriById(artist.id, newArtUriString)
-                Log.d(TAG, "✅SharedViewModel updateArtistArtUri Обновлён artUri для артиста с ${artist.name}  id =  ${artist.id} }")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌SharedViewModel updateArtistArtUri Ошибка обновления artUri: ${e.message}")
             }
         }
     }

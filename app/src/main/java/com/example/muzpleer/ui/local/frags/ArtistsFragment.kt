@@ -22,6 +22,7 @@ import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.ArtistsAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -30,6 +31,7 @@ class ArtistsFragment:Fragment() {
     private var _binding: FragmentSingersBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private lateinit var adapter: ArtistsAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
@@ -56,7 +58,7 @@ class ArtistsFragment:Fragment() {
         // Изначально показываем картинку-заглушку и крутилку
         showLoadingState()
 
-        adapter = ArtistsAdapter(viewModel) { artist ->
+        adapter = ArtistsAdapter(viewModel, artistsViewModel) { artist ->
             val playlist = getSortedDataSong(artist.songs)
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
 
@@ -89,7 +91,7 @@ class ArtistsFragment:Fragment() {
             adapter = this@ArtistsFragment.adapter
         }
 
-        viewModel.filteredArtists.observe(viewLifecycleOwner) { filteredArtists ->
+        artistsViewModel.filteredArtists.observe(viewLifecycleOwner) { filteredArtists ->
             Log.d(TAG,"34 ArtistsFragment onViewCreated filteredArtists.observe: filteredArtists.size= ${filteredArtists.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.artists = filteredArtists  //передаём данные в адаптер
@@ -97,7 +99,7 @@ class ArtistsFragment:Fragment() {
             updateEmptyState(filteredArtists)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.singersRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionArtist())
+        binding.singersRecyclerView.layoutManager?.scrollToPosition(artistsViewModel.getPositionArtist())
     }
 
     /**
@@ -154,7 +156,7 @@ class ArtistsFragment:Fragment() {
         //определяем первую видимую позицию
         val manager = binding.singersRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
-        viewModel.savePositionArtist(firstPosition)
+        artistsViewModel.savePositionArtist(firstPosition)
         Log.d(TAG, "ArtistsFragment onPause firstPosition = $firstPosition")
     }
 
@@ -191,7 +193,7 @@ class ArtistsFragment:Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Устанавливаем флаг, что поиск активен, если есть текст
                 isSearchActive = !newText.isNullOrEmpty()
-                viewModel.filterArtists(newText.orEmpty())
+                artistsViewModel.filterArtists(newText.orEmpty())
                 return true
             }
         })
@@ -201,7 +203,7 @@ class ArtistsFragment:Fragment() {
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
-                viewModel.filterArtists("") // сброс фильтра
+                artistsViewModel.filterArtists("") // сброс фильтра
                 return true
             }
         })
@@ -230,7 +232,7 @@ class ArtistsFragment:Fragment() {
         when(item.itemId){
             R.id.action_edit_order -> {
                 toggleEditMode()
-                viewModel.syncArtist ()
+                artistsViewModel.syncArtist ()
                 true
             }
         }

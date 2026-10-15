@@ -19,6 +19,7 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemAlbumSelectionBinding
 import com.example.muzpleer.model.Artist
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -26,6 +27,7 @@ import java.io.File
 
 class ArtistSelectionAdapter(
     private val viewModel: SharedViewModel,
+    private val artistsViewModel: ArtistsViewModel,
     private val onArtistClick: (Artist) -> Unit
 ) : RecyclerView.Adapter<ArtistSelectionAdapter.AlbumViewHolder>() {
 
@@ -114,7 +116,7 @@ class ArtistSelectionAdapter(
                 ): Boolean {
                     Log.d(TAG, "❌ArtistSelectionAdapter Glide load failed for" +
                             " artist Name = ${artist.name} URI: $artUri")
-                    viewModel.updateArtistArtUri(binding.root.context, artist)
+                    artistsViewModel.updateArtistArtUri(binding.root.context, artist)
                     return false
                 }
 

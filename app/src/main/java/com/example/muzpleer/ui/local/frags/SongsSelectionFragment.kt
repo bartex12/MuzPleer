@@ -22,6 +22,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.util.toast
@@ -31,6 +32,7 @@ import com.google.android.material.textfield.TextInputLayout
 class SongsSelectionFragment : Fragment() {
     private lateinit var binding: FragmentSongsSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private lateinit var adapter: SongSelectionAdapter
     private var playlistId: Long = -1
@@ -67,7 +69,7 @@ class SongsSelectionFragment : Fragment() {
             }
             SelectionType.ARTIST ->{
                 val artistId = arguments?.getLong("artistId") ?: -1
-                viewModel.loadArtistSongsForAdding(artistId)
+                artistsViewModel.loadArtistSongsForAdding(artistId)
             }
             SelectionType.FOLDER ->{
                 val folderPath = arguments?.getString("folderPath") ?: ""
@@ -131,7 +133,7 @@ class SongsSelectionFragment : Fragment() {
                 }
             }
             SelectionType.ARTIST ->{
-                viewModel.listArtistSong.observe(viewLifecycleOwner) { songs ->
+                artistsViewModel.listArtistSong.observe(viewLifecycleOwner) { songs ->
                     title = "Выберите песни"
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(songs)

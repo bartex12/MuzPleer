@@ -7,6 +7,7 @@ import com.example.muzpleer.service.MusicServiceHandler
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import org.koin.android.ext.koin.androidContext
@@ -23,8 +24,9 @@ val appModule = module {
         )
     }
 
-    viewModel { SharedViewModel(get(),get(),get(),get(),get(),get()) }
+    viewModel { SharedViewModel(get(),get(),get(),get(),get()) }
     viewModel { AlbumsViewModel(get(), get()) }
+    viewModel { ArtistsViewModel(get(), get()) }
     viewModel { PlayerViewModel(get()) }
 
     // Регистрируем заглушку для колбэка (реальная реализация будет в ViewModel)
