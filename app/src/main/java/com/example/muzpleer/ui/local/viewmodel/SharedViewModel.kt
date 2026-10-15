@@ -1266,8 +1266,6 @@ class SharedViewModel(
         }
     }
 
-    }
-
    fun updateFolderArtUri(context: Context, folder: Folder){
        viewModelScope.launch {
            //сохраняем картинку из ресурсов в кэш и получаем ссылку
