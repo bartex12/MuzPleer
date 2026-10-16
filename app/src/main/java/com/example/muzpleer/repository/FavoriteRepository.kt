@@ -1,7 +1,5 @@
 package com.example.muzpleer.repository
 
-import android.widget.Toast
-import com.example.muzpleer.di.App
 import com.example.muzpleer.room.entity.FavoriteSong
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.room.dao.FavoriteDao
@@ -9,10 +7,12 @@ import com.example.muzpleer.room.dao.SongDao
 import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileListToSongList
 import com.example.muzpleer.room.utils.fromSongFileToSong
+import com.example.muzpleer.util.UserMessenger
 
 class FavoriteRepository(
     private val favoriteDao: FavoriteDao,
-    private val songDao: SongDao
+    private val songDao: SongDao,
+    private val messenger: UserMessenger
 ) {
     suspend fun addToFavorites(songId: Long) {
         val favorite: FavoriteSong = FavoriteSong(songId = songId)
@@ -45,11 +45,11 @@ class FavoriteRepository(
         val isCurrentlyFavorite = isFavorite(songId)
         if (isCurrentlyFavorite) {
             removeFromFavorites(songId)
-            Toast.makeText(App.instance, "Удалено из ибранного", Toast.LENGTH_SHORT).show()
+            messenger.show("Удалено из избранного")
             return false
         } else {
             addToFavorites(songId)
-            Toast.makeText(App.instance, "Добавлено в избранное", Toast.LENGTH_SHORT).show()
+            messenger.show("Добавлено в избранное")
             return true
         }
     }

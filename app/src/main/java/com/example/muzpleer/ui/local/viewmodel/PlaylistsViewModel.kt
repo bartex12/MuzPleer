@@ -3,17 +3,16 @@ package com.example.muzpleer.ui.local.viewmodel
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.muzpleer.di.App
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.PlaylistRepository
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.UserMessenger
 import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +27,8 @@ import java.util.Locale
  */
 class PlaylistsViewModel(
     private val playlistRepository: PlaylistRepository,
-    private val helper: IPreferenceHelper
+    private val helper: IPreferenceHelper,
+    private val messenger: UserMessenger
 ) : ViewModel() {
 
     private val _playlists = MutableLiveData<List<Playlist>>() //все плейлисты в списке плейлистов,
@@ -220,13 +220,13 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    Toast.makeText(App.instance, "Песня удалена из плейлиста", Toast.LENGTH_SHORT).show()
+                    messenger.show("Песня удалена из плейлиста")
                 } else {
-                    Toast.makeText(App.instance, "Ошибка удаления песни", Toast.LENGTH_SHORT).show()
+                    messenger.show("Ошибка удаления песни")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing song from playlist: ${e.message}", e)
-                Toast.makeText(App.instance, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                messenger.show("Ошибка: ${e.message}")
             }
         }
     }
@@ -246,13 +246,13 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    Toast.makeText(App.instance, "Удалено песен: $removedCount", Toast.LENGTH_SHORT).show()
+                    messenger.show("Удалено песен: $removedCount")
                 } else {
-                    Toast.makeText(App.instance, "Не удалось удалить песни", Toast.LENGTH_SHORT).show()
+                    messenger.show("Не удалось удалить песни")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing songs from playlist: ${e.message}", e)
-                Toast.makeText(App.instance, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                messenger.show("Ошибка: ${e.message}")
             }
         }
     }
