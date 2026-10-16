@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -50,6 +52,7 @@ class SongFragment : Fragment() {
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
+    private var searchMenuItem: MenuItem? = null //пункт поиска, чтобы закрыть его при уходе с экрана
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -154,11 +157,28 @@ class SongFragment : Fragment() {
         val manager = binding.localRecyclerView.layoutManager as LinearLayoutManager
         Log.d( TAG,"1---SongsFragment onResume manager = $manager ")
         manager.scrollToPositionWithOffset(pos, 0)
+        // Пересоздаём меню, как на вкладках альбомов, папок и исполнителей
+        requireActivity().invalidateOptionsMenu()
     }
 
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
     override fun onPause() {
         super.onPause()
+        //при уходе с экрана поиск закрывается, как на вкладках альбомов, папок и исполнителей:
+        //иначе при возврате список остаётся урезанным, а строка поиска свёрнута и пуста.
+        //К этому моменту строка поиска уже свёрнута, поэтому проверять её состояние нельзя -
+        //закрываем всегда
+        view?.let { v ->
+            //прячем клавиатуру
+            (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                ?.hideSoftInputFromWindow(v.windowToken, 0)
+        }
+        //сворачиваем строку поиска (слушатель сворачивания сбросит фильтр)
+        searchMenuItem?.collapseActionView()
+        isSearchActive = false
+        viewModel.filterSongs("")
+        Log.d(TAG, "SongFragment onPause поиск сброшен")
+
         //определяем первую видимую позицию
         val manager = binding.localRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
@@ -186,6 +206,7 @@ class SongFragment : Fragment() {
         inflater.inflate(R.menu.song_menu, menu)
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
+        searchMenuItem = searchItem
         val searchView =searchItem.actionView as SearchView
         //значок лупы слева в развёрнутом сост и сворачиваем строку поиска (true)
         searchView.setIconifiedByDefault(true)
