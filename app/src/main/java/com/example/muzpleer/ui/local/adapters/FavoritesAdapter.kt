@@ -39,6 +39,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -50,6 +51,7 @@ import java.util.Collections
 class FavoritesAdapter(
     private val viewModel: SharedViewModel,
     private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
     private val navController: NavController,
     private val onItemClick: (Song) -> Unit,
 ) : RecyclerView.Adapter<FavoritesAdapter.MusicViewHolder>(),
@@ -195,13 +197,13 @@ class FavoritesAdapter(
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
         popupView.findViewById<TextView>(R.id.itemAddToPlaylist).setOnClickListener {
             navigateToChoosePlaylistFragment(context, song); popup.dismiss()
         }
@@ -247,7 +249,7 @@ class FavoritesAdapter(
 //        val popup = PopupMenu(context, view)
 //        popup.menuInflater.inflate(R.menu.song_item_menu, popup.menu)
 //
-//        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+//        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
 //            popup.menu.findItem(R.id.action_add_to_favorites).isVisible = !isFavorite
 //            popup.menu.findItem(R.id.action_remove_from_favorites).isVisible = isFavorite
 //        }
@@ -255,11 +257,11 @@ class FavoritesAdapter(
 //        popup.setOnMenuItemClickListener { menuItem ->
 //            when (menuItem.itemId) {
 //                R.id.action_add_to_favorites -> {
-//                    viewModel.toggleFavorite(song)
+//                    favoritesViewModel.toggleFavorite(song)
 //                    true
 //                }
 //                R.id.action_remove_from_favorites -> {
-//                    viewModel.toggleFavorite(song)
+//                    favoritesViewModel.toggleFavorite(song)
 //                    true
 //                }
 //                R.id.action_add_to_playlist -> {
@@ -466,7 +468,7 @@ class FavoritesAdapter(
     override fun onDrop() {
         // Сохраняем окончательный порядок
         data = dragData.toList()
-        viewModel.updateFavoritesOrder(data)
+        favoritesViewModel.updateFavoritesOrder(data)
     }
 
     override fun onItemDismiss(position: Int) {
@@ -490,7 +492,7 @@ class FavoritesAdapter(
                 ): Boolean {
                     Log.d(TAG, "❌FavoritesAdapter Glide load failed for" +
                             " track title = ${track.title} URI: $artUri")
-                    viewModel.updateFavoriteArtUri(binding.root.context, track)
+                    favoritesViewModel.updateFavoriteArtUri(binding.root.context, track)
                     return false
                 }
 

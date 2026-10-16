@@ -25,6 +25,7 @@ import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
@@ -37,6 +38,7 @@ class SongFragment : Fragment() {
     private var _binding: FragmentSongsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private val albumsViewModel: AlbumsViewModel by activityViewModel()
@@ -72,7 +74,7 @@ class SongFragment : Fragment() {
         appPreferences =PreferenceHelperImpl(App.instance)
         navController = findNavController()
 
-        adapter = SongsAdapter(viewModel, playlistsViewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
             val playlist=getSortedDataSong(viewModel.getSongs())
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист

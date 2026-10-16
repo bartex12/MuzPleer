@@ -45,8 +45,7 @@ import java.util.Locale
 
 class SharedViewModel(
     var helper : IPreferenceHelper,
-    private val repository: MusicRepository,
-    private val favoriteRepository: FavoriteRepository
+    private val repository: MusicRepository
 ) : ViewModel() {
 
     private val _songs = MutableLiveData<List<Song>>()
@@ -54,12 +53,6 @@ class SharedViewModel(
 
     private val _filteredSongs = MutableLiveData<List<Song>>()
     val filteredSongs: LiveData<List<Song>> = _filteredSongs
-
-    private val _favoriteSongs = MutableLiveData<List<Song>>(listOf())
-    val favoriteSongs: LiveData<List<Song>> = _favoriteSongs
-
-    private var _filteredFavoriteSongs = MutableLiveData<List<Song>>()
-    val filteredFavoriteSongs: LiveData<List<Song>> = _filteredFavoriteSongs
 
     private val _playlist = MutableLiveData<List<Song>>()
     val playlist: LiveData<List<Song>> = _playlist
@@ -216,10 +209,6 @@ class SharedViewModel(
          return currentSong.value
     }
 
-    fun getFavoriteSongs():List<Song> {
-        return favoriteSongs.value
-    }
-
     companion object{
         const val TAG= "33333"
     }
@@ -240,24 +229,6 @@ class SharedViewModel(
             }
         }
         _filteredSongs.value = filteredSongsList
-    }
-
-    internal fun filterFavoriteSongs(query: String) {
-        val originalSongsList: MutableList<Song> =  (favoriteSongs.value ?: listOf()).toMutableList()
-        val filteredSongsList: MutableList<Song> = (filteredFavoriteSongs.value ?: listOf()).toMutableList()
-        filteredSongsList.clear()
-        if (query.isEmpty()) {
-            filteredSongsList.addAll(originalSongsList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (song in originalSongsList) {
-                if (song.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    song.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredSongsList.add(song)
-                }
-            }
-        }
-        _filteredFavoriteSongs.value = filteredSongsList
     }
 
     internal fun filterListSelectedSongs(query: String) {
@@ -321,53 +292,6 @@ class SharedViewModel(
 
     fun getIndexOfSavedSong():Int{
         return helper.getIndexOfCurrentSong()
-    }
-
-    fun getPositionFavoriteSong(): Int{  return helper.getPositionFavoriteSong() }
-    fun savePositionFavoriteSong(position: Int){helper.savePositionFavoriteSong(position)}
-
-    fun loadFavoriteSongs() {
-        viewModelScope.launch {
-            beginLoad()
-            try {
-                val songs = favoriteRepository.getOrderedFavorites()
-                //val songs = favoriteRepository.getAllFavorites()
-                _favoriteSongs.value = songs
-                _filteredFavoriteSongs.value = songs
-            } catch (e: Exception) {
-                Log.d(TAG, "***SharedViewModel loadFavoriteSongs error = ${e.message}")
-            } finally {
-                endLoad()
-            }
-        }
-    }
-
-    fun getAllFavoriteSongs():List<Song>{
-        return favoriteSongs.value
-    }
-
-    fun toggleFavorite(song: Song) {
-        viewModelScope.launch {
-            val isNowFavorite = favoriteRepository.toggleFavorite(song.id)
-            // Обновляем список избранного
-            val songs = favoriteRepository.getAllFavorites()
-            _favoriteSongs.value = songs
-            _filteredFavoriteSongs.value = songs
-        }
-    }
-
-    fun checkIsFavoriteWithCallback (songId: Long, callback:(Boolean)->Unit ) {
-        viewModelScope.launch {
-            val isFavorite = favoriteRepository.isFavorite(songId)
-            callback(isFavorite)
-        }
-    }
-
-    fun clearFavorites() {
-        viewModelScope.launch {
-            favoriteRepository.clearAllFavorites()
-            loadFavoriteSongs() // Обновляем список
-        }
     }
 
     fun setSelectedSong(song: Song) {
@@ -626,44 +550,11 @@ class SharedViewModel(
         }
     }
 
-    fun updateFavoritesOrder(orderedSongs: List<Song>) {
-        viewModelScope.launch {
-            val favorites:List<FavoriteSong> = favoriteRepository.getAllFavoriteSongs()
-            val updatedFavorites: MutableList<FavoriteSong> = mutableListOf<FavoriteSong>()
-
-            orderedSongs.forEachIndexed { index, song ->
-                val favorite = favorites.find { it.songId == song.id }
-                favorite?.let {
-                    updatedFavorites.add(it.copy(sortOrder = index))
-                }
-            }
-            favoriteRepository.updateFavoriteOrder(updatedFavorites)
-
-            // Обновляем LiveData
-            _favoriteSongs.value = orderedSongs
-            _filteredFavoriteSongs.value = orderedSongs
-        }
-    }
-
-    fun getOrderedFavoriteSong() {
-        viewModelScope.launch {
-            val songs= favoriteRepository.getOrderedFavorites()
-            _favoriteSongs.value=songs
-            _filteredFavoriteSongs.value=songs
-        }
-    }
-
     fun loadAllSongsForAdding() {
         viewModelScope.launch {
             val allSongs =  repository.getSongsFromDatabase()
             _songs.value = allSongs
             _filteredSongs.value = allSongs
-        }
-    }
-
-    fun loadFavoritesSongsForAdding() {
-        viewModelScope.launch {
-            _favoriteSongs.value = favoriteRepository.getOrderedFavorites()
         }
     }
 
@@ -725,31 +616,6 @@ class SharedViewModel(
 
     //для сохранения картинки из ресурсов в кэш диска
     fun saveResourceToCache(context: Context): String? = saveDefaultCoverToCache(context)
-
-    fun updateFavoriteArtUri(context: Context, track: Song){
-        viewModelScope.launch {
-            //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUriString = saveResourceToCache(context)
-            track.artUri = newArtUriString
-            // Обновляем  избранное
-            _favoriteSongs.value = _favoriteSongs.value?.map {fav->
-                if (fav.id == track.id) fav.copy(artUri = newArtUriString) else fav
-            }
-            // Обновляем  фильтрованное избранное
-            _filteredFavoriteSongs.value = _filteredFavoriteSongs.value?. map{ff->
-                if (ff.id == track.id) ff.copy(artUri =newArtUriString) else ff
-            }
-            Log.d(TAG, " **??** SharedViewModel updateFavoriteArtUri newArtUriString $newArtUriString")
-            try {
-                newArtUriString?. let{
-                    favoriteRepository.updateFavoriteAtrUri(track.id, it)
-                }
-                Log.d(TAG, "✅SharedViewModel updateFavoriteArtUri Обновлён artUri для папки  ${track.title}  id = ${track.id} }")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌SharedViewModel updateFavoriteArtUri Ошибка обновления artUri для папки  ${track.title} : ${e.message}")
-            }
-        }
-    }
 
     fun getSongById(songId: Long, callback: (Song?) -> Unit) {
         viewModelScope.launch {

@@ -31,6 +31,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
@@ -47,6 +48,7 @@ class SongListFolderFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val foldersViewModel: FoldersViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
@@ -77,7 +79,7 @@ class SongListFolderFragment:Fragment() {
 
         initMenu()
 
-        adapter = SongsAdapter(viewModel, playlistsViewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             val playlist=viewModel.getPlaylist()
 
             viewModel.setSongAndPlaylist(
