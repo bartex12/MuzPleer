@@ -25,6 +25,7 @@ import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
@@ -36,6 +37,7 @@ class SongFragment : Fragment() {
     private var _binding: FragmentSongsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private val artistsViewModel: ArtistsViewModel by activityViewModel()
@@ -70,7 +72,7 @@ class SongFragment : Fragment() {
         appPreferences =PreferenceHelperImpl(App.instance)
         navController = findNavController()
 
-        adapter = SongsAdapter(viewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
             val playlist=getSortedDataSong(viewModel.getSongs())
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
@@ -239,7 +241,7 @@ class SongFragment : Fragment() {
             }
             R.id.updateSongs->{
                 val currentSong = viewModel.getCurrentSong()
-                viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders() }) {
+                viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
                         viewModel.setCurrentSongById(currentSong.id)

@@ -22,6 +22,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -33,6 +34,7 @@ import com.google.android.material.textfield.TextInputLayout
 class SongsSelectionFragment : Fragment() {
     private lateinit var binding: FragmentSongsSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val foldersViewModel: FoldersViewModel by activityViewModel()
     private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private val albumsViewModel: AlbumsViewModel by activityViewModel()
@@ -80,7 +82,7 @@ class SongsSelectionFragment : Fragment() {
 
             SelectionType.PLAYLISTS -> {
                 val selectedPlaylistId =  arguments?.getLong("selectedPlaylistId") ?: -1
-                viewModel.loadPlaylistSongsForAdding(selectedPlaylistId)
+                playlistsViewModel.loadPlaylistSongsForAdding(selectedPlaylistId)
             }
         }
         setupRecyclerView()
@@ -156,7 +158,7 @@ class SongsSelectionFragment : Fragment() {
             }
 
             SelectionType.PLAYLISTS -> {
-               viewModel.currentPlaylistSongs.observe(viewLifecycleOwner) {playlistSong->
+               playlistsViewModel.currentPlaylistSongs.observe(viewLifecycleOwner) {playlistSong->
                    title = "Выберите песни"
                    viewModel.setAppBarTitle(title)
                    viewModel.setListSelectedSong(playlistSong)
@@ -314,7 +316,7 @@ class SongsSelectionFragment : Fragment() {
     private fun addSelectedSongsToPlaylist() {
         val selectedSongs = adapter.getSelectedSongs()
         if (selectedSongs.isNotEmpty()) {
-            viewModel.addSongsToPlaylistWhithSongs(playlistId, selectedSongs)
+            playlistsViewModel.addSongsToPlaylistWhithSongs(playlistId, selectedSongs)
             findNavController().navigateUp() // Вернуться к выбору источника, если песни или избранное
             if(selectionType == SelectionType.ALBUM || selectionType == SelectionType.ARTIST ||
                 selectionType == SelectionType.FOLDER){
