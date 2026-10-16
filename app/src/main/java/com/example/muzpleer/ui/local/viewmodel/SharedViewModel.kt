@@ -250,7 +250,12 @@ class SharedViewModel(
     }
 
 
+    //обложка выбранной песни на момент выбора. Хранится отдельно, потому что объект Song
+    //общий для списка и плеера, и другие места подменяют в нём artUri на лету
+    private var selectedOriginalArtUri: String? = null
+
     fun setSelectedSong(song: Song) {
+        selectedOriginalArtUri = song.artUri
         _selectedSong.value = song
         if(song.artUri == null){
            val uri = getDefaultCoverUri()
@@ -294,9 +299,12 @@ class SharedViewModel(
     //для песен
     fun updateCoverImageAndSave(uri: Uri) {
         Log.d(TAG, "2*** SharedViewModel updateCoverImageAndSave uri = $uri")
-        val currentSong = _selectedSong.value ?: return
-        // Проверяем, не тот же ли это URI
-        if (currentSong.artUri == uri.toString()) {
+        _selectedSong.value ?: return
+        // Проверяем, не тот же ли это URI. Сравниваем с обложкой на момент выбора песни, а не с
+        // song.artUri: MainActivity подменяет artUri у играющей песни при выборе картинки, и тогда
+        // сравнение ошибочно считало обложку неизменённой и она не сохранялась в базу
+        val originalUri = selectedOriginalArtUri ?: getDefaultCoverUri().toString()
+        if (originalUri == uri.toString()) {
             Log.d(TAG, "  --##-- SharedViewModel updateCoverImageAndSave Same URI, skipping update")
             return // Не обновляем, если URI не изменился
         }
@@ -330,10 +338,12 @@ class SharedViewModel(
                     repository.updateCoverPath(selectedSong.id, path)
                 }?: repository.updateCoverPath(selectedSong.id, uri.toString())
 
-                _coverImageUri.value = coverPath?.toUri() //повторно? перезаписываем _coverImageUri
+                //если копия в кэш не удалась, остаётся исходный uri, а не null
+                val finalArt = coverPath ?: uri.toString()
+                _coverImageUri.value = finalArt.toUri() //повторно? перезаписываем _coverImageUri
 
                 //обновляем песню во всех списках: общем, отфильтрованном, выбранной и текущей
-                patchSong(selectedSong.id) { it.copy(artUri = coverPath) }
+                patchSong(selectedSong.id) { it.copy(artUri = finalArt) }
             }
         }
     }

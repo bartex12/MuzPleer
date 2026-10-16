@@ -273,22 +273,23 @@ class MainActivity : AppCompatActivity() {
         viewModel.coverImageUri.observe(this) { uri ->
             val selectedSong = viewModel.getSelectedSong()
             val currentSong = viewModel.getCurrentSong()
-            if (currentSong?.id == selectedSong?.id){
-                // Загрузка обложки
-                currentSong?.artUri?. let{artUri->
-                    currentSong.artUri= uri.toString()
+            if (currentSong != null && currentSong.id == selectedSong?.id) {
+                // Раньше здесь грузилась старая обложка currentSong.artUri, а не новая uri,
+                // поэтому нижний плеер не обновлялся после замены обложки
+                if (uri == null) {
+                    artWork.setImageResource(R.drawable.muz_player3)
+                } else {
+                    val artUri = uri.toString()
+                    currentSong.artUri = artUri
                     Log.d(TAG, "3*** MainActivity coverImageUri.observe " +
                             "currentSong.artUri =  ${currentSong.artUri} title = ${currentSong.title}")
-
-                    // Загружаем изображение
                     try {
-                        if (isContentProviderUri(artUri)){
+                        if (isContentProviderUri(artUri)) {
                             // Загрузка обложки из  content:/com.android.providers.downloads
                             showImageWithGlide(binding.root.context, artUri, artWork, currentSong, binding)
-                        }else  if (isContentProviderUriPicker(artUri.toString())){
-                            val  photoPickerUri =artUri.toString().toUri()
-                            showImageWithGlide(binding.root.context, photoPickerUri, artWork, currentSong, binding)
-                        }else{
+                        } else if (isContentProviderUriPicker(artUri)) {
+                            showImageWithGlide(binding.root.context, artUri.toUri(), artWork, currentSong, binding)
+                        } else {
                             // Загрузка обложки из кэша приложения
                             showImageWithGlide(binding.root.context, File(artUri), artWork, currentSong, binding)
                         }
@@ -297,7 +298,7 @@ class MainActivity : AppCompatActivity() {
                         //при ошибке грузим картинку ошибки
                         artWork.setImageResource(R.drawable.muz_player3)
                     }
-                }?: artWork.setImageResource(R.drawable.muz_player3)  //если artUri = null
+                }
             }
         }
 

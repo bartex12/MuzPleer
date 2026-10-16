@@ -122,7 +122,12 @@ class MusicRepository(
                             // Если появилась,сохраняем изображение в кэш и возвращаем URI в строковом виде
                             val embeddedArtUri = getEmbeddedArtworkAndSave(context, path)
                             Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях embeddedArtUri = $embeddedArtUri ")
-                            val finalArtUri = embeddedArtUri ?: existingFile.artUri // Если нет встроенной, оставляем старую
+                            // Обложку, которая уже есть и доступна (в том числе выбранную пользователем),
+                            // не трогаем. Встроенная берётся, только если обложки нет или файл пропал.
+                            // Заодно учитываем, что getEmbeddedArtworkAndSave возвращает строку "null"
+                            val embeddedReal = embeddedArtUri?.takeIf { it != "null" }
+                            val finalArtUri = if (isCoverUsable(existingFile.artUri)) existingFile.artUri
+                                else embeddedReal ?: existingFile.artUri
                             Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях finalArtUri = $finalArtUri ")
                             //Добавляем в список для обновления
                             filesToUpdate.add(
@@ -216,6 +221,12 @@ class MusicRepository(
 
         //songs = songList.toMutableList()
         return songList
+    }
+
+    /** Обложка считается пригодной, если она задана, это не строка "null" и файл (если это путь) существует. */
+    private fun isCoverUsable(artUri: String?): Boolean {
+        if (artUri.isNullOrBlank() || artUri == "null") return false
+        return if (artUri.startsWith("/")) File(artUri).exists() else true
     }
 
     suspend fun getSongsFromDatabase(): List<Song> { //для проверки в MainActivity
