@@ -32,6 +32,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
@@ -42,6 +43,7 @@ class FavoritesFragment: Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var adapter: FavoritesAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
@@ -65,7 +67,7 @@ class FavoritesFragment: Fragment() {
         resetEditModeOnStart()
         navController = findNavController()
 
-        adapter = FavoritesAdapter(viewModel, navController) { song ->
+        adapter = FavoritesAdapter(viewModel, playlistsViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
             val playlist=viewModel.getFavoriteSongs()
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист

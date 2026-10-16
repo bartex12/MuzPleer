@@ -32,6 +32,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsPlaylistAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.toast
@@ -44,6 +45,7 @@ class SongPlaylistFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsPlaylistAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
@@ -75,14 +77,14 @@ class SongPlaylistFragment:Fragment() {
 
         // Получаем название плейлиста из аргументов или ViewModel
         val playlistName = arguments?.getString("playlistName")
-            ?: viewModel.getCurrentPlaylist()?.playlistName
+            ?: playlistsViewModel.getCurrentPlaylist()?.playlistName
 
         // Устанавливаем заголовок
         updateToolbarTitle("Плейлист: $playlistName")
 
-        adapter = SongsPlaylistAdapter(viewModel) { song ->
+        adapter = SongsPlaylistAdapter(viewModel, playlistsViewModel) { song ->
             val playlistSongs=
-                viewModel.getCurrentPlaylist()?.playlistSongs ?: listOf()
+                playlistsViewModel.getCurrentPlaylist()?.playlistSongs ?: listOf()
             //можно было взять и из currentFilteredPlaylistSongs
             Log.d(
                 TAG, "!@#@ SongPlaylistFragment размер плейлиста = " +
@@ -114,17 +116,17 @@ class SongPlaylistFragment:Fragment() {
         // Настраиваем поиск
         setupSearch()
 
-        viewModel.loadCurrentPlaylistForSongs(playlistId)  //грузим текущий плейлист ради песен для адаптера
+        playlistsViewModel.loadCurrentPlaylistForSongs(playlistId)  //грузим текущий плейлист ради песен для адаптера
 
         // Слушаем ОБЩИЙ список песен плейлиста (не отфильтрованный)
-        viewModel.currentPlaylistSongs.observe(viewLifecycleOwner) { playlistSongs ->
+        playlistsViewModel.currentPlaylistSongs.observe(viewLifecycleOwner) { playlistSongs ->
             totalSongsCount =playlistSongs?.size ?:0
             updateSearchVisibility( )
 
             Log.d(TAG, "###3 SongPlaylistFragment total songs: $totalSongsCount")
         }
 
-        viewModel.currentFilteredPlaylistSongs.observe(viewLifecycleOwner) { currentPlaylistSongs ->
+        playlistsViewModel.currentFilteredPlaylistSongs.observe(viewLifecycleOwner) { currentPlaylistSongs ->
             Log.d(TAG, "!@#@4 SongPlaylistFragment currentFilteredPlaylistSongs.observe currentFilteredPlaylistSongs size ${currentPlaylistSongs?.size}")
             val currentSongs = currentPlaylistSongs?: listOf()
             //adapter.data = getSortedDataSong(currentSongs) //нельзя, собьётся перемещение строк
@@ -152,7 +154,7 @@ class SongPlaylistFragment:Fragment() {
         }
 
         // Также подписываемся на изменения текущего плейлиста
-        viewModel.currentPlaylist.observe(viewLifecycleOwner) { playlistWithSongs ->
+        playlistsViewModel.currentPlaylist.observe(viewLifecycleOwner) { playlistWithSongs ->
             playlistWithSongs?.let {
                 adapter.data = it.playlistSongs
             }
@@ -245,7 +247,7 @@ class SongPlaylistFragment:Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // Ищем при каждом изменении текста
                 s?.let { query ->
-                    viewModel.filterPlaylistSongs(query.toString())
+                    playlistsViewModel.filterPlaylistSongs(query.toString())
                 }
             }
 
@@ -265,7 +267,7 @@ class SongPlaylistFragment:Fragment() {
         binding.inputLayoutSearchAllTracksPlaylist.setEndIconOnClickListener {
             if (binding.inputEditTextSearchAllTracksPlaylist.text?.isNotEmpty() == true) {
                 binding.inputEditTextSearchAllTracksPlaylist.text?.clear()
-                viewModel.filterPlaylistSongs("")
+                playlistsViewModel.filterPlaylistSongs("")
             } else {
                 performSearch()
             }
@@ -311,7 +313,7 @@ class SongPlaylistFragment:Fragment() {
     private fun performSearch() {
         val query = binding.inputEditTextSearchAllTracksPlaylist.text.toString().trim()
         if (query.isNotEmpty()) {
-            viewModel.filterPlaylistSongs(query)
+            playlistsViewModel.filterPlaylistSongs(query)
             hideKeyboard()
         } else {
             toast("Введите текст для поиска")
@@ -355,7 +357,7 @@ class SongPlaylistFragment:Fragment() {
 
                 // Очищаем текст поиска
                 binding.inputEditTextSearchAllTracksPlaylist.text?.clear()
-                viewModel.filterPlaylistSongs("")
+                playlistsViewModel.filterPlaylistSongs("")
                 hideKeyboard()
         }
 
@@ -396,7 +398,7 @@ class SongPlaylistFragment:Fragment() {
                 editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
 
                 // вычисляем количество песен в списке
-                val songsCount = viewModel.currentFilteredPlaylistSongs.value?.size ?: 0
+                val songsCount = playlistsViewModel.currentFilteredPlaylistSongs.value?.size ?: 0
                Log.d(TAG, "$$$$$5 SongPlaylistFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше 7 песен
                 menu.findItem(R.id.action_go_to_song2).isVisible = songsCount > 7
@@ -406,7 +408,7 @@ class SongPlaylistFragment:Fragment() {
                 when(menuItem.itemId){
                     R.id.action_go_to_song2->{
                         //список песен в плейлисте
-                        val currentPlaylistSongs  = viewModel.getCurrentPlaylist()?.playlistSongs ?: listOf()
+                        val currentPlaylistSongs  = playlistsViewModel.getCurrentPlaylist()?.playlistSongs ?: listOf()
                        //текущая песня
                         val currentSong = viewModel.getCurrentSong()
 

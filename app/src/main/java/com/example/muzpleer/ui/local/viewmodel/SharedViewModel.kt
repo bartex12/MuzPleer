@@ -46,8 +46,7 @@ import java.util.Locale
 class SharedViewModel(
     var helper : IPreferenceHelper,
     private val repository: MusicRepository,
-    private val favoriteRepository: FavoriteRepository,
-    private val playlistRepository: PlaylistRepository
+    private val favoriteRepository: FavoriteRepository
 ) : ViewModel() {
 
     private val _songs = MutableLiveData<List<Song>>()
@@ -128,21 +127,6 @@ class SharedViewModel(
     private val _coverPath = MutableLiveData<String>()
     val coverPath: LiveData<String> = _coverPath
 
-    private val _playlists = MutableLiveData<List<Playlist>>() //все плейлисты в списке плейлистов,
-    val playlists: LiveData<List<Playlist>> = _playlists
-
-    private val _filteredPlaylists = MutableLiveData<List<Playlist>>() //все плейлисты в списке плейлистов, отфильтрованные поиском
-    val filteredPlaylists: LiveData<List<Playlist>> = _filteredPlaylists
-
-    private val _currentPlaylist = MutableLiveData<Playlist?>()  //конкретный плейлист
-    val currentPlaylist : LiveData<Playlist?> = _currentPlaylist
-
-    private val _currentPlaylistSongs = MutableLiveData<List<Song>?>()  //список песен конкретного плейлиста
-    val currentPlaylistSongs : LiveData<List<Song>?> = _currentPlaylistSongs
-
-    private val _currentFilteredPlaylistSongs = MutableLiveData<List<Song>?>()  //отфильтрованный поиском список песен конкретного плейлиста
-    val currentFilteredPlaylistSongs: LiveData<List<Song>?> = _currentFilteredPlaylistSongs
-
     private val _appBarTitle = MutableLiveData<String>()  //отфильтрованный поиском список песен конкретного плейлиста
     val appBarTitle: LiveData<String> = _appBarTitle
 
@@ -174,8 +158,7 @@ class SharedViewModel(
      */
     fun refreshLibrary(onScanned: () -> Unit = {}, afterRefresh: () -> Unit = {}) {
         scanMedia {
-            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы, исполнители и папки)
-            loadPlaylists()
+            onScanned() //вкладки, вынесенные в отдельные ViewModel (сейчас альбомы, исполнители, папки и плейлисты)
             afterRefresh()
         }
     }
@@ -259,23 +242,6 @@ class SharedViewModel(
         _filteredSongs.value = filteredSongsList
     }
 
-    internal fun filterPlaylists(query: String) {
-        val originalPlaylistList: MutableList<Playlist> =  (playlists.value ?: listOf()).toMutableList()
-        val filteredPlaylistList: MutableList<Playlist> = (filteredPlaylists.value ?: listOf()).toMutableList()
-        filteredPlaylistList.clear()
-        if (query.isEmpty()) {
-            filteredPlaylistList.addAll(originalPlaylistList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (playlist in originalPlaylistList) {
-                if (playlist.playlistName.lowercase(Locale.getDefault()).contains(searchQuery) ) {
-                    filteredPlaylistList.add(playlist)
-                }
-            }
-        }
-        _filteredPlaylists.value = filteredPlaylistList
-    }
-
     internal fun filterFavoriteSongs(query: String) {
         val originalSongsList: MutableList<Song> =  (favoriteSongs.value ?: listOf()).toMutableList()
         val filteredSongsList: MutableList<Song> = (filteredFavoriteSongs.value ?: listOf()).toMutableList()
@@ -292,26 +258,6 @@ class SharedViewModel(
             }
         }
         _filteredFavoriteSongs.value = filteredSongsList
-    }
-
-    internal fun filterPlaylistSongs(query: String) {
-        val playlistSongs =currentPlaylistSongs.value
-        val originalSongsList: MutableList<Song> =playlistSongs?.toMutableList() ?: mutableListOf()
-        val filteredPlaylistSong =currentFilteredPlaylistSongs.value
-        val filteredSongsList: MutableList<Song> =filteredPlaylistSong?.toMutableList() ?: mutableListOf()
-        filteredSongsList.clear( )
-        if (query.isEmpty()) {
-            filteredSongsList.addAll(originalSongsList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (song in originalSongsList) {
-                if (song.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    song.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredSongsList.add(song)
-                }
-            }
-        }
-        _currentFilteredPlaylistSongs.value = filteredSongsList
     }
 
     internal fun filterListSelectedSongs(query: String) {
@@ -343,9 +289,6 @@ class SharedViewModel(
 
     fun getPositionSong(): Int{  return helper.getPositionSong() }
     fun savePositionSong(position: Int){helper.savePositionSong(position)}
-
-    fun getPositionPlaylist(): Int{  return helper.getPositionPlaylist() }
-    fun savePositionPlaylist(position: Int){helper.savePositionPlaylist(position)}
 
     fun getTabsLocalPosition():Int = helper.getTabsLocalPosition()
     fun saveTabsLocalPosition(currentItem: Int) = helper.saveTabsLocalPosition(currentItem)
@@ -481,13 +424,6 @@ class SharedViewModel(
         saveCoverToDatabase(uri)  //обновляем в базе
     }
 
-    //для плейлистов
-    fun updateCoverImageLevelAndSave(uri: Uri, levelId:Long) {
-        Log.d(TAG, "5--- SharedViewModel updateCoverImageAndSave uri = $uri levelId =$levelId")
-        _coverImageUriLevel.value = uri
-        saveCoverLevelToDatabase(uri, levelId)
-    }
-
     fun getDefaultCoverUri(): Uri {
         return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
     }
@@ -535,15 +471,6 @@ class SharedViewModel(
             }
         }
     }
-
-    //для плейлиста
-  fun  saveCoverLevelToDatabase(uri: Uri, levelId:Long){
-       Log.d(TAG, "6--- SharedViewModel saveCoverLevelToDatabase uri = $uri levelId = $levelId")
-       viewModelScope.launch {
-           playlistRepository.updatePlaylistArtUri(levelId, uri.toString())
-           loadPlaylists() // Обновляем список
-       }
-   }
 
     fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
         try {
@@ -726,102 +653,6 @@ class SharedViewModel(
         }
     }
 
-    //грузим все плейлисты для отображения списком
-    fun loadPlaylists() {
-        viewModelScope.launch {
-            try {
-                val playlists = playlistRepository.getAllPlaylists()
-                Log.d(TAG,"#**# SharedViewModel loadPlaylists playlists size = ${playlists.size}")
-                _playlists.value = playlists
-                _filteredPlaylists.value = playlists
-            } catch (e: Exception) {
-                Log.d(TAG,"#**# SharedViewModel loadPlaylists Error loading playlists error = ${e.message}")
-            }
-        }
-    }
-
-    fun createPlaylist(name: String, onSuccess: (Long) -> Unit = {}) {
-        viewModelScope.launch {
-            try {
-                val playlistId = playlistRepository.createPlaylist(name)
-                loadPlaylists() // Перезагружаем список
-                onSuccess(playlistId)
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel createPlaylist Error creating playlists error = ${e.message}")
-            }
-        }
-    }
-
-    fun addToPlaylist(playlistId: Long, songIds: List<Long>) {
-        viewModelScope.launch {
-            try {
-                playlistRepository.addSongsToPlaylist(playlistId, songIds)
-                loadPlaylists() // Перезагружаем список
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel addToPlaylist Error adding songs to playlist error = ${e.message}")
-            }
-        }
-    }
-
-    fun loadCurrentPlaylistForSongs(playlistId: Long) {
-        viewModelScope.launch {
-            try {
-                val playlist = playlistRepository.getPlaylistWithSongs(playlistId)
-                _currentPlaylist.value = playlist
-                _currentPlaylistSongs.value =playlist?.playlistSongs
-                _currentFilteredPlaylistSongs.value = playlist?.playlistSongs
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel loadPlaylist Error loading playlist error = ${e.message}")
-            }
-        }
-    }
-
-    fun setCurrentPlaylistByPlaylistId(playlistId:Long){
-        viewModelScope.launch {
-            try {
-            val playlist=playlistRepository.getPlaylistWithSongs(playlistId)
-                _currentPlaylist.value = playlist
-                _coverImageUriLevel.value =playlist?.playlistArtUri
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel getPlaylistByPlaylistId Error loading playlist error = ${e.message}")
-            }
-        }
-    }
-
-    fun getCurrentPlaylist():Playlist?{
-        return currentPlaylist.value
-    }
-
-    fun updatePlaylistOrder(playlists: List<Playlist>) {
-        viewModelScope.launch {
-            try {
-                playlistRepository.updatePlaylistOrder(playlists)
-                loadPlaylists()
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel updatePlaylistOrder Error updating playlist order error = ${e.message}")
-            }
-        }
-    }
-
-    fun deletePlaylist(playlistId: Long) {
-        viewModelScope.launch {
-            try {
-                playlistRepository.deletePlaylist(playlistId)
-                loadPlaylists()
-            } catch (e: Exception) {
-                Log.d(TAG,"SharedViewModel deletePlaylist Error deleting playlist error = ${e.message}")
-            }
-        }
-    }
-
-    fun addSongsToPlaylistWhithSongs(playlistId: Long, songs: List<Song>) {
-        viewModelScope.launch {
-            playlistRepository.addSongsToPlaylistWithSongs(playlistId, songs)
-            //перезагружаем плейлисты для обновления количества песен в каждом плейлисте
-            loadPlaylists()
-        }
-    }
-
     fun loadAllSongsForAdding() {
         viewModelScope.launch {
             val allSongs =  repository.getSongsFromDatabase()
@@ -836,190 +667,6 @@ class SharedViewModel(
         }
     }
 
-    fun loadPlaylistSongsForAdding(playlistId:Long){
-        viewModelScope.launch {
-            _currentPlaylistSongs.value = playlistRepository.getPlaylistSongsOnly(playlistId)
-        }
-    }
-
-    fun renamePlaylist(playlistId: Long, newName: String) {
-        viewModelScope.launch {
-            playlistRepository.renamePlaylist(playlistId, newName)
-            // Автоматически обновим список через LiveData
-            loadPlaylists()
-        }
-    }
-
-    fun setCurrentPlaylist(playlist: Playlist){
-        _currentPlaylist.value = playlist
-    }
-
-    // Удаление песни из плейлиста
-    fun removeSongFromPlaylist(playlistId: Long, songId: Long) {
-        viewModelScope.launch {
-            try {
-                val success = playlistRepository.removeSongFromPlaylist(playlistId, songId)
-                if (success) {
-                    // Обновляем текущий плейлист если он открыт
-                    if (currentPlaylist.value?.id == playlistId) {
-                        loadCurrentPlaylistForSongs(playlistId)
-                    }
-
-                    // Обновляем список всех плейлистов (для счетчика песен)
-                    loadPlaylists()
-
-                    // Показываем уведомление
-                    Toast.makeText(App.instance, "Песня удалена из плейлиста", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(App.instance, "Ошибка удаления песни", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error removing song from playlist: ${e.message}", e)
-                Toast.makeText(App.instance, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Удаление нескольких песен из плейлиста
-    fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>) {
-        viewModelScope.launch {
-            try {
-                val removedCount = playlistRepository.removeSongsFromPlaylist(playlistId, songIds)
-                if (removedCount > 0) {
-                    // Обновляем текущий плейлист если он открыт
-                    if (currentPlaylist.value?.id == playlistId) {
-                        loadCurrentPlaylistForSongs(playlistId)
-                    }
-
-                    // Обновляем список всех плейлистов
-                    loadPlaylists()
-
-                    // Показываем уведомление
-                    Toast.makeText(App.instance, "Удалено песен: $removedCount", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(App.instance, "Не удалось удалить песни", Toast.LENGTH_SHORT).show()
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error removing songs from playlist: ${e.message}", e)
-                Toast.makeText(App.instance, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    // Получение только песен плейлиста (без загрузки всего объекта Playlist)
-    fun getPlaylistSongsOnly(playlistId: Long, callback: (List<Song>) -> Unit) {
-        viewModelScope.launch {
-            try {
-                val songs = playlistRepository.getPlaylistSongsOnly(playlistId)
-                withContext(Dispatchers.Main) {
-                    callback(songs)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error getting playlist songs: ${e.message}", e)
-                withContext(Dispatchers.Main) {
-                    callback(emptyList())
-                }
-            }
-        }
-    }
-
-    fun deleteSongFromPlaylist(songId: Long) {
-        viewModelScope.launch {
-            try {
-                // Получаем текущий плейлист
-                val playlist = getCurrentPlaylist()?: return@launch
-                val playlistId =playlist.id
-                // Удаляем песню из плейлиста в БД
-                playlistRepository.deleteSongFromPlaylist(playlistId, songId)
-
-                // Обновляем локальные данные
-                val updatedSongs = currentFilteredPlaylistSongs.value?.filter { it.id != songId }
-                _currentFilteredPlaylistSongs.value = updatedSongs
-
-                // Обновляем текущий плейлист  (для обновления счетчика)
-                val newCurrentPlaylist = _currentPlaylist.value?.copy(
-                    playlistSongs = updatedSongs ?: listOf())
-                _currentPlaylist.value = newCurrentPlaylist
-
-                _currentPlaylistSongs.value =newCurrentPlaylist?.playlistSongs
-
-                //Все плейлисты, чтобы при возврате на списки плейлистов кол-во песен отображалось правильно
-                val playlists = playlistRepository.getAllPlaylists()
-                _playlists.value = playlists
-                _filteredPlaylists.value = playlists
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Ошибка при удалении песни из плейлиста", e)
-            }
-        }
-    }
-
-    fun addSongToPlaylist(songId: Long, playlistId: Long) {
-        viewModelScope.launch {
-            try {
-                // Проверяем, нет ли уже этой песни в плейлисте
-                val isAlreadyInPlaylist = playlistRepository.isSongInPlaylist(songId, playlistId)
-
-                if (isAlreadyInPlaylist) {
-                    // Можно показать сообщение, что песня уже есть
-                    Log.d(TAG, "Песня уже есть в плейлисте")
-                    return@launch
-                }
-
-                // Добавляем песню в плейлист
-                playlistRepository.addSongToPlaylist(songId, playlistId)
-
-                // Обновляем список плейлистов
-                refreshPlaylists()
-
-                // Если сейчас открыт этот плейлист, обновляем его песни
-                val currentPlaylist = _currentPlaylist.value
-                if (currentPlaylist?.id == playlistId) {
-                    loadCurrentPlaylistForSongs(playlistId)
-                }
-
-            } catch (e: Exception) {
-                Log.e(TAG, "Ошибка при добавлении песни в плейлист", e)
-            }
-        }
-    }
-
-    fun refreshPlaylists() {
-        viewModelScope.launch {
-            val playlists = playlistRepository.getAllPlaylists()
-            _playlists.value = playlists
-            _filteredPlaylists.value = playlists
-
-            // Также обновляем текущий плейлист, если он открыт
-            _currentPlaylist.value?.let { currentPlaylist ->
-                val updatedPlaylist = playlists.find { it.id == currentPlaylist.id }
-                updatedPlaylist?.let { _currentPlaylist.value = it }
-            }
-        }
-    }
-    // запомнить новый порядок перен в плейлисте
-    fun updatePlaylistSongsOrder(orderedSongs: List<Song>, callback: (Boolean) -> Unit ) {
-        viewModelScope.launch {
-            try {
-                val playlistId = getCurrentPlaylist()?.id ?: return@launch
-                playlistRepository.savePlaylistSongsOrder(playlistId, orderedSongs){
-                    // Обновляем локальные данные
-                    _currentFilteredPlaylistSongs.value = orderedSongs
-                    _currentPlaylistSongs.value = orderedSongs
-
-                    // Обновляем текущий плейлист
-                    _currentPlaylist.value = _currentPlaylist.value?.copy(
-                        playlistSongs = orderedSongs
-                    )
-                    Log.d(TAG, "--**-- ShareViewModel updatePlaylistSongsOrder Порядок песен сохранен")
-                }
-                callback(true)
-            } catch (e: Exception) {
-                Log.e(TAG, "❌--**-- ShareViewModel updatePlaylistSongsOrder Ошибка при сохранении порядка песен", e)
-                callback(false)
-            }
-        }
-    }
     //принудительное обновление обложек
     fun refreshArtworks() {
         viewModelScope.launch {
@@ -1079,37 +726,6 @@ class SharedViewModel(
     //для сохранения картинки из ресурсов в кэш диска
     fun saveResourceToCache(context: Context): String? = saveDefaultCoverToCache(context)
 
-    fun updatePlaylistArtUri(context: Context,  playlist: Playlist){
-        viewModelScope.launch {
-            //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUriString = saveResourceToCache(context)
-            val newArtUri = newArtUriString?.toUri()
-            playlist.playlistArtUri = newArtUri
-            // Обновляем плейлист
-            _playlists.value = _playlists.value?.map {p->
-                if (p.id == playlist.id) p.copy(playlistArtUri = newArtUri) else p
-            }
-            // Обновляем фильтрованный плейлист
-            _filteredPlaylists.value = _filteredPlaylists.value?. map{fp->
-                if (fp.id == playlist.id) fp.copy(playlistArtUri = newArtUri) else fp
-            }
-
-            // Обновляем текущий плейлист если нужно
-            _currentPlaylist.value?.let { current ->
-                if (current.id == playlist.id) {
-                    _currentPlaylist.value = current.copy(playlistArtUri = newArtUri)
-                }
-            }
-            Log.d(TAG, " **??** SharedViewModel updatePlaylistArtUri newArtUri $newArtUri")
-            try {
-                playlistRepository.updatePlaylistArtUri(playlist.id, newArtUriString)
-                Log.d(TAG, "✅SharedViewModel updatePlaylistArtUri Обновлён artUri для плейлиста = ${playlist.playlistName}  id = ${playlist.id} }")
-            } catch (e: Exception) {
-                Log.e(TAG, "❌SharedViewModel updatePlaylistArtUri Ошибка обновления для плейлиста = ${playlist.playlistName}  artUri: ${e.message}")
-            }
-        }
-    }
-
     fun updateFavoriteArtUri(context: Context, track: Song){
         viewModelScope.launch {
             //сохраняем картинку из ресурсов в кэш и получаем ссылку
@@ -1145,9 +761,7 @@ class SharedViewModel(
     }
 
     // Метод для обновления текущего плейлиста
-    fun refreshCurrentPlaylist() {
-        val playlistSongs=
-            getCurrentPlaylist()?.playlistSongs ?: listOf()
+    fun refreshCurrentPlaylist(playlistSongs: List<Song>) {
         //можно было взять и из currentFilteredPlaylistSongs
         Log.d(TAG, "!@#@ SongPlaylistFragment размер плейлиста = " +
                     "${playlistSongs.size} имя первой песни плейлиста " +
@@ -1180,10 +794,6 @@ class SharedViewModel(
         }
         Log.d(TAG, "✅SharedViewModel setListSelectedSong songs.size =" +
                 songs?.size?.let { "songs.first = ${ if(it > 0) songs?.first()?.title ?: "" else "" }" })
-    }
-
-    fun getFilteredPlaylists() :List<Playlist>{
-       return filteredPlaylists.value
     }
 
 }

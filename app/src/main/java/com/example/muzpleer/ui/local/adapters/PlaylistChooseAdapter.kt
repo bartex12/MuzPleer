@@ -19,6 +19,7 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemPlaylistChooseBinding
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -26,6 +27,7 @@ import java.io.File
 //для диалога выбора плейлиста для песни
 class PlaylistChooseAdapter(
     private val viewModel:SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
     private val onPlaylistClick: (Playlist) -> Unit
 ) : RecyclerView.Adapter<PlaylistChooseAdapter.PlaylistViewHolder>() {
 
@@ -70,20 +72,20 @@ class PlaylistChooseAdapter(
                         // Загрузка обложки из  content:/com.android.providers.downloads
                         showImageWithGlide(binding.root.context, artUri, binding.ivPlaylistArt, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }else  if (isContentProviderUriPicker(artUri.toString())){
                         // Загрузка обложки из picker
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.ivPlaylistArt, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }else{
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.ivPlaylistArt, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }
                 } catch (e: Exception) {

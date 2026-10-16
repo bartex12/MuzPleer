@@ -31,6 +31,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
@@ -43,6 +44,7 @@ class SongListAlbumFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
@@ -73,7 +75,7 @@ class SongListAlbumFragment:Fragment() {
 
         initMenu()
 
-        adapter = SongsAdapter(viewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, navController) { song ->
             val playlist=viewModel.getPlaylist()
 
             viewModel.setSongAndPlaylist(

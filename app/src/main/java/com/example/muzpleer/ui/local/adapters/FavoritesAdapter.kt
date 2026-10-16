@@ -38,6 +38,7 @@ import com.example.muzpleer.databinding.ItemMusicBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -48,6 +49,7 @@ import java.util.Collections
 
 class FavoritesAdapter(
     private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
     private val navController: NavController,
     private val onItemClick: (Song) -> Unit,
 ) : RecyclerView.Adapter<FavoritesAdapter.MusicViewHolder>(),
@@ -324,9 +326,9 @@ class FavoritesAdapter(
         dialog.setCancelable(true)
 
         val recyclerView = dialog.findViewById<RecyclerView>(R.id.rvPlaylists)
-        val adapter = PlaylistChooseAdapter(viewModel){ playlist ->
+        val adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel){ playlist ->
             // Добавляем песню в выбранный плейлист
-            viewModel.addSongToPlaylist(song.id, playlist.id)
+            playlistsViewModel.addSongToPlaylist(song.id, playlist.id)
 
             // Показываем уведомление
             Toast.makeText(
@@ -342,7 +344,7 @@ class FavoritesAdapter(
         recyclerView.adapter = adapter
 
         // Загружаем список плейлистов
-        viewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
+        playlistsViewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все песни"
         }
 

@@ -18,6 +18,8 @@ import com.example.muzpleer.databinding.FragmentRemoveSongsFromPlaylistBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.util.toast
 import com.google.android.material.button.MaterialButton
 
@@ -29,6 +31,8 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: SharedViewModel by activityViewModels()
+
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val args: RemoveSongsFromPlaylistFragmentArgs by navArgs()
 
     private lateinit var adapter: SongSelectionAdapter
@@ -74,9 +78,9 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
     }
 
     private fun loadPlaylistSongs() {
-        viewModel.loadCurrentPlaylistForSongs(playlistId)
+        playlistsViewModel.loadCurrentPlaylistForSongs(playlistId)
 
-        viewModel.currentPlaylistSongs.observe(viewLifecycleOwner) { songs ->
+        playlistsViewModel.currentPlaylistSongs.observe(viewLifecycleOwner) { songs ->
             if (songs != null) {
                 adapter.data = songs
                 binding.tvEmpty.visibility = if (songs.isEmpty()) View.VISIBLE else View.GONE
@@ -129,7 +133,7 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
 
         btnConfirm.setOnClickListener {
             val songIds = selectedSongs.map { it.id }
-            viewModel.removeSongsFromPlaylist(playlistId, songIds)
+            playlistsViewModel.removeSongsFromPlaylist(playlistId, songIds)
             dialog.dismiss()
             findNavController().navigateUp()
         }
@@ -147,7 +151,7 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
 //            .setMessage("Удалить ${selectedSongs.size} песен из плейлиста \"$playlistName\"?")
 //            .setPositiveButton("Удалить") { _, _ ->
 //                val songIds = selectedSongs.map { it.id }
-//                viewModel.removeSongsFromPlaylist(playlistId, songIds)
+//                playlistsViewModel.removeSongsFromPlaylist(playlistId, songIds)
 //                findNavController().navigateUp()
 //            }
 //            .setNegativeButton("Отмена", null)

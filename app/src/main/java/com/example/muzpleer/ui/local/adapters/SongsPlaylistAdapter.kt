@@ -37,6 +37,7 @@ import com.example.muzpleer.databinding.ItemMusicPlaylistBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -47,6 +48,7 @@ import java.io.File
 import java.util.Collections
 
 class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
                               private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongsPlaylistAdapter.MusicViewHolder>(),
     ItemTouchHelperAdapter  {
@@ -262,7 +264,7 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
 
         btnYes.setOnClickListener {
             //Удаляем песню из плейлиста
-            viewModel.deleteSongFromPlaylist(song.id)
+            playlistsViewModel.deleteSongFromPlaylist(song.id)
             // Показываем уведомление
             Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
@@ -397,11 +399,11 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         data = dragData.toList()
 
         //обновляем в базе
-        viewModel.updatePlaylistSongsOrder(data) { success ->
+        playlistsViewModel.updatePlaylistSongsOrder(data) { success ->
             if (success) {
                 Log.d(TAG, "✅ Порядок плейлиста успешно обновлен")
                 // Если нужно, обновляем текущий плейлист с новым порядком
-                viewModel.refreshCurrentPlaylist()
+                viewModel.refreshCurrentPlaylist(playlistsViewModel.getCurrentPlaylist()?.playlistSongs ?: listOf())
             } else {
                 Log.e(TAG, "❌ Ошибка обновления порядка плейлиста")
             }
