@@ -218,8 +218,11 @@ class SongFragment : Fragment() {
         //возвращаем в поле запрос, по которому отфильтрован список (после смены вкладки меню создаётся заново)
         val savedQuery = viewModel.lastSearchQuery
         if (savedQuery.isNotEmpty()) {
-            searchItem.expandActionView()
-            searchView.setQuery(savedQuery, false)
+            //раскрывать поиск нужно после того, как панель прикрепит меню, иначе он остаётся свёрнутым
+            searchView.post {
+                if (!searchItem.isActionViewExpanded) searchItem.expandActionView()
+                searchView.setQuery(savedQuery, false)
+            }
         }
         super.onCreateOptionsMenu(menu, inflater)
     }
