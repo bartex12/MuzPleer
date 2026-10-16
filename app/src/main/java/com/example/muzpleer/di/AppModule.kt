@@ -8,6 +8,7 @@ import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -26,11 +27,12 @@ val appModule = module {
         )
     }
 
-    viewModel { SharedViewModel(get(),get(),get()) }
+    viewModel { SharedViewModel(get(),get()) }
     viewModel { AlbumsViewModel(get(), get()) }
     viewModel { ArtistsViewModel(get(), get()) }
     viewModel { FoldersViewModel(get(), get()) }
     viewModel { PlaylistsViewModel(get(), get()) }
+    viewModel { FavoritesViewModel(get(), get()) }
     viewModel { PlayerViewModel(get()) }
 
     // Регистрируем заглушку для колбэка (реальная реализация будет в ViewModel)

@@ -22,6 +22,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.SongSelectionAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
@@ -34,6 +35,7 @@ import com.google.android.material.textfield.TextInputLayout
 class SongsSelectionFragment : Fragment() {
     private lateinit var binding: FragmentSongsSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val foldersViewModel: FoldersViewModel by activityViewModel()
     private val artistsViewModel: ArtistsViewModel by activityViewModel()
@@ -64,7 +66,7 @@ class SongsSelectionFragment : Fragment() {
                 title = "Все песни"
             }
             SelectionType.FAVORITES ->{
-                viewModel.loadFavoritesSongsForAdding()
+                favoritesViewModel.loadFavoritesSongsForAdding()
                 title = "Избранное"
             }
             SelectionType.ALBUM ->{
@@ -119,7 +121,7 @@ class SongsSelectionFragment : Fragment() {
                 }
             }
             SelectionType.FAVORITES -> {
-                viewModel.favoriteSongs.observe(viewLifecycleOwner) { songs ->
+                favoritesViewModel.favoriteSongs.observe(viewLifecycleOwner) { songs ->
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs  //не сортируем, чтобы менять порядок

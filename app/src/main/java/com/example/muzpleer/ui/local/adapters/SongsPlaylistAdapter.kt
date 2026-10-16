@@ -38,6 +38,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -49,6 +50,7 @@ import java.util.Collections
 
 class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
     private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
                               private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongsPlaylistAdapter.MusicViewHolder>(),
     ItemTouchHelperAdapter  {
@@ -199,14 +201,14 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddSongToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveSongFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
 
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
 
         popupView.findViewById<TextView>(R.id.itemRemoveSongFromPlaylist).setOnClickListener {
             showDeleteDialog(context, song)

@@ -32,6 +32,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsPlaylistAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getNormalizedPath
@@ -45,6 +46,7 @@ class SongPlaylistFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsPlaylistAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var itemTouchHelper: ItemTouchHelper
@@ -82,7 +84,7 @@ class SongPlaylistFragment:Fragment() {
         // Устанавливаем заголовок
         updateToolbarTitle("Плейлист: $playlistName")
 
-        adapter = SongsPlaylistAdapter(viewModel, playlistsViewModel) { song ->
+        adapter = SongsPlaylistAdapter(viewModel, playlistsViewModel, favoritesViewModel) { song ->
             val playlistSongs=
                 playlistsViewModel.getCurrentPlaylist()?.playlistSongs ?: listOf()
             //можно было взять и из currentFilteredPlaylistSongs
@@ -301,7 +303,7 @@ class SongPlaylistFragment:Fragment() {
         //стираем текст в поле ввода и показываем весь список
         if (binding.inputEditTextSearchAllTracksPlaylist.text?.isNotEmpty() == true) {
             binding.inputEditTextSearchAllTracksPlaylist.text?.clear()
-            viewModel.filterFavoriteSongs("")
+            favoritesViewModel.filterFavoriteSongs("")
         }
 
         // Скрываем клавиатуру

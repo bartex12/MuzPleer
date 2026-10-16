@@ -32,6 +32,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.toast
@@ -43,6 +44,7 @@ class FavoritesFragment: Fragment() {
     private var _binding: FragmentFavoriteBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private lateinit var adapter: FavoritesAdapter
@@ -67,9 +69,9 @@ class FavoritesFragment: Fragment() {
         resetEditModeOnStart()
         navController = findNavController()
 
-        adapter = FavoritesAdapter(viewModel, playlistsViewModel, navController) { song ->
+        adapter = FavoritesAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
-            val playlist=viewModel.getFavoriteSongs()
+            val playlist=favoritesViewModel.getFavoriteSongs()
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
@@ -95,17 +97,17 @@ class FavoritesFragment: Fragment() {
         setupSearch()
 
         //загружаем избранные песни
-        viewModel.loadFavoriteSongs()
+        favoritesViewModel.loadFavoriteSongs()
 
         // Слушаем ОБЩИЙ список избранных песен (не отфильтрованный)
-        viewModel.favoriteSongs.observe(viewLifecycleOwner) { allFavorites ->
+        favoritesViewModel.favoriteSongs.observe(viewLifecycleOwner) { allFavorites ->
             totalSongsCount = allFavorites.size
             updateSearchVisibility()
 
             Log.d(TAG, "###FavoritesFragment total songs: $totalSongsCount")
         }
 
-        viewModel.filteredFavoriteSongs.observe(viewLifecycleOwner) { filteredFavorites ->
+        favoritesViewModel.filteredFavoriteSongs.observe(viewLifecycleOwner) { filteredFavorites ->
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок!!!
             //val sortedData = getSortedDataSong(filteredFavorites)
             // adapter.data = sortedData  //передаём данные в адаптер
@@ -133,7 +135,7 @@ class FavoritesFragment: Fragment() {
         }
 
         //восстанавливаем позицию списка после поворота или возвращения на экран и при новой загрузке
-        binding.favoriteRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionFavoriteSong())
+        binding.favoriteRecyclerView.layoutManager?.scrollToPosition(favoritesViewModel.getPositionFavoriteSong())
 
         initMenu()
     }
@@ -172,7 +174,7 @@ class FavoritesFragment: Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // Ищем при каждом изменении текста
                 s?.let { query ->
-                    viewModel.filterFavoriteSongs(query.toString())
+                    favoritesViewModel.filterFavoriteSongs(query.toString())
                 }
             }
 
@@ -192,7 +194,7 @@ class FavoritesFragment: Fragment() {
         binding.inputLayoutSearch.setEndIconOnClickListener {
             if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
                 binding.inputEditTextSearch.text?.clear()
-                viewModel.filterFavoriteSongs("")
+                favoritesViewModel.filterFavoriteSongs("")
             } else {
                 performSearch()
             }
@@ -226,7 +228,7 @@ class FavoritesFragment: Fragment() {
         //стираем текст в поле ввода и показываем весь список
         if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
             binding.inputEditTextSearch.text?.clear()
-            viewModel.filterFavoriteSongs("")
+            favoritesViewModel.filterFavoriteSongs("")
         }
 
         // Скрываем клавиатуру
@@ -238,7 +240,7 @@ class FavoritesFragment: Fragment() {
     private fun performSearch() {
         val query = binding.inputEditTextSearch.text.toString().trim()
         if (query.isNotEmpty()) {
-            viewModel.filterFavoriteSongs(query)
+            favoritesViewModel.filterFavoriteSongs(query)
             hideKeyboard()
         } else {
             toast("Введите текст для поиска")
@@ -288,7 +290,7 @@ class FavoritesFragment: Fragment() {
 
                 // Очищаем текст поиска
                 binding.inputEditTextSearch.text?.clear()
-                viewModel.filterFavoriteSongs("")
+                favoritesViewModel.filterFavoriteSongs("")
                 hideKeyboard()
             }
         }
@@ -315,7 +317,7 @@ class FavoritesFragment: Fragment() {
         //определяем первую видимую позицию
         val manager = binding.favoriteRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
-        viewModel.savePositionFavoriteSong(firstPosition)
+        favoritesViewModel.savePositionFavoriteSong(firstPosition)
         Log.d(TAG, "SongFragment onPause firstPosition = $firstPosition")
     }
 
@@ -372,7 +374,7 @@ class FavoritesFragment: Fragment() {
                 editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
 
                 // вычисляем количество песен в списке
-                val songsCount = viewModel.filteredFavoriteSongs.value?.size ?: 0
+                val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
                 Log.d(TAG, "$$$$$ SongPlaylistFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше  7 песен
                 menu.findItem(R.id.action_go_to_song_favorite).isVisible = songsCount > 7
@@ -381,7 +383,7 @@ class FavoritesFragment: Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
                 when(menuItem.itemId){
                     R.id.action_go_to_song_favorite->{
-                        val favoriteSongs = viewModel.getFavoriteSongs() //список песен артиста
+                        val favoriteSongs = favoritesViewModel.getFavoriteSongs() //список песен артиста
                         val currentSong = viewModel.getCurrentSong()
                         val indexOfSong = favoriteSongs.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
                         Log.d(TAG, "$$$ FavoritesFragment onMenuItemSelected indexOfSong = $indexOfSong")

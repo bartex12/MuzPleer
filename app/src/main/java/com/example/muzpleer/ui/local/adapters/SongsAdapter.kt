@@ -39,6 +39,7 @@ import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -50,6 +51,7 @@ import java.io.File
 class SongsAdapter(
     private val viewModel: SharedViewModel,
     private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
     private val navController: NavController,
     private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongsAdapter.MusicViewHolder>() {
@@ -175,13 +177,13 @@ class SongsAdapter(
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
         popupView.findViewById<TextView>(R.id.itemAddToPlaylist).setOnClickListener {
             navigateToChoosePlaylistFragment(context, song); popup.dismiss()
         }
