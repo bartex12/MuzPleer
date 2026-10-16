@@ -109,54 +109,43 @@ class MusicRepository(
                     val isTitleChanged = existingFile.title != title
                     val isArtistChanged = existingFile.artist != artist
                     val isAlbumChanged = existingFile.album != album
-                    //чтобы обложка не пропадала после изменения другой информации,
-                    // её нужно всё время обновлять, если она != null
-                    val isCoverNotNull = existingFile.artUri != null
-
-                   //обложка ==null?
-                    if (isCoverNotNull){
-                        //если обложка не равна null,то
-                        //смотрим- был ли файл модифицирован по сравнению с файлом в базе
-                        if (isModified || isMoved || isTitleChanged || isArtistChanged || isAlbumChanged) {
-                            // При изменении файла проверяем, не появилась ли новая встроенная обложка
-                            // Если появилась,сохраняем изображение в кэш и возвращаем URI в строковом виде
-                            val embeddedArtUri = getEmbeddedArtworkAndSave(context, path)
-                            Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях embeddedArtUri = $embeddedArtUri ")
-                            // Обложку, которая уже есть и доступна (в том числе выбранную пользователем),
-                            // не трогаем. Встроенная берётся, только если обложки нет или файл пропал.
-                            // Заодно учитываем, что getEmbeddedArtworkAndSave возвращает строку "null"
-                            val embeddedReal = embeddedArtUri?.takeIf { it != "null" }
-                            val finalArtUri = if (isCoverUsable(existingFile.artUri)) existingFile.artUri
-                                else embeddedReal ?: existingFile.artUri
-                            Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях finalArtUri = $finalArtUri ")
-                            //Добавляем в список для обновления
-                            filesToUpdate.add(
-                                SongFile(
-                                    mediaStoreId = id,
-                                    path = existingFile.path,
-                                    lastModified = existingFile.lastModified,
-                                    title = existingFile.title,
-                                    artist = existingFile.artist,
-                                    artistId = artist.hashCode().toLong(),
-                                    album =  existingFile.album,
-                                    albumId = albumId,
-                                    duration = duration,
-                                    isLocal = true,
-                                    size = sizeFile,
-                                    dateAdded = dateAdded,
-                                    folderPath = folderPath,
-                                    artUri = finalArtUri,
-                                    // Новые поля - сохраняем существующие значения, если они есть
-                                    author = existingFile.author ?: getAuthorFromMetadata(context, path),
-                                    genre = existingFile.genre ?: getGenreFromMetadata(context, path),
-                                    year = existingFile.year ?: getYearFromMetadata(context, path)
-                                )
+                    // Обложку проверяем у всех изменившихся песен, в том числе у тех, где её пока нет:
+                    // вдруг в файле появилась встроенная картинка
+                    if (isModified || isMoved || isTitleChanged || isArtistChanged || isAlbumChanged) {
+                        // При изменении файла проверяем, не появилась ли новая встроенная обложка
+                        // Если появилась,сохраняем изображение в кэш и возвращаем URI в строковом виде
+                        val embeddedArtUri = getEmbeddedArtworkAndSave(context, path)
+                        Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях embeddedArtUri = $embeddedArtUri ")
+                        // Обложку, которая уже есть и доступна (в том числе выбранную пользователем),
+                        // не трогаем. Встроенная берётся, только если обложки нет или файл пропал.
+                        // Строки "null" в базе (остались от старой ошибки) за обложку не считаем
+                        val finalArtUri = if (isCoverUsable(existingFile.artUri)) existingFile.artUri
+                            else embeddedArtUri ?: existingFile.artUri?.takeIf { it != "null" }
+                        Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях finalArtUri = $finalArtUri ")
+                        //Добавляем в список для обновления
+                        filesToUpdate.add(
+                            SongFile(
+                                mediaStoreId = id,
+                                path = existingFile.path,
+                                lastModified = existingFile.lastModified,
+                                title = existingFile.title,
+                                artist = existingFile.artist,
+                                artistId = artist.hashCode().toLong(),
+                                album =  existingFile.album,
+                                albumId = albumId,
+                                duration = duration,
+                                isLocal = true,
+                                size = sizeFile,
+                                dateAdded = dateAdded,
+                                folderPath = folderPath,
+                                artUri = finalArtUri,
+                                // Новые поля - сохраняем существующие значения, если они есть
+                                author = existingFile.author ?: getAuthorFromMetadata(context, path),
+                                genre = existingFile.genre ?: getGenreFromMetadata(context, path),
+                                year = existingFile.year ?: getYearFromMetadata(context, path)
                             )
-                            Log.d(TAG, "#%# File updated: $path (changes: modified=$isModified, moved=$isMoved, title=$isTitleChanged, artist=$isArtistChanged, album=$isAlbumChanged)")
-                        }
-                    }else{
-                        //если обложка ==null, ничего не делаем
-                        Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus existingFile.artUri == null")
+                        )
+                        Log.d(TAG, "#%# File updated: $path (changes: modified=$isModified, moved=$isMoved, title=$isTitleChanged, artist=$isArtistChanged, album=$isAlbumChanged)")
                     }
                 } ?: run {
                     // Новый файл - пытаемся извлечь встроенную обложку, если есть, сохраняем в кэше
@@ -326,7 +315,7 @@ class MusicRepository(
         } catch (e: Exception) {
             Log.e(TAG, "❌ Error extracting embedded artwork: ${e.message}")
             null
-        }.toString()
+        }
     }
 
     private fun saveArtworkToCache(filePath: String, imageData: ByteArray): String? {

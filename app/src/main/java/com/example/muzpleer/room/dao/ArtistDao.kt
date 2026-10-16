@@ -29,6 +29,10 @@ interface ArtistDao {
     @Query("DELETE FROM artists")
     suspend fun deleteAll()
 
+    /** Удаляет записи по внутренним id (для пошаговой синхронизации). Вызывать порциями до 500 id. */
+    @Query("DELETE FROM artists WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
+
     @Query("SELECT COUNT(*) FROM artists")
     suspend fun getCount(): Int
 

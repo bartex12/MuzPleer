@@ -19,62 +19,61 @@ class AlbumRepository(
         const val TAG = "33333"
     }
 
+    /**
+     * Пошаговая синхронизация альбомов с таблицей песен: новые добавляются, изменившиеся
+     * обновляются, исчезнувшие удаляются. Раньше таблица очищалась и создавалась заново:
+     * внутренние id менялись при каждом сканировании, а при сбое вставки альбомы терялись.
+     * Обложка и порядок существующих альбомов сохраняются.
+     */
     suspend fun syncAlbumsFromMediaFiles() {
         Log.d(TAG, "# AlbumRepository Начало синхронизации альбомов...")
 
-        // СОХРАНЯЕМ КАСТОМНЫЕ ОБЛОЖКИ ПЕРЕД ОЧИСТКОЙ
-        val existingAlbums = albumDao.getAllOrderedAlbums()
-        val customCoversMap = mutableMapOf<Long, String>() // albumId -> coverPath
-        val customMovedMap = mutableMapOf<Long, Int>()  //albumId -> sortOrder
-
-        //сохраняем обложки
-        existingAlbums.forEach { album ->
-            if (!album.coverPath.isNullOrEmpty()) {
-                customCoversMap[album.albumId] = album.coverPath
-            }
-        }
-        Log.d(TAG, "# Сохранено ${customCoversMap.size} кастомных обложек альбомов ")
-
-        //сохраняем порядок следования альбомов в списке
-        existingAlbums.forEach { album ->
-            if (album.sortOrder >= 0) {
-                customMovedMap[album.albumId] = album.sortOrder
-            }
-        }
-
-        // Очищаем и пересоздаем альбомы
-        albumDao.deleteAll()
-
+        val existingByAlbumId = albumDao.getAllOrderedAlbums().associateBy { it.albumId }
         val mediaFiles = mediaDao.getAllFiles()
+        val now = System.currentTimeMillis()
 
-        val albumsMap = mediaFiles
+        val toWrite = mutableListOf<AlbumFile>() //новые и изменившиеся
+        val actualAlbumIds = HashSet<Long>()
+
+        mediaFiles
             .groupBy { it.albumId } // только по ID! альбома
-            .mapValues { (albumId, songs) ->
+            .forEach { (albumId, songs) ->
+                actualAlbumIds.add(albumId)
                 val albumName = songs.firstOrNull()?.album ?: "Неизвестный альбом"
                 val artists = songs.map { it.artist ?: "Unknown" }.distinct()
                 val mainArtist = if (artists.size > 1) "Разные исполнители" else artists.first()
+                val existing = existingByAlbumId[albumId]
 
-                val albumCoverPath = customCoversMap[albumId] ?: ""  //todo заменить на getDefaultAlbumCover(albumId)
-                val albumMovedMap = customMovedMap[albumId] ?: 0
-
-                AlbumFile(
+                val candidate = AlbumFile(
+                    id = existing?.id ?: 0,
                     albumId = albumId,
-                    title =albumName,
+                    title = albumName,
                     artist = mainArtist,
                     allArtists = artists.joinToString(";"),
                     songCount = songs.size,
-                    coverPath = albumCoverPath,
-                    sortOrder = albumMovedMap
+                    coverPath = existing?.coverPath?.takeIf { it.isNotEmpty() } ?: "",  //todo заменить на getDefaultAlbumCover(albumId)
+                    createdAt = existing?.createdAt ?: now,
+                    updatedAt = existing?.updatedAt ?: now,
+                    sortOrder = existing?.sortOrder?.takeIf { it >= 0 } ?: 0
                 )
+                //пишем в базу только то, что действительно изменилось
+                if (existing == null || candidate != existing) {
+                    toWrite.add(candidate.copy(updatedAt = now))
+                }
             }
 
-        Log.d(TAG, "# AlbumRepository Создано ${albumsMap.size} альбомов")
+        val toDeleteIds = existingByAlbumId.values
+            .filter { it.albumId !in actualAlbumIds }
+            .map { it.id }
+
+        Log.d(TAG, "# AlbumRepository альбомов в песнях = ${actualAlbumIds.size}; " +
+                "записать = ${toWrite.size}; удалить = ${toDeleteIds.size}")
 
         try {
-            // Сохраняем в базу
-            albumDao.insertAll(albumsMap.values.toList())
-            Log.d(TAG, "# AlbumRepository Альбомы успешно сохранены в базу")
-        }catch (e: Exception){
+            if (toWrite.isNotEmpty()) albumDao.insertAll(toWrite)
+            toDeleteIds.chunked(500).forEach { albumDao.deleteByIds(it) }
+            Log.d(TAG, "# AlbumRepository Альбомы успешно синхронизированы")
+        } catch (e: Exception) {
             Log.d(TAG, "# AlbumRepository syncAlbumsFromMediaFiles Exception = ${e.message}")
         }
     }
