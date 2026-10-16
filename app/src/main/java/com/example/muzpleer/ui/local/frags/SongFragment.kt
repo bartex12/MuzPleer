@@ -164,7 +164,10 @@ class SongFragment : Fragment() {
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
     override fun onPause() {
         super.onPause()
-        if (isSearchActive) {
+        //поиск открыт, даже если в нём ещё ничего не набрано (тогда isSearchActive == false)
+        val isSearchOpen = searchMenuItem?.isActionViewExpanded == true
+        Log.d(TAG, "1-1---SongsFragment onPause isSearchActive = $isSearchActive isSearchOpen = $isSearchOpen")
+        if (isSearchActive || isSearchOpen) {
             //при уходе с экрана поиск закрывается, как на вкладках альбомов, папок и исполнителей:
             //иначе при возврате список остаётся урезанным, а строка поиска свёрнута и пуста.
             //Позицию не сохраняем: она относится к урезанному списку
