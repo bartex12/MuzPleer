@@ -215,6 +215,8 @@ class MainActivity : AppCompatActivity() {
         playerViewModel.duration.observe(this) { duration ->
             tvTotalTimeMain.text = formatTime(duration)
             seekBarMain.max = duration.toInt()
+            //позиция приходит раньше длительности и обрезается по старому max (на паузе новых значений нет)
+            playerViewModel.currentPosition.value?.let { seekBarMain.progress = it.toInt() }
         }
 
         playerViewModel.isPlaying.observe(this) { isPlaying ->

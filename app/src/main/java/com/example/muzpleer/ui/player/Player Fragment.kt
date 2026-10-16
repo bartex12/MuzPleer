@@ -229,6 +229,9 @@ class PlayerFragment : Fragment() {
         playerViewModel.duration.observe(viewLifecycleOwner) { duration ->
             binding.tvTotalTime.text = formatTime(duration)
             binding.seekBar.max = duration.toInt()
+            //при открытии экрана позиция приходит раньше длительности и обрезается по старому max,
+            //а на паузе новых значений нет - поэтому позицию выставляем заново после смены max
+            playerViewModel.currentPosition.value?.let { binding.seekBar.progress = it.toInt() }
         }
 
         playerViewModel.errorMessage.observe(viewLifecycleOwner) { message ->
