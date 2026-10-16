@@ -144,6 +144,21 @@ class SharedViewModel(
         _playlist.value = songsList
     }
 
+    //отсортированный список всех песен. Сортировка дорогая, а нужен он при каждой смене трека,
+    //поэтому результат запоминается и пересчитывается только когда список песен заменили
+    //(любое изменение песни создаёт новый список, так что сравнение по ссылке достаточно)
+    private var sortedSongsSource: List<Song>? = null
+    private var sortedSongsCache: List<Song> = emptyList()
+
+    private fun getSortedSongs(): List<Song> {
+        val source = getSongs()
+        if (source !== sortedSongsSource) {
+            sortedSongsCache = getSortedDataSong(source)
+            sortedSongsSource = source
+        }
+        return sortedSongsCache
+    }
+
     /** Вызывается из MainActivity, когда PlayerViewModel сообщает о смене трека. */
     fun onTrackChanged(track: Song) {
         //так не меняется автоматом- остаётся старый artUri из плейлиста
@@ -151,7 +166,7 @@ class SharedViewModel(
         //считаем индекс выбранной песни в отсортированном списке песен,
         // чтобы при возврате на песни можно было перейти к этой песне по индексу
         val trackMediaUri = getNormalizedPath(track.mediaUri)
-        val indexOfSong = getSortedDataSong(getSongs())
+        val indexOfSong = getSortedSongs()
             .indexOfFirst { getNormalizedPath(it.mediaUri) == trackMediaUri }
         Log.d(TAG, " !@# !@# SharedViewModel onTrackChanged track title = ${track.title} " +
                 "track mediaUri = ${track.mediaUri} trackMediaUri = $trackMediaUri")
@@ -241,7 +256,7 @@ class SharedViewModel(
 
             setSongAndPlaylist( SongAndPlaylist( //передаём плейлист и текущую песню
                 song = song,  //текущая песня
-                playlist =getSortedDataSong(getSongs()) //текущий плейлист
+                playlist = getSortedSongs() //текущий плейлист
             ))
         }
     }

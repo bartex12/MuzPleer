@@ -48,6 +48,8 @@ class MusicServiceHandler(
             addListener(object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     callback.onPlaybackStateChanged(isPlaying)
+                    //позицию опрашиваем только пока играет музыка
+                    if (isPlaying) startPositionUpdates() else stopPositionUpdates()
                 }
 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -68,11 +70,13 @@ class MusicServiceHandler(
                         Player.STATE_ENDED ->{
                             playNext()
                         }
+                        // трек готов: сообщаем длительность, в том числе когда стоит пауза
+                        Player.STATE_READY -> emitPosition()
                     }
                 }
             })
         }
-        startPositionUpdates()
+        emitPosition() //начальное состояние; дальше позиция опрашивается только во время воспроизведения
     }
 
     fun setPlaylist(tracks: List<Song>, startIndex: Int = 0) {
@@ -173,20 +177,29 @@ class MusicServiceHandler(
 
     fun seekTo(position: Long) {
         player?.seekTo(position)
+        emitPosition() //на паузе опроса нет, поэтому новую позицию сообщаем сразу
     }
 
     fun getCurrentPosition(): Long = player?.currentPosition ?: 0
 
+    private fun emitPosition() {
+        player?.let { callback.onPositionChanged(it.currentPosition, it.duration) }
+    }
+
     private fun startPositionUpdates() {
-        positionUpdateJob?.cancel()
+        if (positionUpdateJob?.isActive == true) return
         positionUpdateJob = CoroutineScope(Dispatchers.Main).launch {
             while (true) {
-                player?.let {
-                    callback.onPositionChanged(it.currentPosition, it.duration)
-                }
-                delay(1000) // Обновляем позицию каждую секунду
+                emitPosition()
+                delay(1000) // Обновляем позицию каждую секунду, пока играет музыка
             }
         }
+    }
+
+    private fun stopPositionUpdates() {
+        positionUpdateJob?.cancel()
+        positionUpdateJob = null
+        emitPosition() //последнее значение на момент паузы
     }
 
     fun release() {

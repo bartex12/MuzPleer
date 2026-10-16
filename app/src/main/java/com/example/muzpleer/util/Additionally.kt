@@ -86,16 +86,20 @@ fun getSortedDataPlaylists(tracks:List<Playlist>):List<Playlist>{
     ))
 }
 
+//регулярки компилируются один раз (раньше создавались заново на каждом сравнении при сортировке)
+private val RUSSIAN_TITLE_REGEX = Regex("^[а-яА-ЯёЁ].*")
+private val LATIN_TITLE_REGEX = Regex("^[a-zA-Z].*")
+
 fun getSortedDataSong(tracks:List<Song>):List<Song>{
-    return tracks.sortedWith(compareBy(
-        { track -> when {
-            track.title.matches(Regex("^[а-яА-ЯёЁ].*")) -> 0
-            track.title.matches(Regex("^[a-zA-Z].*")) -> 1
-            else -> 2}
-        },
-        { track -> track.title.lowercase() }
-    )
-    )
+    //ключи сортировки считаем один раз на песню, а не на каждое сравнение
+    return tracks.map { track ->
+        val group = when {
+            track.title.matches(RUSSIAN_TITLE_REGEX) -> 0
+            track.title.matches(LATIN_TITLE_REGEX) -> 1
+            else -> 2
+        }
+        Triple(group, track.title.lowercase(), track)
+    }.sortedWith(compareBy<Triple<Int, String, Song>>({ it.first }, { it.second })).map { it.third }
 }
 
 // Добавьте в SongsAdapter или в отдельный файл Utils.kt
