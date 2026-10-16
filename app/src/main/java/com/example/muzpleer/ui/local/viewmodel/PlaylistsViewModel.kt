@@ -46,13 +46,7 @@ class PlaylistsViewModel(
     private val _currentFilteredPlaylistSongs = MutableLiveData<List<Song>?>()  //отфильтрованный поиском список песен конкретного плейлиста
     val currentFilteredPlaylistSongs: LiveData<List<Song>?> = _currentFilteredPlaylistSongs
 
-    /** Последний поисковый запрос вкладки. Нужен, чтобы после смены вкладки поле поиска
-     *  показывало тот же запрос, по которому отфильтрован список. */
-    var lastSearchQuery: String = ""
-        private set
-
     internal fun filterPlaylists(query: String) {
-        lastSearchQuery = query
         val originalPlaylistList: MutableList<Playlist> =  (playlists.value ?: listOf()).toMutableList()
         val filteredPlaylistList: MutableList<Playlist> = (filteredPlaylists.value ?: listOf()).toMutableList()
         filteredPlaylistList.clear()

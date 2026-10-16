@@ -94,13 +94,7 @@ class ArtistsViewModel(
         _currentArtist.value = artist  //todo не нужно?
     }
 
-    /** Последний поисковый запрос вкладки. Нужен, чтобы после смены вкладки поле поиска
-     *  показывало тот же запрос, по которому отфильтрован список. */
-    var lastSearchQuery: String = ""
-        private set
-
     internal fun filterArtists(query: String) {
-        lastSearchQuery = query
         val originalArtistList: MutableList<Artist> = (artists.value ?: listOf()).toMutableList()
         val filteredArtistList: MutableList<Artist> = (filteredArtists.value ?: listOf()).toMutableList()
         filteredArtistList.clear()

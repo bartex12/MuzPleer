@@ -45,6 +45,7 @@ class SongFragment : Fragment() {
     private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: SongsAdapter
+    private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
@@ -158,6 +159,15 @@ class SongFragment : Fragment() {
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
     override fun onPause() {
         super.onPause()
+        if (isSearchActive) {
+            //при уходе с экрана поиск сбрасывается, как на вкладках альбомов, папок и исполнителей:
+            //иначе при возврате список остаётся урезанным, а строка поиска свёрнута и пуста.
+            //Позицию не сохраняем: она относится к урезанному списку
+            isSearchActive = false
+            viewModel.filterSongs("")
+            Log.d(TAG, "SongFragment onPause поиск сброшен")
+            return
+        }
         //определяем первую видимую позицию
         val manager = binding.localRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
@@ -193,6 +203,11 @@ class SongFragment : Fragment() {
         //устанавливаем в панели действий кнопку ( > )для отправки поискового запроса
         // searchView.isSubmitButtonEnabled = true
 
+        //Сохраняем состояние поиска при смене ориентации:
+        if ( currentSearchQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(currentSearchQuery, false)
+        }
         //устанавливаем слушатель
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false
@@ -214,16 +229,6 @@ class SongFragment : Fragment() {
                 return true
             }
         })
-
-        //возвращаем в поле запрос, по которому отфильтрован список (после смены вкладки меню создаётся заново)
-        val savedQuery = viewModel.lastSearchQuery
-        if (savedQuery.isNotEmpty()) {
-            //раскрывать поиск нужно после того, как панель прикрепит меню, иначе он остаётся свёрнутым
-            searchView.post {
-                if (!searchItem.isActionViewExpanded) searchItem.expandActionView()
-                searchView.setQuery(savedQuery, false)
-            }
-        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 
