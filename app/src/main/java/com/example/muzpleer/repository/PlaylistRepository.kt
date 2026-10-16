@@ -1,8 +1,6 @@
 package com.example.muzpleer.repository
 
 import android.util.Log
-import android.widget.Toast
-import com.example.muzpleer.di.App
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.room.dao.PlaylistDao
@@ -10,10 +8,12 @@ import com.example.muzpleer.room.dao.SongDao
 import com.example.muzpleer.room.entity.PlaylistFile
 import com.example.muzpleer.room.entity.PlaylistSongCrossRef
 import com.example.muzpleer.room.utils.toPlaylist
+import com.example.muzpleer.util.UserMessenger
 
 class PlaylistRepository(
     private val playlistDao: PlaylistDao,
-    private val songDao: SongDao
+    private val songDao: SongDao,
+    private val messenger: UserMessenger
 ) {
 
     companion object{
@@ -76,9 +76,9 @@ class PlaylistRepository(
 
         if (newSongs.isEmpty()) {
             if(songs.size == 1){
-                Toast.makeText(App.instance, "Эта песня уже есть в плейлисте", Toast.LENGTH_SHORT).show()
+                messenger.show("Эта песня уже есть в плейлисте")
             }else {
-                Toast.makeText(App.instance, "Эти песни уже есть в плейлисте", Toast.LENGTH_SHORT).show()
+                messenger.show("Эти песни уже есть в плейлисте")
             }
             return
         }
@@ -89,8 +89,8 @@ class PlaylistRepository(
         val songsSelected = songs.size
         val songsAdded = songIds.size
         val songsWereInPlaylist = songs.size - songIds.size
-        Toast.makeText(App.instance,
-            "Выбрано: $songsSelected; Добавлено: $songsAdded; Уже было в плейлисте: $songsWereInPlaylist", Toast.LENGTH_LONG).show()
+        messenger.show(
+            "Выбрано: $songsSelected; Добавлено: $songsAdded; Уже было в плейлисте: $songsWereInPlaylist", long = true)
     }
 
     suspend fun updatePlaylistOrder(playlists: List<Playlist>) {

@@ -3,7 +3,6 @@ package com.example.muzpleer.ui.local.viewmodel
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -11,7 +10,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.muzpleer.R
-import com.example.muzpleer.di.App
 import com.example.muzpleer.model.Album
 import com.example.muzpleer.model.Artist
 import com.example.muzpleer.model.Folder
@@ -34,6 +32,7 @@ import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.copyAlbumArtToCache
 import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.getSortedDataSong
+import com.example.muzpleer.util.UserMessenger
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -43,7 +42,9 @@ import java.util.Locale
 
 class SharedViewModel(
     var helper : IPreferenceHelper,
-    private val repository: MusicRepository
+    private val repository: MusicRepository,
+    private val messenger: UserMessenger,
+    private val appContext: Context
 ) : ViewModel() {
 
     private val _songs = MutableLiveData<List<Song>>()
@@ -313,7 +314,7 @@ class SharedViewModel(
     }
 
     fun getDefaultCoverUri(): Uri {
-        return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
+        return "android.resource://${appContext.packageName}/${R.drawable.muz_player3}".toUri()
     }
 
     fun restoreDefaultCover() {
@@ -330,7 +331,7 @@ class SharedViewModel(
             _selectedSong.value?.let { selectedSong ->
                 Log.d(TAG, "110*** ✅SharedViewModel saveCoverToDatabase uri = $uri")
 
-                val coverPath =copyAlbumArtToCache( App.instance, uri)
+                val coverPath =copyAlbumArtToCache(appContext, uri)
                 Log.d(TAG, "111*** ✅SharedViewModel saveCoverToDatabase coverPath = $coverPath  uri = $uri")
 
                 //записываем путь к файлу обложки в базу
@@ -388,7 +389,7 @@ class SharedViewModel(
                 }
                 // Уведомляем об успешном обновлении
                 //_message.value = "Информация обновлена"
-                Toast.makeText(App.instance, "Информация обновлена", Toast.LENGTH_SHORT).show()
+                messenger.show("Информация обновлена")
             } catch (e: Exception) {
                 //_message.value = "Ошибка обновления: ${e.message}"
                 Log.d(TAG, "SharedViewModel updateSongInfo: Ошибка обновления: ${e.message} ")
