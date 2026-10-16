@@ -45,7 +45,6 @@ class SongFragment : Fragment() {
     private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: SongsAdapter
-    private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
@@ -194,11 +193,6 @@ class SongFragment : Fragment() {
         //устанавливаем в панели действий кнопку ( > )для отправки поискового запроса
         // searchView.isSubmitButtonEnabled = true
 
-        //Сохраняем состояние поиска при смене ориентации:
-        if ( currentSearchQuery.isNotEmpty()) {
-            searchItem.expandActionView()
-            searchView.setQuery(currentSearchQuery, false)
-        }
         //устанавливаем слушатель
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?) = false
@@ -220,6 +214,13 @@ class SongFragment : Fragment() {
                 return true
             }
         })
+
+        //возвращаем в поле запрос, по которому отфильтрован список (после смены вкладки меню создаётся заново)
+        val savedQuery = viewModel.lastSearchQuery
+        if (savedQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(savedQuery, false)
+        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 

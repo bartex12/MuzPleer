@@ -203,6 +203,13 @@ class AlbumFragment: Fragment() {
                 return true
             }
         })
+
+        //возвращаем в поле запрос, по которому отфильтрован список (после смены вкладки меню создаётся заново)
+        val savedQuery = albumsViewModel.lastSearchQuery
+        if (savedQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(savedQuery, false)
+        }
         super.onCreateOptionsMenu(menu, inflater)
     }
 

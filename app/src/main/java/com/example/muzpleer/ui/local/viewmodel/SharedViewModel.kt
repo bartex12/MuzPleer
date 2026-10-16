@@ -192,7 +192,13 @@ class SharedViewModel(
         const val TAG= "33333"
     }
 
+    /** Последний поисковый запрос вкладки. Нужен, чтобы после смены вкладки поле поиска
+     *  показывало тот же запрос, по которому отфильтрован список. */
+    var lastSearchQuery: String = ""
+        private set
+
     internal fun filterSongs(query: String) {
+        lastSearchQuery = query
         val originalSongsList: MutableList<Song> =  (songs.value ?: listOf()).toMutableList()
         val filteredSongsList: MutableList<Song> = (filteredSongs.value ?: listOf()).toMutableList()
         filteredSongsList.clear()

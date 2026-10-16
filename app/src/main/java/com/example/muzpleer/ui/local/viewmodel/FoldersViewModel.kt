@@ -103,7 +103,13 @@ class FoldersViewModel(
         }
     }
 
+    /** Последний поисковый запрос вкладки. Нужен, чтобы после смены вкладки поле поиска
+     *  показывало тот же запрос, по которому отфильтрован список. */
+    var lastSearchQuery: String = ""
+        private set
+
     internal fun filterFolders(query: String) {
+        lastSearchQuery = query
         val originalFolderList: MutableList<Folder> = (folders.value ?: listOf()).toMutableList()
         val filteredFolderList: MutableList<Folder> = (filteredFolders.value ?: listOf()).toMutableList()
         filteredFolderList.clear()

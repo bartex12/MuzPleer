@@ -93,7 +93,13 @@ class AlbumsViewModel(
         _currentAlbum.value = album  //todo не нужно?
     }
 
+    /** Последний поисковый запрос вкладки. Нужен, чтобы после смены вкладки поле поиска
+     *  показывало тот же запрос, по которому отфильтрован список. */
+    var lastSearchQuery: String = ""
+        private set
+
     internal fun filterAlbums(query: String) {
+        lastSearchQuery = query
         val originalAlbumList: MutableList<Album> = (albums.value ?: listOf()).toMutableList()
         val filteredAlbumList: MutableList<Album> = (filteredAlbums.value ?: listOf()).toMutableList()
         filteredAlbumList.clear()
