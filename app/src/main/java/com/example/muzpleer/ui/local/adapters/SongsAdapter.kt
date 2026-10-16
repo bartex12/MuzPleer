@@ -43,6 +43,7 @@ import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
+import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -99,14 +100,6 @@ class SongsAdapter(
                     Log.d(TAG, "SongsAdapter Ошибка: ${e.message}")
                 }
             }
-    }
-
-    fun getNormalizedPath(uriString: String): String {
-        return if (uriString.startsWith("file://")) {
-            Uri.decode(uriString.substring(7))
-        } else {
-            uriString
-        }
     }
 
     override fun getItemCount(): Int {

@@ -1,7 +1,6 @@
 package com.example.muzpleer.ui.local.viewmodel
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -32,15 +31,14 @@ import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileToSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.copyAlbumArtToCache
+import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.util.Locale
 
 class SharedViewModel(
@@ -63,8 +61,6 @@ class SharedViewModel(
     private val _currentSong = MutableLiveData<Song?>()
     val currentSong: LiveData<Song?> = _currentSong
 
-    private val _coverImage = MutableLiveData<Bitmap?>()
-    val coverImage: LiveData<Bitmap?> = _coverImage
 
 
     //выделенная строка в адаптере песни при щелчке по ней
@@ -97,28 +93,7 @@ class SharedViewModel(
     private val _coverImageUriLevel = MutableLiveData<Uri?>()  //обложка плейлиста
     val coverImageUriLevel: LiveData<Uri?> = _coverImageUriLevel
 
-    private val _coverImageUriFolder = MutableLiveData<Uri?>()  //обложка папки
-    val coverImageUriFolder: LiveData<Uri?> = _coverImageUriFolder
 
-    private val _loading = MutableLiveData<Boolean>()
-    val loading: LiveData<Boolean> = _loading
-
-    //Число одновременно работающих загрузок. Нужен счётчик, а не просто true/false:
-    //иначе загрузка, закончившаяся первой, гасит индикатор, пока остальные ещё идут
-    private var activeLoads = 0
-
-    private fun beginLoad() {
-        activeLoads++
-        _loading.value = true
-    }
-
-    private fun endLoad() {
-        activeLoads = (activeLoads - 1).coerceAtLeast(0)
-        _loading.value = activeLoads > 0
-    }
-
-    private val _coverPath = MutableLiveData<String>()
-    val coverPath: LiveData<String> = _coverPath
 
     private val _appBarTitle = MutableLiveData<String>()  //отфильтрованный поиском список песен конкретного плейлиста
     val appBarTitle: LiveData<String> = _appBarTitle
@@ -135,9 +110,7 @@ class SharedViewModel(
 
      fun scanMedia(afterLoad:()->Unit) {
         viewModelScope.launch {
-            beginLoad()
             initParamsSong(repository.loadMusicFromMemory())
-            endLoad()
             afterLoad.invoke()
         }
     }
@@ -187,17 +160,7 @@ class SharedViewModel(
     }
 
     //функция для нормализации URI
-    fun getNormalizedPath(uriString: String): String {
-        return if (uriString.startsWith("file://")) {
-            Uri.decode(uriString.substring(7))
-        } else {
-            uriString
-        }
-    }
 
-    fun getAllSongs():List<Song>{
-        return songs.value
-    }
 
     fun setCurrentSong(song: Song) {
         Log.d(TAG, "SharedViewModel setCurrentSong song = $song")
@@ -267,7 +230,6 @@ class SharedViewModel(
     fun setSelectedPosition(position: Int) { _selectedSongPosition.value = position }
 
     fun setSelectedAlbumPosition(position: Int) { _selectedAlbumPosition.value = position }
-    fun getSelectedAlbumPosition():Int = selectedAlbumPosition.value?:0
     fun setSelectedArtistPosition(position: Int) { _selectedArtistPosition.value = position }
     fun setSelectedFolderPosition(position: Int) { _selectedFolderPosition.value = position }
     fun setSelectedPlaylistPosition(position: Int) { _selectedPlaylistPosition.value = position }
@@ -282,17 +244,11 @@ class SharedViewModel(
             ))
         }
     }
-    fun getSongAndPlaylist(): SongAndPlaylist{
-        return songAndPlaylist.value
-    }
 
     fun getIndexOfCurrentSong():Int{
         return indexOfCurrentSong.value
     }
 
-    fun getIndexOfSavedSong():Int{
-        return helper.getIndexOfCurrentSong()
-    }
 
     fun setSelectedSong(song: Song) {
         _selectedSong.value = song
@@ -376,58 +332,23 @@ class SharedViewModel(
 
                 _coverImageUri.value = coverPath?.toUri() //повторно? перезаписываем _coverImageUri
 
-                // Обновляем песню в основном списке песен - нужны оба - _songs и _filteredSongs
-                _songs.value = _songs.value?.map {s->
-                    if (s.id == selectedSong.id) s.copy(artUri = coverPath) else s
-                }
-                _filteredSongs.value = _filteredSongs.value?. map{filteredSong->
-                    if (filteredSong.id == selectedSong.id) filteredSong.copy(artUri = coverPath) else filteredSong
-                }
-                // Обновляем выбранную песню
-                _selectedSong.value = selectedSong.copy(artUri = coverPath)
-
-                // Обновляем текущую песню если нужно
-                _currentSong.value?.let { current ->
-                    if (current.id == selectedSong.id) {
-                        _currentSong.value = current.copy(artUri = coverPath)
-                    }
-                }
+                //обновляем песню во всех списках: общем, отфильтрованном, выбранной и текущей
+                patchSong(selectedSong.id) { it.copy(artUri = coverPath) }
             }
         }
     }
 
-    fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
-        try {
-            // 1. Создаем директорию album_art в кэше, если её нет
-            val cacheDir = File(context.cacheDir, "album_art")
-            if (!cacheDir.exists()) {
-                cacheDir.mkdirs()
-            }
-            // 2. Генерируем уникальное имя файла на основе хэш-кода пути URI
-            val fileName = "embedded_${sourceUri.toString().hashCode()}.jpg"
-            val destinationFile = File(cacheDir, fileName)
 
-            context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-                // Убеждаемся что файл создан
-                if (!destinationFile.exists() && !destinationFile.createNewFile()) {
-                    throw IOException("Failed to create cover file")
-                }
-
-                FileOutputStream(destinationFile).use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                    outputStream.flush()
-                }
-            }
-
-            // 4. Возвращаем абсолютный путь для сохранения в БД
-            val absolutePath = destinationFile.absolutePath
-            Log.d(TAG, "SharedViewModel copyAlbumArtToCache Файл успешно сохранен в кэш: $absolutePath")
-            return absolutePath
-
-        } catch (e: Exception) {
-            Log.e(TAG, " ❌SharedViewModel copyAlbumArtToCache Ошибка при копировании обложки в кэш", e)
-            return null
-        }
+    /**
+     * Единое место, где песня обновляется во всех списках сразу: общем, отфильтрованном,
+     * выбранной и текущей. Раньше этот блок из четырёх обновлений копировался в трёх функциях.
+     */
+    private fun patchSong(songId: Long, transform: (Song) -> Song) {
+        fun patch(list: List<Song>?) = list?.map { if (it.id == songId) transform(it) else it }
+        _songs.value = patch(_songs.value)
+        _filteredSongs.value = patch(_filteredSongs.value)
+        _selectedSong.value?.let { if (it.id == songId) _selectedSong.value = transform(it) }
+        _currentSong.value?.let { if (it.id == songId) _currentSong.value = transform(it) }
     }
 
     fun updateSongInfo(
@@ -444,91 +365,16 @@ class SharedViewModel(
                 // Обновляем в базе данных
                 repository.updateSongInfo(songId, title, artist, album, author, genre, year)
 
-                // Обновляем в текущих данных
-                _songs.value = _songs.value?.map { song ->
-                    if (song.id == songId) {
-                        song.copy(
-                            id = song.id,
-                            title = title,
-                            artist = artist,
-                            artistId = song.artistId,
-                            duration = song.duration,
-                            mediaUri = song.mediaUri,
-                            artUri = song.artUri,
-                            isLocal = song.isLocal,
-                            albumName = album,
-                            albumId = song.albumId,
-                            folderPath = song.folderPath,
-                            author = author,
-                            genre = genre,
-                            year = year
-                        )
-                    } else {
-                        song
-                    }
-                }
-
-                _filteredSongs.value = _filteredSongs.value?. map{filteredSong->
-                    if (filteredSong.id == songId) filteredSong.copy(
-                        id = filteredSong.id,
+                // Обновляем во всех списках: общем, отфильтрованном, выбранной и текущей песне
+                patchSong(songId) {
+                    it.copy(
                         title = title,
                         artist = artist,
-                        artistId = filteredSong.artistId,
-                        duration = filteredSong.duration,
-                        mediaUri = filteredSong.mediaUri,
-                        artUri = filteredSong.artUri,
-                        isLocal = filteredSong.isLocal,
                         albumName = album,
-                        albumId = filteredSong.albumId,
-                        folderPath = filteredSong.folderPath,
                         author = author,
                         genre = genre,
                         year = year
-                    ) else filteredSong
-                }
-
-                // Обновляем выбранную песню если нужно
-                _selectedSong.value?.let { selected ->
-                    if (selected.id == songId) {
-                        _selectedSong.value = selected.copy(
-                            id = selected.id,
-                            title = title,
-                            artist = artist,
-                            artistId = selected.artistId,
-                            duration = selected.duration,
-                            mediaUri = selected.mediaUri,
-                            artUri = selected.artUri,
-                            isLocal = selected.isLocal,
-                            albumName = album,
-                            albumId = selected.albumId,
-                            folderPath = selected.folderPath,
-                            author = author,
-                            genre = genre,
-                            year = year
-                        )
-                    }
-                }
-
-                // Обновляем текущую песню если нужно
-                _currentSong.value?.let { current ->
-                    if (current.id == songId) {
-                        _currentSong.value = current.copy(
-                            id = current.id,
-                            title = title,
-                            artist = artist,
-                            artistId = current.artistId,
-                            duration = current.duration,
-                            mediaUri = current.mediaUri,
-                            artUri = current.artUri,
-                            isLocal = current.isLocal,
-                            albumName = album,
-                            albumId = current.albumId,
-                            folderPath = current.folderPath,
-                            author = author,
-                            genre = genre,
-                            year = year
-                        )
-                    }
+                    )
                 }
                 // Уведомляем об успешном обновлении
                 //_message.value = "Информация обновлена"
@@ -559,50 +405,14 @@ class SharedViewModel(
     }
 
     //принудительное обновление обложек
-    fun refreshArtworks() {
-        viewModelScope.launch {
-            repository.refreshAllArtworks(App.instance)
-            // Перезагружаем списки песен
-            loadAllSongsForAdding()
-        }
-    }
 
-    fun getSongListFromDatabase(autoLoadFromDb:()->Unit){
-        viewModelScope.launch {
-            val listSongs = repository.getSongsFromDatabase()
-            if (listSongs.size > 0){
-                _songs.value = listSongs
-                _filteredSongs.value = listSongs
-            }
-            autoLoadFromDb.invoke()
-        }
-    }
 
     fun updateSongArtUri(context: Context, track:Song) {
         viewModelScope.launch {
             //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUri = saveResourceToCache(context)
+            val newArtUri = saveDefaultCoverToCache(context)
             track.artUri = newArtUri
-            // Обновляем песню
-            _songs.value = _songs.value?.map {s->
-                if (s.id == track.id) s.copy(artUri = newArtUri) else s
-            }
-            // Обновляем песню
-            _filteredSongs.value = _filteredSongs.value?. map{filteredSong->
-                if (filteredSong.id == track.id) filteredSong.copy(artUri = newArtUri) else filteredSong
-            }
-            // Обновляем выбранную песню
-            _selectedSong.value?. let{selectedSong->
-                if (selectedSong.id == track.id)
-                    _selectedSong.value = selectedSong.copy(artUri = newArtUri)
-            }
-
-            // Обновляем текущую песню если нужно
-            _currentSong.value?.let { current ->
-                if (current.id == track.id) {
-                    _currentSong.value = current.copy(artUri = newArtUri)
-                }
-            }
+            patchSong(track.id) { it.copy(artUri = newArtUri) }
 
             Log.d(TAG, " **??** SharedViewModel updateSongArtUri newArtUri $newArtUri")
             try {
@@ -613,9 +423,6 @@ class SharedViewModel(
             }
         }
     }
-
-    //для сохранения картинки из ресурсов в кэш диска
-    fun saveResourceToCache(context: Context): String? = saveDefaultCoverToCache(context)
 
     fun getSongById(songId: Long, callback: (Song?) -> Unit) {
         viewModelScope.launch {

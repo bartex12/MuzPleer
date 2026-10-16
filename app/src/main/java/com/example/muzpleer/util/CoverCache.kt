@@ -1,11 +1,13 @@
 package com.example.muzpleer.util
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.muzpleer.R
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 
 /**
  * Сохраняет картинку-заглушку (R.drawable.muz_player3) в кэш и возвращает путь к файлу.
@@ -73,5 +75,40 @@ fun copyCoverToAppStorage(context: Context, sourceUri: android.net.Uri, prefix: 
     } catch (e: Exception) {
         Log.e("33333", "❌ copyCoverToAppStorage Ошибка копирования обложки: ${e.message}")
         null
+    }
+}
+
+/** Копирует картинку обложки песни в кэш приложения, возвращает путь к файлу или null при ошибке. */
+fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
+    try {
+        // 1. Создаем директорию album_art в кэше, если её нет
+        val cacheDir = File(context.cacheDir, "album_art")
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+        // 2. Генерируем уникальное имя файла на основе хэш-кода пути URI
+        val fileName = "embedded_${sourceUri.toString().hashCode()}.jpg"
+        val destinationFile = File(cacheDir, fileName)
+
+        context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
+            // Убеждаемся что файл создан
+            if (!destinationFile.exists() && !destinationFile.createNewFile()) {
+                throw IOException("Failed to create cover file")
+            }
+
+            FileOutputStream(destinationFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
+                outputStream.flush()
+            }
+        }
+
+        // 4. Возвращаем абсолютный путь для сохранения в БД
+        val absolutePath = destinationFile.absolutePath
+        Log.d("33333", "copyAlbumArtToCache Файл успешно сохранен в кэш: $absolutePath")
+        return absolutePath
+
+    } catch (e: Exception) {
+        Log.e("33333", " ❌copyAlbumArtToCache Ошибка при копировании обложки в кэш", e)
+        return null
     }
 }
