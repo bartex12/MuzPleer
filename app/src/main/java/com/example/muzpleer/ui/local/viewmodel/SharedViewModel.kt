@@ -278,19 +278,25 @@ class SharedViewModel(
     }
 
     //для песен
-    fun updateCoverImageAndSave(uri: Uri) {
+    /**
+     * [onDone] вызывается, когда обложка записана в базу (или сохранять было нечего). Экран замены
+     * уходит назад только после этого: список песен папки/альбома/исполнителя при возврате заново
+     * читает песни из базы и иначе мог прочитать их до записи, оставив песню без обложки.
+     */
+    fun updateCoverImageAndSave(uri: Uri, onDone: () -> Unit = {}) {
         Log.d(TAG, "2*** SharedViewModel updateCoverImageAndSave uri = $uri")
-        _selectedSong.value ?: return
+        if (_selectedSong.value == null) { onDone(); return }
         // Проверяем, не тот же ли это URI. Сравниваем с обложкой на момент выбора песни, а не с
         // song.artUri: MainActivity подменяет artUri у играющей песни при выборе картинки, и тогда
         // сравнение ошибочно считало обложку неизменённой и она не сохранялась в базу
         val originalUri = selectedOriginalArtUri ?: getDefaultCoverUri().toString()
         if (originalUri == uri.toString()) {
             Log.d(TAG, "  --##-- SharedViewModel updateCoverImageAndSave Same URI, skipping update")
+            onDone()
             return // Не обновляем, если URI не изменился
         }
         _coverImageUri.value = uri  //обновляем на экране
-        saveCoverToDatabase(uri)  //обновляем в базе
+        saveCoverToDatabase(uri, onDone)  //обновляем в базе
     }
 
     fun getDefaultCoverUri(): Uri {
@@ -306,23 +312,27 @@ class SharedViewModel(
         }
     }
 
-    fun saveCoverToDatabase(uri: Uri) {
+    fun saveCoverToDatabase(uri: Uri, onDone: () -> Unit = {}) {
         viewModelScope.launch {
-            _selectedSong.value?.let { selectedSong ->
-                Log.d(TAG, "110*** ✅SharedViewModel saveCoverToDatabase uri = $uri")
+            try {
+                _selectedSong.value?.let { selectedSong ->
+                    Log.d(TAG, "110*** ✅SharedViewModel saveCoverToDatabase uri = $uri")
 
-                //копия кладётся в постоянное хранилище приложения (filesDir), а не в кэш:
-                //систему можно очистить кэш, и выбранная пользователем обложка пропала бы.
-                //Если копия не удалась, остаётся исходный uri, а не null
-                val finalArt = copyCoverOrKeepUri(appContext, uri, "song", selectedSong.id)
-                Log.d(TAG, "111*** ✅SharedViewModel saveCoverToDatabase finalArt = $finalArt  uri = $uri")
+                    //копия кладётся в постоянное хранилище приложения (filesDir), а не в кэш:
+                    //систему можно очистить кэш, и выбранная пользователем обложка пропала бы.
+                    //Если копия не удалась, остаётся исходный uri, а не null
+                    val finalArt = copyCoverOrKeepUri(appContext, uri, "song", selectedSong.id)
+                    Log.d(TAG, "111*** ✅SharedViewModel saveCoverToDatabase finalArt = $finalArt  uri = $uri")
 
-                //записываем путь к файлу обложки в базу
-                repository.updateCoverPath(selectedSong.id, finalArt)
-                _coverImageUri.value = finalArt.toUri() //повторно? перезаписываем _coverImageUri
+                    //записываем путь к файлу обложки в базу
+                    repository.updateCoverPath(selectedSong.id, finalArt)
+                    _coverImageUri.value = finalArt.toUri() //повторно? перезаписываем _coverImageUri
 
-                //обновляем песню во всех списках: общем, отфильтрованном, выбранной и текущей
-                patchSong(selectedSong.id) { it.copy(artUri = finalArt) }
+                    //обновляем песню во всех списках: общем, отфильтрованном, выбранной и текущей
+                    patchSong(selectedSong.id) { it.copy(artUri = finalArt) }
+                }
+            } finally {
+                onDone()
             }
         }
     }
