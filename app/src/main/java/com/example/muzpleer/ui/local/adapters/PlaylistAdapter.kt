@@ -432,6 +432,9 @@ class PlaylistAdapter(
     }
 
     private fun navigateToChangePlaylistCover(view: View,  playlist: Playlist) {
+        //сразу, до перехода: иначе экран замены откроется с обложкой, оставшейся от другого списка
+        //(исполнителя, альбома), а правильное значение придёт из базы позже
+        viewModel.setCoverImageUriLevel(playlist.playlistArtUri)
         playlistsViewModel.setCurrentPlaylistByPlaylistId(playlist.id) { loaded ->
             viewModel.setCoverImageUriLevel(loaded?.playlistArtUri)
         }
