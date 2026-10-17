@@ -141,7 +141,9 @@ class FavoritesAdapter(
                     Log.e(TAG, "❌FavoritesAdapter exception when loading , track.title = ${track.title}   ${e.message}")
                     binding.trackArtwork.setImageResource(R.drawable.muz_player3)
                 }
-            }?: {
+            } ?: run {
+                //у песни нет обложки: ставим заглушку, иначе переиспользованная строка списка
+                //покажет обложку другой песни (раньше здесь была лямбда, которая никогда не вызывалась)
                 Log.d(TAG, "✅✅✅✅ FavoritesAdapter bind Glide trackArtwork = null Favorite = ${track.title} ")
                 binding.trackArtwork.setImageResource(R.drawable.muz_player3)
             }
