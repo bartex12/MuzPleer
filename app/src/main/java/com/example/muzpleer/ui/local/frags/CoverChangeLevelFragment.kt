@@ -140,7 +140,11 @@ class CoverChangeLevelFragment: Fragment() {
                     Log.e(TAG, "❌ CoverChangeLevelFragment exception when loading: ${e.message}")
                     binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
                 }
-            }?: binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+            }?: run {
+                //обложки нет: отменяем незавершённую загрузку прежней картинки, иначе она появится поверх заглушки
+                Glide.with(binding.root.context).clear(binding.coverImageViewLevel)
+                binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+            }
         }
 
         binding.usePhonePhotosLevel.setOnClickListener {

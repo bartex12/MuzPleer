@@ -195,6 +195,8 @@ class FoldersAdapter(
 //    }
 
     private fun navigateToChangeLevelCover(view: View,  folder: Folder) {
+        //сразу, до перехода: иначе экран замены откроется с обложкой, оставшейся от другого списка
+        viewModel.setCoverImageUriLevel(folder.artworkUri)
         foldersViewModel.setCurrentFolderByFolderPath(folder.path) { loaded ->
             viewModel.setCoverImageUriLevel(loaded.artworkUri)
         }
