@@ -13,12 +13,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.FolderRepository
 import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
-import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 /**
  * Всё, что относится к вкладке "Папки" и списку песен папки.
@@ -106,38 +102,11 @@ class FoldersViewModel(
     internal fun filterFolders(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (folders.value == null) return
-        val originalFolderList: MutableList<Folder> = (folders.value ?: listOf()).toMutableList()
-        val filteredFolderList: MutableList<Folder> = (filteredFolders.value ?: listOf()).toMutableList()
-        filteredFolderList.clear()
-        if (query.isEmpty()) {
-            filteredFolderList.addAll(originalFolderList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (folder in originalFolderList) {
-                if (folder.name.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredFolderList.add(folder)
-                }
-            }
-        }
-        _filteredFolders.value = filteredFolderList
+        _filteredFolders.value = (folders.value ?: listOf()).filterByQuery(query, { it.name })
     }
 
     internal fun filterFolderSongs(query: String) {
-        val originalFolderSongList: MutableList<Song> = (listFolderSong.value ?: listOf()).toMutableList()
-        val filteredFolderSongList: MutableList<Song> = (filteredListFolderSong.value ?: listOf()).toMutableList()
-        filteredFolderSongList.clear()
-        if (query.isEmpty()) {
-            filteredFolderSongList.addAll(originalFolderSongList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (folderSong in originalFolderSongList) {
-                if (folderSong.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    folderSong.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredFolderSongList.add(folderSong)
-                }
-            }
-        }
-        _filteredListFolderSong.value = filteredFolderSongList
+        _filteredListFolderSong.value = (listFolderSong.value ?: listOf()).filterSongsByQuery(query)
     }
 
     fun updateFoldersOrder(orderedFolders: List<Folder>) {
@@ -170,13 +139,9 @@ class FoldersViewModel(
      */
     fun saveCoverFolderToDatabase(context: Context, uri: Uri, folderId: Long) {
         Log.d(TAG, "6--- FoldersViewModel saveCoverFolderToDatabase uri = $uri folderId = $folderId")
-        val appContext = context.applicationContext
         viewModelScope.launch {
-            val savedPath = withContext(Dispatchers.IO) {
-                copyCoverToAppStorage(appContext, uri, "folder", folderId)
-            }
-            // если скопировать не удалось, сохраняем как раньше - сам URI
-            folderRepository.updateFolderArtUri(folderId, savedPath ?: uri.toString())
+            val savedPath = copyCoverOrKeepUri(context, uri, "folder", folderId)
+            folderRepository.updateFolderArtUri(folderId, savedPath)
             loadFolders() // Обновляем список папок
             //проверка
             val folderFile = folderRepository.getFolderFileById(folderId)

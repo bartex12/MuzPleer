@@ -13,12 +13,10 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.PlaylistRepository
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.UserMessenger
-import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 /**
  * Всё, что относится к плейлистам: список плейлистов, текущий плейлист и его песни,
@@ -49,40 +47,11 @@ class PlaylistsViewModel(
     internal fun filterPlaylists(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (playlists.value == null) return
-        val originalPlaylistList: MutableList<Playlist> =  (playlists.value ?: listOf()).toMutableList()
-        val filteredPlaylistList: MutableList<Playlist> = (filteredPlaylists.value ?: listOf()).toMutableList()
-        filteredPlaylistList.clear()
-        if (query.isEmpty()) {
-            filteredPlaylistList.addAll(originalPlaylistList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (playlist in originalPlaylistList) {
-                if (playlist.playlistName.lowercase(Locale.getDefault()).contains(searchQuery) ) {
-                    filteredPlaylistList.add(playlist)
-                }
-            }
-        }
-        _filteredPlaylists.value = filteredPlaylistList
+        _filteredPlaylists.value = (playlists.value ?: listOf()).filterByQuery(query, { it.playlistName })
     }
 
     internal fun filterPlaylistSongs(query: String) {
-        val playlistSongs =currentPlaylistSongs.value
-        val originalSongsList: MutableList<Song> =playlistSongs?.toMutableList() ?: mutableListOf()
-        val filteredPlaylistSong =currentFilteredPlaylistSongs.value
-        val filteredSongsList: MutableList<Song> =filteredPlaylistSong?.toMutableList() ?: mutableListOf()
-        filteredSongsList.clear( )
-        if (query.isEmpty()) {
-            filteredSongsList.addAll(originalSongsList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (song in originalSongsList) {
-                if (song.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    song.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredSongsList.add(song)
-                }
-            }
-        }
-        _currentFilteredPlaylistSongs.value = filteredSongsList
+        _currentFilteredPlaylistSongs.value = (currentPlaylistSongs.value ?: listOf()).filterSongsByQuery(query)
     }
 
     fun getPositionPlaylist(): Int{  return helper.getPositionPlaylist() }
@@ -416,13 +385,9 @@ class PlaylistsViewModel(
      */
     fun saveCoverPlaylistToDatabase(context: Context, uri: Uri, playlistId: Long) {
         Log.d(TAG, "6--- PlaylistsViewModel saveCoverPlaylistToDatabase uri = $uri playlistId = $playlistId")
-        val appContext = context.applicationContext
         viewModelScope.launch {
-            val savedPath = withContext(Dispatchers.IO) {
-                copyCoverToAppStorage(appContext, uri, "playlist", playlistId)
-            }
-            // если скопировать не удалось, сохраняем как раньше - сам URI
-            playlistRepository.updatePlaylistArtUri(playlistId, savedPath ?: uri.toString())
+            val savedPath = copyCoverOrKeepUri(context, uri, "playlist", playlistId)
+            playlistRepository.updatePlaylistArtUri(playlistId, savedPath)
             loadPlaylists() // Обновляем список
         }
     }

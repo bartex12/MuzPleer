@@ -10,22 +10,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.muzpleer.R
-import com.example.muzpleer.model.Album
-import com.example.muzpleer.model.Artist
-import com.example.muzpleer.model.Folder
-import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
-import com.example.muzpleer.repository.AlbumRepository
-import com.example.muzpleer.repository.ArtistRepository
-import com.example.muzpleer.repository.FavoriteRepository
-import com.example.muzpleer.repository.FolderRepository
 import com.example.muzpleer.repository.MusicRepository
-import com.example.muzpleer.repository.PlaylistRepository
-import com.example.muzpleer.room.entity.AlbumFile
-import com.example.muzpleer.room.entity.ArtistFile
-import com.example.muzpleer.room.entity.FavoriteSong
-import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileToSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
@@ -38,7 +25,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 
 class SharedViewModel(
     var helper : IPreferenceHelper,
@@ -201,39 +187,11 @@ class SharedViewModel(
     internal fun filterSongs(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (songs.value == null) return
-        val originalSongsList: MutableList<Song> =  (songs.value ?: listOf()).toMutableList()
-        val filteredSongsList: MutableList<Song> = (filteredSongs.value ?: listOf()).toMutableList()
-        filteredSongsList.clear()
-        if (query.isEmpty()) {
-            filteredSongsList.addAll(originalSongsList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (song in originalSongsList) {
-                if (song.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    song.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredSongsList.add(song)
-                }
-            }
-        }
-        _filteredSongs.value = filteredSongsList
+        _filteredSongs.value = (songs.value ?: listOf()).filterSongsByQuery(query)
     }
 
     internal fun filterListSelectedSongs(query: String) {
-        val originalListSelected: MutableList<Song> =  (listSelectedSong.value ?: listOf()).toMutableList()
-        val filteredListSelected: MutableList<Song> = (filteredListSelectedSong.value ?: listOf()).toMutableList()
-        filteredListSelected.clear()
-        if (query.isEmpty()) {
-            filteredListSelected.addAll(originalListSelected)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (selectedSong in originalListSelected) {
-                if (selectedSong.title.lowercase(Locale.getDefault()).contains(searchQuery)||
-                    selectedSong.artist.lowercase(Locale.getDefault()).contains(searchQuery))  {
-                    filteredListSelected.add(selectedSong)
-                }
-            }
-        }
-        _filteredListSelectedSong.value = filteredListSelected
+        _filteredListSelectedSong.value = (listSelectedSong.value ?: listOf()).filterSongsByQuery(query)
     }
 
 
