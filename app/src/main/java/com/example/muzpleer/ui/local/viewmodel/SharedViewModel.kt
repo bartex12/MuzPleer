@@ -16,7 +16,6 @@ import com.example.muzpleer.repository.MusicRepository
 import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileToSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
-import com.example.muzpleer.util.copyAlbumArtToCache
 import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.UserMessenger
@@ -312,16 +311,14 @@ class SharedViewModel(
             _selectedSong.value?.let { selectedSong ->
                 Log.d(TAG, "110*** ✅SharedViewModel saveCoverToDatabase uri = $uri")
 
-                val coverPath =copyAlbumArtToCache(appContext, uri)
-                Log.d(TAG, "111*** ✅SharedViewModel saveCoverToDatabase coverPath = $coverPath  uri = $uri")
+                //копия кладётся в постоянное хранилище приложения (filesDir), а не в кэш:
+                //систему можно очистить кэш, и выбранная пользователем обложка пропала бы.
+                //Если копия не удалась, остаётся исходный uri, а не null
+                val finalArt = copyCoverOrKeepUri(appContext, uri, "song", selectedSong.id)
+                Log.d(TAG, "111*** ✅SharedViewModel saveCoverToDatabase finalArt = $finalArt  uri = $uri")
 
                 //записываем путь к файлу обложки в базу
-                coverPath?. let{path->
-                    repository.updateCoverPath(selectedSong.id, path)
-                }?: repository.updateCoverPath(selectedSong.id, uri.toString())
-
-                //если копия в кэш не удалась, остаётся исходный uri, а не null
-                val finalArt = coverPath ?: uri.toString()
+                repository.updateCoverPath(selectedSong.id, finalArt)
                 _coverImageUri.value = finalArt.toUri() //повторно? перезаписываем _coverImageUri
 
                 //обновляем песню во всех списках: общем, отфильтрованном, выбранной и текущей
