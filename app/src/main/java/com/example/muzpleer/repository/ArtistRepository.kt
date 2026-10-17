@@ -18,64 +18,58 @@ class ArtistRepository (private val artistDao: ArtistDao,
                         private val albumDao: AlbumDao)
 {
 
-    // Первый запуск - группировка и сохранение
+    /**
+     * Пошаговая синхронизация исполнителей с таблицей песен: новые добавляются, изменившиеся
+     * обновляются, исчезнувшие удаляются. Обложка и порядок существующих сохраняются,
+     * внутренний id больше не меняется при каждом сканировании.
+     */
     suspend fun syncArtistsFromMediaFiles() {
         Log.d(TAG, "# ArtistsRepository Начало синхронизации артистов...")
 
-    // СОХРАНЯЕМ КАСТОМНЫЕ ОБЛОЖКИ и порядок следования ПЕРЕД ОЧИСТКОЙ
-        val existingArtists = artistDao.getAllOrderedArtists()
-        val customCoversMap = mutableMapOf<String, String>() // artistName -> coverPath
-        val customMovedMap = mutableMapOf<String, Int>()  //artistId -> sortOrder
-
-        //сохраняем обложки
-        existingArtists.forEach { artist ->
-            if (!artist.coverPath.isNullOrEmpty()) {
-                customCoversMap[artist.name] = artist.coverPath
-            }
-        }
-        Log.d(TAG, "# Сохранено ${customCoversMap.size} кастомных обложек артистов")
-
-        //сохраняем порядок следования артистов в списке
-        existingArtists.forEach { artist ->
-            if (artist.sortOrder >= 0) {
-                customMovedMap[artist.name] = artist.sortOrder
-            }
-        }
-
-        // Очищаем артистов
-        artistDao.deleteAll()
-
+        val existingByName = artistDao.getAllOrderedArtists().associateBy { it.name }
         val mediaFiles = songDao.getAllFiles()
         Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles Получено ${mediaFiles.size} медиафайлов")
+        val now = System.currentTimeMillis()
+
+        val toWrite = mutableListOf<ArtistFile>() //новые и изменившиеся
+        val actualNames = HashSet<String>()
 
         // Группируем по артистам
-        val artistsMap = mediaFiles
+        mediaFiles
             .groupBy { it.artist ?: "Unknown Artist" }
-            .mapValues { (artistName, songs) ->
-                val artistId = generateArtistId(artistName)
+            .forEach { (artistName, songs) ->
+                actualNames.add(artistName)
+                val existing = existingByName[artistName]
                 val albumIds = songs.map { it.albumId }.distinct()
 
-                // ВОССТАНАВЛИВАЕМ КАСТОМНУЮ ОБЛОЖКУ
-                val artistCoverPath = customCoversMap[artistName] ?: "" //todo
-                val artistMovedMap = customMovedMap[artistName] ?: 0
-
-                ArtistFile(
-                    artistId = artistId,  // это хэш-код  не путать с id!!!
+                val candidate = ArtistFile(
+                    id = existing?.id ?: 0,
+                    artistId = generateArtistId(artistName),  // это хэш-код  не путать с id!!!
                     name = artistName,
                     allAlbumIds = albumIds.joinToString(";"),
                     songCount = songs.size,
-                    coverPath = artistCoverPath,
-                    sortOrder = artistMovedMap
+                    coverPath = existing?.coverPath?.takeIf { it.isNotEmpty() } ?: "", //todo
+                    createdAt = existing?.createdAt ?: now,
+                    updatedAt = existing?.updatedAt ?: now,
+                    sortOrder = existing?.sortOrder?.takeIf { it >= 0 } ?: 0
                 )
+                //пишем в базу только то, что действительно изменилось
+                if (existing == null || candidate != existing) {
+                    toWrite.add(candidate.copy(updatedAt = now))
+                }
             }
 
-        Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles Создано ${artistsMap.size} артистов")
+        val toDeleteIds = existingByName.values
+            .filter { it.name !in actualNames }
+            .map { it.id }
+
+        Log.d(TAG, "# ArtistsRepository артистов в песнях = ${actualNames.size}; " +
+                "записать = ${toWrite.size}; удалить = ${toDeleteIds.size}")
 
         try {
-            artistDao.insertAll(artistsMap.values.toList())
-            Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles Артисты успешно сохранены в базу")
-            val artistSize = artistDao.getAllOrderedArtists().size
-            Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles из базы artistSize size = $artistSize" )
+            if (toWrite.isNotEmpty()) artistDao.insertAll(toWrite)
+            toDeleteIds.chunked(500).forEach { artistDao.deleteByIds(it) }
+            Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles Артисты успешно синхронизированы")
         } catch (e: Exception) {
             Log.d(TAG, "# ArtistsRepository syncArtistsFromMediaFiles Ошибка сохранения артистов: ${e.message}")
         }
