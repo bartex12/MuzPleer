@@ -47,6 +47,8 @@ class PlaylistsViewModel(
     val currentFilteredPlaylistSongs: LiveData<List<Song>?> = _currentFilteredPlaylistSongs
 
     internal fun filterPlaylists(query: String) {
+        //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
+        if (playlists.value == null) return
         val originalPlaylistList: MutableList<Playlist> =  (playlists.value ?: listOf()).toMutableList()
         val filteredPlaylistList: MutableList<Playlist> = (filteredPlaylists.value ?: listOf()).toMutableList()
         filteredPlaylistList.clear()

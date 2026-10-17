@@ -50,6 +50,11 @@ class SharedViewModel(
     private val _songs = MutableLiveData<List<Song>>()
     val songs: LiveData<List<Song>> = _songs
 
+    //false, пока первое сканирование не завершено. Пустой список до этого момента означает
+    //"ещё грузится", а не "треков нет"
+    private val _libraryLoaded = MutableLiveData<Boolean>(false)
+    val libraryLoaded: LiveData<Boolean> = _libraryLoaded
+
     private val _filteredSongs = MutableLiveData<List<Song>>()
     val filteredSongs: LiveData<List<Song>> = _filteredSongs
 
@@ -131,6 +136,7 @@ class SharedViewModel(
     }
 
     private fun initParamsSong(songs:List<Song>){
+        _libraryLoaded.value = true //раньше списков: наблюдатели списка должны уже знать, что загрузка закончилась
         _songs.value = songs
         _filteredSongs.value  = _songs.value
         Log.d(TAG, "SharedViewModel initParamsSong songs.size = ${songs.size}")
@@ -193,6 +199,8 @@ class SharedViewModel(
     }
 
     internal fun filterSongs(query: String) {
+        //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
+        if (songs.value == null) return
         val originalSongsList: MutableList<Song> =  (songs.value ?: listOf()).toMutableList()
         val filteredSongsList: MutableList<Song> = (filteredSongs.value ?: listOf()).toMutableList()
         filteredSongsList.clear()
@@ -425,6 +433,7 @@ class SharedViewModel(
     fun loadAllSongsForAdding() {
         viewModelScope.launch {
             val allSongs =  repository.getSongsFromDatabase()
+            _libraryLoaded.value = true
             _songs.value = allSongs
             _filteredSongs.value = allSongs
         }

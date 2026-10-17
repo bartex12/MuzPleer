@@ -100,7 +100,12 @@ class SongFragment : Fragment() {
             adapter.data = sortedData  //передаём данные в адаптер
 
             // Управляем видимостью в зависимости от состояния
-            updateEmptyState(filteredSongs)
+            if (filteredSongs.isEmpty() && viewModel.libraryLoaded.value != true) {
+                // библиотека ещё сканируется: показываем загрузку, а не "У вас пока нет треков"
+                showLoadingState()
+            } else {
+                updateEmptyState(filteredSongs)
+            }
         }
 
         //обновление обложки при её замене

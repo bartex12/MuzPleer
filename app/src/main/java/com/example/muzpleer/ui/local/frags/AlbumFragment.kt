@@ -125,7 +125,7 @@ class AlbumFragment: Fragment() {
             binding.tvEmptyAlbum.text = if (isSearchActive) {
                 "По вашему запросу ничего не найдено"
             } else {
-                "У вас пока нет папок"
+                "У вас пока нет альбомов"
             }
         } else {
             // Список не пуст — всё скрываем

@@ -95,6 +95,8 @@ class ArtistsViewModel(
     }
 
     internal fun filterArtists(query: String) {
+        //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
+        if (artists.value == null) return
         val originalArtistList: MutableList<Artist> = (artists.value ?: listOf()).toMutableList()
         val filteredArtistList: MutableList<Artist> = (filteredArtists.value ?: listOf()).toMutableList()
         filteredArtistList.clear()
