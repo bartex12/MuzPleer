@@ -114,7 +114,13 @@ class MusicRepository(
                     if (isModified || isMoved || isTitleChanged || isArtistChanged || isAlbumChanged) {
                         // При изменении файла проверяем, не появилась ли новая встроенная обложка
                         // Если появилась,сохраняем изображение в кэш и возвращаем URI в строковом виде
-                        val embeddedArtUri = getEmbeddedArtworkAndSave(context, path)
+                        //один проход по файлу: обложка и теги, которых ещё нет в базе
+                        val meta = readTrackMetadata(
+                            path,
+                            readTags = existingFile.author == null || existingFile.genre == null || existingFile.year == null,
+                            readArtwork = true
+                        )
+                        val embeddedArtUri = meta.artworkPath
                         Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus при изменениях embeddedArtUri = $embeddedArtUri ")
                         // Обложку, которая уже есть и доступна (в том числе выбранную пользователем),
                         // не трогаем. Встроенная берётся, только если обложки нет или файл пропал.
@@ -140,16 +146,17 @@ class MusicRepository(
                                 folderPath = folderPath,
                                 artUri = finalArtUri,
                                 // Новые поля - сохраняем существующие значения, если они есть
-                                author = existingFile.author ?: getAuthorFromMetadata(context, path),
-                                genre = existingFile.genre ?: getGenreFromMetadata(context, path),
-                                year = existingFile.year ?: getYearFromMetadata(context, path)
+                                author = existingFile.author ?: meta.author,
+                                genre = existingFile.genre ?: meta.genre,
+                                year = existingFile.year ?: meta.year
                             )
                         )
                         Log.d(TAG, "#%# File updated: $path (changes: modified=$isModified, moved=$isMoved, title=$isTitleChanged, artist=$isArtistChanged, album=$isAlbumChanged)")
                     }
                 } ?: run {
                     // Новый файл - пытаемся извлечь встроенную обложку, если есть, сохраняем в кэше
-                    val embeddedArtUri = getEmbeddedArtworkAndSave(context, path)
+                    val meta = readTrackMetadata(path, readTags = true, readArtwork = true)
+                    val embeddedArtUri = meta.artworkPath
                     Log.d(TAG, " #%# MusicRepository scanMusicApi29Plus Новый трек embeddedArtUri = $embeddedArtUri ")
                     filesToAdd.add(
                         SongFile(
@@ -168,9 +175,9 @@ class MusicRepository(
                             folderPath = folderPath,
                             artUri =  embeddedArtUri, // Сохраняем URI встроенной обложки
                             // Новые поля - извлекаем из метаданных
-                            author = getAuthorFromMetadata(context, path),
-                            genre = getGenreFromMetadata(context, path),
-                            year = getYearFromMetadata(context, path)
+                            author = meta.author,
+                            genre = meta.genre,
+                            year = meta.year
                         )
                     )
                 }
@@ -254,69 +261,53 @@ class MusicRepository(
         Log.d(TAG, "9***MusicRepository updateSongInfo  author из базы = ${songDao.getById(songId)?.author}")
     }
 
-    private fun getAuthorFromMetadata(context: Context, filePath: String): String? {
-        return try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(filePath)
-            val author = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR)
-            retriever.release()
-            author
-        } catch (e: Exception) {
-            Log.d(TAG, "Failed to extract author metadata from $filePath error = ${e.message}")
-            null
-        }
-    }
-
-    private fun getGenreFromMetadata(context: Context, filePath: String): String? {
-        return try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(filePath)
-            val genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE)
-            retriever.release()
-            genre
-        } catch (e: Exception) {
-            Log.d(TAG, "Failed to extract genre metadata from $filePath error = ${e.message}")
-            null
-        }
-    }
-
-    private fun getYearFromMetadata(context: Context, filePath: String): Int? {
-        return try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(filePath)
-            val yearStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)
-            retriever.release()
-            yearStr?.toIntOrNull()
-        } catch (e: Exception) {
-            Log.d(TAG, "Failed to extract year metadata from $filePath error = ${e.message}")
-            null
-        }
-    }
-
     suspend fun getSongFileById(songId:Long):SongFile?{
         return songDao.getById(songId)
     }
 
-    private fun getEmbeddedArtworkAndSave(context: Context, filePath: String): String? {
-        return try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(context, Uri.fromFile(File(filePath)))
+    /** Теги и встроенная обложка одного файла. Любое поле может быть null. */
+    private class TrackMetadata(
+        val author: String? = null,
+        val genre: String? = null,
+        val year: Int? = null,
+        val artworkPath: String? = null
+    )
 
-            val embeddedPicture = retriever.embeddedPicture
-            retriever.release()
-
-            if (embeddedPicture != null) {
-                // Сохраняем изображение в кэш и возвращаем URI
-                val  uri = saveArtworkToCache(filePath, embeddedPicture)
-                uri
-            } else {
-                null
+    /**
+     * Читает теги и встроенную обложку файла за один проход, одним MediaMetadataRetriever.
+     * Раньше на каждую песню открывалось до четырёх отдельных (автор, жанр, год, обложка),
+     * а при ошибке чтения ретривер ещё и не освобождался.
+     * [readTags] - читать автора, жанр и год; [readArtwork] - извлечь обложку и сохранить в кэш.
+     */
+    private fun readTrackMetadata(filePath: String, readTags: Boolean, readArtwork: Boolean): TrackMetadata {
+        if (!readTags && !readArtwork) return TrackMetadata()
+        val retriever = MediaMetadataRetriever()
+        try {
+            try {
+                retriever.setDataSource(filePath)
+            } catch (e: Exception) {
+                //запасной способ - через Uri файла, как раньше делалось для обложки
+                retriever.setDataSource(context, Uri.fromFile(File(filePath)))
             }
+            val author = if (readTags) retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_AUTHOR) else null
+            val genre = if (readTags) retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE) else null
+            val year = if (readTags) retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR)?.toIntOrNull() else null
+            val artwork = if (readArtwork) {
+                // Сохраняем встроенное изображение в кэш и возвращаем путь к файлу
+                retriever.embeddedPicture?.let { saveArtworkToCache(filePath, it) }
+            } else null
+            return TrackMetadata(author, genre, year, artwork)
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Error extracting embedded artwork: ${e.message}")
-            null
+            Log.d(TAG, "Failed to extract metadata from $filePath error = ${e.message}")
+            return TrackMetadata()
+        } finally {
+            try { retriever.release() } catch (e: Exception) { Log.d(TAG, "release error = ${e.message}") }
         }
     }
+
+    /** Встроенная обложка файла: путь к сохранённой в кэше картинке или null, если её нет. */
+    private fun getEmbeddedArtworkAndSave(filePath: String): String? =
+        readTrackMetadata(filePath, readTags = false, readArtwork = true).artworkPath
 
     private fun saveArtworkToCache(filePath: String, imageData: ByteArray): String? {
         return try {
@@ -361,7 +352,7 @@ class MusicRepository(
             }
 
             // Пытаемся извлечь встроенную обложку, если успешно- в список songsToUpdate
-            val embeddedArtUri = getEmbeddedArtworkAndSave(context, songFile.path)
+            val embeddedArtUri = getEmbeddedArtworkAndSave(songFile.path)
             //Log.d(TAG, "***** ***** MusicRepository refreshAllArtworks embeddedArtUri = $embeddedArtUri")
             if (embeddedArtUri != null) {
                 songsToUpdate.add(songFile.copy(artUri = embeddedArtUri))
