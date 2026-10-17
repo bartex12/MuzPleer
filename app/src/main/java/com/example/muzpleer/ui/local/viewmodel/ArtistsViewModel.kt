@@ -13,12 +13,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.ArtistRepository
 import com.example.muzpleer.room.entity.ArtistFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
-import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 /**
  * Всё, что относится к вкладке "Исполнители" и списку песен исполнителя.
@@ -97,38 +93,11 @@ class ArtistsViewModel(
     internal fun filterArtists(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (artists.value == null) return
-        val originalArtistList: MutableList<Artist> = (artists.value ?: listOf()).toMutableList()
-        val filteredArtistList: MutableList<Artist> = (filteredArtists.value ?: listOf()).toMutableList()
-        filteredArtistList.clear()
-        if (query.isEmpty()) {
-            filteredArtistList.addAll(originalArtistList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (artist in originalArtistList) {
-                if (artist.name.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredArtistList.add(artist)
-                }
-            }
-        }
-        _filteredArtists.value = filteredArtistList
+        _filteredArtists.value = (artists.value ?: listOf()).filterByQuery(query, { it.name })
     }
 
     internal fun filterArtistSongs(query: String) {
-        val originalArtistSongList = (listArtistSong.value ?: listOf()).toMutableList()
-        val filteredArtistSongList: MutableList<Song> = (filteredListArtistSong.value ?: listOf()).toMutableList()
-        filteredArtistSongList.clear()
-        if (query.isEmpty()) {
-            filteredArtistSongList.addAll(originalArtistSongList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (artistSong in originalArtistSongList) {
-                if (artistSong.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    artistSong.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredArtistSongList.add(artistSong)
-                }
-            }
-        }
-        _filteredListArtistSong.value = filteredArtistSongList
+        _filteredListArtistSong.value = (listArtistSong.value ?: listOf()).filterSongsByQuery(query)
     }
 
     fun updateArtistsOrder(orderedArtist: List<Artist>) {
@@ -163,13 +132,9 @@ class ArtistsViewModel(
      */
     fun saveCoverArtistToDatabase(context: Context, uri: Uri, artistId: Long) {
         Log.d(TAG, "6--- ArtistsViewModel saveCoverArtistToDatabase uri = $uri artistId = $artistId")
-        val appContext = context.applicationContext
         viewModelScope.launch {
-            val savedPath = withContext(Dispatchers.IO) {
-                copyCoverToAppStorage(appContext, uri, "artist", artistId)
-            }
-            // если скопировать не удалось, сохраняем как раньше - сам URI
-            artistsRepository.updateArtistArtUri(artistId, savedPath ?: uri.toString())
+            val savedPath = copyCoverOrKeepUri(context, uri, "artist", artistId)
+            artistsRepository.updateArtistArtUri(artistId, savedPath)
             loadArtists() // Обновляем список артистов
         }
     }

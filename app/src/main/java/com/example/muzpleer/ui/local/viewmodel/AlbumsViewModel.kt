@@ -12,12 +12,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.AlbumRepository
 import com.example.muzpleer.room.entity.AlbumFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
-import com.example.muzpleer.util.copyCoverToAppStorage
 import com.example.muzpleer.util.saveDefaultCoverToCache
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.util.Locale
 
 /**
  * Всё, что относится к вкладке "Альбомы" и списку песен альбома.
@@ -96,21 +92,7 @@ class AlbumsViewModel(
     internal fun filterAlbums(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (albums.value == null) return
-        val originalAlbumList: MutableList<Album> = (albums.value ?: listOf()).toMutableList()
-        val filteredAlbumList: MutableList<Album> = (filteredAlbums.value ?: listOf()).toMutableList()
-        filteredAlbumList.clear()
-        if (query.isEmpty()) {
-            filteredAlbumList.addAll(originalAlbumList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (album in originalAlbumList) {
-                if (album.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    album.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredAlbumList.add(album)
-                }
-            }
-        }
-        _filteredAlbums.value = filteredAlbumList
+        _filteredAlbums.value = (albums.value ?: listOf()).filterByQuery(query, { it.title }, { it.artist })
     }
 
     fun updateAlbumsOrder(orderedAlbums: List<Album>) {
@@ -145,13 +127,9 @@ class AlbumsViewModel(
      */
     fun saveCoverAlbumToDatabase(context: Context, uri: android.net.Uri, albumId: Long) {
         Log.d(TAG, "6--- AlbumsViewModel saveCoverAlbumToDatabase uri = $uri albumId = $albumId")
-        val appContext = context.applicationContext
         viewModelScope.launch {
-            val savedPath = withContext(Dispatchers.IO) {
-                copyCoverToAppStorage(appContext, uri, "album", albumId)
-            }
-            // если скопировать не удалось, сохраняем как раньше - сам URI
-            albumRepository.updateAlbumArtUri(albumId, savedPath ?: uri.toString())
+            val savedPath = copyCoverOrKeepUri(context, uri, "album", albumId)
+            albumRepository.updateAlbumArtUri(albumId, savedPath)
             loadAlbums() // Обновляем список альбомов
 
             //проверка
@@ -194,21 +172,7 @@ class AlbumsViewModel(
     }
 
     internal fun filterAlbumSongs(query: String) {
-        val originalAlbumSongList = (listAlbumSong.value ?: listOf()).toMutableList()
-        val filteredAlbumSongList: MutableList<Song> = (filteredListAlbumSong.value ?: listOf()).toMutableList()
-        filteredAlbumSongList.clear()
-        if (query.isEmpty()) {
-            filteredAlbumSongList.addAll(originalAlbumSongList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (albumSong in originalAlbumSongList) {
-                if (albumSong.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    albumSong.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredAlbumSongList.add(albumSong)
-                }
-            }
-        }
-        _filteredListAlbumSong.value = filteredAlbumSongList
+        _filteredListAlbumSong.value = (listAlbumSong.value ?: listOf()).filterSongsByQuery(query)
     }
 
     companion object {

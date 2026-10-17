@@ -12,7 +12,6 @@ import com.example.muzpleer.room.entity.FavoriteSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 /**
  * Всё, что относится к избранному: список избранных песен, поиск, добавление и удаление,
@@ -34,21 +33,7 @@ class FavoritesViewModel(
     }
 
     internal fun filterFavoriteSongs(query: String) {
-        val originalSongsList: MutableList<Song> =  (favoriteSongs.value ?: listOf()).toMutableList()
-        val filteredSongsList: MutableList<Song> = (filteredFavoriteSongs.value ?: listOf()).toMutableList()
-        filteredSongsList.clear()
-        if (query.isEmpty()) {
-            filteredSongsList.addAll(originalSongsList)
-        } else {
-            val searchQuery = query.lowercase(Locale.getDefault())
-            for (song in originalSongsList) {
-                if (song.title.lowercase(Locale.getDefault()).contains(searchQuery) ||
-                    song.artist.lowercase(Locale.getDefault()).contains(searchQuery)) {
-                    filteredSongsList.add(song)
-                }
-            }
-        }
-        _filteredFavoriteSongs.value = filteredSongsList
+        _filteredFavoriteSongs.value = (favoriteSongs.value ?: listOf()).filterSongsByQuery(query)
     }
 
     fun getPositionFavoriteSong(): Int{  return helper.getPositionFavoriteSong() }
