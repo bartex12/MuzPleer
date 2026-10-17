@@ -12,6 +12,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.AlbumRepository
 import com.example.muzpleer.room.entity.AlbumFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
 
@@ -142,8 +143,13 @@ class AlbumsViewModel(
 
     fun updateAlbumArtUri(context: Context, album: Album) {
         viewModelScope.launch {
+            //Сюда попадаем, когда адаптеру не удалось загрузить обложку из своего (возможно, устаревшего) списка.
+            //Если в базе лежит рабочий файл обложки, затирать его обложкой по умолчанию нельзя:
+            //только обновляем объект в списках.
+            val storedCover = albumRepository.getAlbumById(album.albumId)?.coverPath
+            val keepStored = isExistingLocalFile(storedCover)
             //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUriString = saveDefaultCoverToCache(context)
+            val newArtUriString = if (keepStored) storedCover else saveDefaultCoverToCache(context)
             val newArtUri = newArtUriString?.toUri()
             album.artworkUri = newArtUri
             // Обновляем альбом
@@ -163,7 +169,7 @@ class AlbumsViewModel(
             }
             Log.d(TAG, " **??** AlbumsViewModel updateAlbumArtUri newArtUri $newArtUri")
             try {
-                albumRepository.updateAlbumArtUriByAlbumId(album.albumId, newArtUriString)
+                if (!keepStored) albumRepository.updateAlbumArtUriByAlbumId(album.albumId, newArtUriString)
                 Log.d(TAG, "✅AlbumsViewModel updateAlbumArtUri Обновлён artUri для альбома с title = ${album.title}  id =  ${album.id} albumId = ${album.albumId}")
             } catch (e: Exception) {
                 Log.e(TAG, "❌AlbumsViewModel updateAlbumArtUri Ошибка обновления artUri: ${e.message}")

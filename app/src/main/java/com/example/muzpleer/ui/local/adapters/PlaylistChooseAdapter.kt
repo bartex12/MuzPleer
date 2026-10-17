@@ -64,7 +64,7 @@ class PlaylistChooseAdapter(
             // 🔧 Добавляем логирование
             Log.d(TAG, "**%%** PlaylistChooseAdapter bind Playlist: ${playlist.playlistName}, artUri: ${playlist.playlistArtUri}")
 
-            playlist.playlistArtUri?.let{artUri->
+            playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 Log.d(TAG, "PlaylistChooseAdapter bind artUri toString: $artUri")
                 // Загружаем изображение
                 try {

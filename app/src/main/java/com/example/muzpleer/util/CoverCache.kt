@@ -112,3 +112,7 @@ fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
         return null
     }
 }
+
+/** true, если [path] - путь к существующему локальному файлу (а не пустая строка, content-URI или потерянный файл). */
+fun isExistingLocalFile(path: String?): Boolean =
+    !path.isNullOrBlank() && path.startsWith("/") && File(path).exists()

@@ -68,7 +68,7 @@ class ArtistSelectionAdapter(
             //binding.albumArtistSelection.text = artist.albums
             binding.tracksCountSelection.text = getTracksCountString( artist.songs.size)
 
-            artist.artworkUri?.let{artUri->
+            artist.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){

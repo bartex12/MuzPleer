@@ -92,7 +92,7 @@ class PlaylistAdapter(
             //todo время треков
             binding.playlistSubtitle.text=getTracksCountString(playlist.playlistSongs.size)
 
-            playlist.playlistArtUri?.let{artUri->
+            playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){

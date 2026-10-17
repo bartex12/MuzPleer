@@ -13,6 +13,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.FolderRepository
 import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
 
@@ -152,8 +153,13 @@ class FoldersViewModel(
 
     fun updateFolderArtUri(context: Context, folder: Folder) {
         viewModelScope.launch {
+            //Сюда попадаем, когда адаптеру не удалось загрузить обложку из своего (возможно, устаревшего) списка.
+            //Если в базе лежит рабочий файл обложки, затирать его обложкой по умолчанию нельзя:
+            //только обновляем объект в списках.
+            val storedCover = folderRepository.getFolderFileById(folder.id)?.coverPath
+            val keepStored = isExistingLocalFile(storedCover)
             //сохраняем картинку из ресурсов в кэш и получаем ссылку
-            val newArtUriString = saveDefaultCoverToCache(context)
+            val newArtUriString = if (keepStored) storedCover else saveDefaultCoverToCache(context)
             val newArtUri = newArtUriString?.toUri()
             folder.artworkUri = newArtUri
             // Обновляем папку
@@ -173,7 +179,7 @@ class FoldersViewModel(
             }
             Log.d(TAG, " **??** FoldersViewModel updateFolderArtUri newArtUri $newArtUri")
             try {
-                folderRepository.updateFolderArtUri(folder.id, newArtUriString)
+                if (!keepStored) folderRepository.updateFolderArtUri(folder.id, newArtUriString)
                 Log.d(TAG, "✅FoldersViewModel updateFolderArtUri Обновлён artUri для папки  ${folder.name}  id = ${folder.id}")
             } catch (e: Exception) {
                 Log.e(TAG, "❌FoldersViewModel updateFolderArtUri Ошибка обновления artUri для папки ${folder.name}: ${e.message}")

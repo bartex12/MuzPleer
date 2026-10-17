@@ -66,7 +66,7 @@ class PlaylistsSelectionAdapter (
             binding.playlistTitleSelection.text = playlist.playlistName
             binding.tracksCountSelection.text = getTracksCountString( playlist.playlistSongs.size)
 
-            playlist.playlistArtUri?.let{artUri->
+            playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){

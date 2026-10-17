@@ -68,7 +68,7 @@ class FoldersSelectionAdapter (
             binding.albumArtistSelection.text = folder.path
             binding.tracksCountSelection.text = getTracksCountString( folder.songs.size)
 
-            folder.artworkUri?.let{artUri->
+            folder.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){
