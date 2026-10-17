@@ -86,7 +86,7 @@ class FoldersAdapter(
             binding.tvFolderPath.text = folder.path
             binding.tvTracksCount.text = getTracksCountString(folder.songs.size)
 
-            folder.artworkUri?.let{artUri->
+            folder.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){

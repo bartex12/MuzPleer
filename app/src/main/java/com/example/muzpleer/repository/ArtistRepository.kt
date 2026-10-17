@@ -152,6 +152,8 @@ class ArtistRepository (private val artistDao: ArtistDao,
         artistDao.updateArtistArtUri(artistId, artUri)
     }
 
+    suspend fun getArtistFileById(id: Long): ArtistFile? = artistDao.getArtistById(id)
+
     suspend fun updateArtistArtUriById(id: Long, artUri: String?) {
         artistDao.updateArtistArtUriById(id, artUri)
     }

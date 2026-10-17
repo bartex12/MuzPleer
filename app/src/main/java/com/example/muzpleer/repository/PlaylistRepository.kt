@@ -115,6 +115,9 @@ class PlaylistRepository(
         playlistDao.renamePlaylist(playlistId, newName)
     }
 
+    suspend fun getPlaylistArtUriById(playlistId: Long): String? =
+        playlistDao.getPlaylistById(playlistId)?.playlistArtUri
+
     suspend fun updatePlaylistArtUri(playlistId: Long, artUri: String?) {
         playlistDao.updatePlaylistArtUri(playlistId, artUri)
     }
