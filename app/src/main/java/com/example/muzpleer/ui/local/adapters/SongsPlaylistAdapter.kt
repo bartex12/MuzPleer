@@ -37,9 +37,12 @@ import com.example.muzpleer.databinding.ItemMusicPlaylistBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
+import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import com.google.android.material.button.MaterialButton
@@ -47,6 +50,8 @@ import java.io.File
 import java.util.Collections
 
 class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
                               private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongsPlaylistAdapter.MusicViewHolder>(),
     ItemTouchHelperAdapter  {
@@ -99,14 +104,6 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
                     Log.d(TAG, "SongsPlaylistAdapter Ошибка: ${e.message}")
                 }
             }
-    }
-
-    fun getNormalizedPath(uriString: String): String {
-        return if (uriString.startsWith("file://")) {
-            Uri.decode(uriString.substring(7))
-        } else {
-            uriString
-        }
     }
 
     override fun getItemCount(): Int {
@@ -197,14 +194,14 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddSongToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveSongFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
 
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
 
         popupView.findViewById<TextView>(R.id.itemRemoveSongFromPlaylist).setOnClickListener {
             showDeleteDialog(context, song)
@@ -262,7 +259,7 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
 
         btnYes.setOnClickListener {
             //Удаляем песню из плейлиста
-            viewModel.deleteSongFromPlaylist(song.id)
+            playlistsViewModel.deleteSongFromPlaylist(song.id)
             // Показываем уведомление
             Toast.makeText(context, "Трек удален из плейлиста", Toast.LENGTH_SHORT).show()
             dialog.dismiss()
@@ -397,11 +394,11 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         data = dragData.toList()
 
         //обновляем в базе
-        viewModel.updatePlaylistSongsOrder(data) { success ->
+        playlistsViewModel.updatePlaylistSongsOrder(data) { success ->
             if (success) {
                 Log.d(TAG, "✅ Порядок плейлиста успешно обновлен")
                 // Если нужно, обновляем текущий плейлист с новым порядком
-                viewModel.refreshCurrentPlaylist()
+                viewModel.refreshCurrentPlaylist(playlistsViewModel.getCurrentPlaylist()?.playlistSongs ?: listOf())
             } else {
                 Log.e(TAG, "❌ Ошибка обновления порядка плейлиста")
             }

@@ -53,6 +53,11 @@ import com.example.muzpleer.ui.local.frags.SongListFolderFragment
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import com.example.muzpleer.util.toast
@@ -69,6 +74,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var navController:NavController
     private val viewModel: SharedViewModel by viewModel()
 
+    private val playerViewModel: PlayerViewModel by viewModel()
+    private val albumsViewModel: AlbumsViewModel by viewModel()
+    private val artistsViewModel: ArtistsViewModel by viewModel()
+    private val foldersViewModel: FoldersViewModel by viewModel()
+    private val playlistsViewModel: PlaylistsViewModel by viewModel()
     private lateinit var playerLayout: ConstraintLayout
     private lateinit var title: AppCompatTextView
     private lateinit var artist: TextView
@@ -194,17 +204,22 @@ class MainActivity : AppCompatActivity() {
 
         })
 
-        viewModel.currentPosition.observe(this) { position ->
+        //плеер сообщает о смене трека, а список песен и текущая песня хранятся в SharedViewModel
+        playerViewModel.onTrackChangedListener = { track -> viewModel.onTrackChanged(track) }
+
+        playerViewModel.currentPosition.observe(this) { position ->
             tvCurrentTimeMain.text = formatTime(position)
             seekBarMain.progress = position.toInt()
         }
 
-        viewModel.duration.observe(this) { duration ->
+        playerViewModel.duration.observe(this) { duration ->
             tvTotalTimeMain.text = formatTime(duration)
             seekBarMain.max = duration.toInt()
+            //позиция приходит раньше длительности и обрезается по старому max (на паузе новых значений нет)
+            playerViewModel.currentPosition.value?.let { seekBarMain.progress = it.toInt() }
         }
 
-        viewModel.isPlaying.observe(this) { isPlaying ->
+        playerViewModel.isPlaying.observe(this) { isPlaying ->
             playPause.setImageResource(
                 if (isPlaying) R.drawable.ic_pause_white else R.drawable.ic_play_white
             )
@@ -220,7 +235,7 @@ class MainActivity : AppCompatActivity() {
                     "songAndPlaylist.playlist.size = ${songAndPlaylist.playlist.size}" +
                     " currentSong title= ${songAndPlaylist.song.title} ")
 
-            viewModel.setPlaylistForHandler(songAndPlaylist.playlist, indexOfTrack)
+            playerViewModel.setPlaylistForHandler(songAndPlaylist.playlist, indexOfTrack)
         }
 
         viewModel.currentSong.observe(this) {songCurrent->
@@ -253,29 +268,30 @@ class MainActivity : AppCompatActivity() {
             }?: artWork.setImageResource(R.drawable.muz_player3)  //если artUri = null
         }
            //управление видимостью нижнего плеера из фрагмента:
-            viewModel.playerVisibility.observe(this) { isVisible ->
+            playerViewModel.playerVisibility.observe(this) { isVisible ->
                 playerLayout.visibility = if (isVisible) View.VISIBLE else View.GONE
             }
 
         viewModel.coverImageUri.observe(this) { uri ->
             val selectedSong = viewModel.getSelectedSong()
             val currentSong = viewModel.getCurrentSong()
-            if (currentSong?.id == selectedSong?.id){
-                // Загрузка обложки
-                currentSong?.artUri?. let{artUri->
-                    currentSong.artUri= uri.toString()
+            if (currentSong != null && currentSong.id == selectedSong?.id) {
+                // Раньше здесь грузилась старая обложка currentSong.artUri, а не новая uri,
+                // поэтому нижний плеер не обновлялся после замены обложки
+                if (uri == null) {
+                    artWork.setImageResource(R.drawable.muz_player3)
+                } else {
+                    val artUri = uri.toString()
+                    currentSong.artUri = artUri
                     Log.d(TAG, "3*** MainActivity coverImageUri.observe " +
                             "currentSong.artUri =  ${currentSong.artUri} title = ${currentSong.title}")
-
-                    // Загружаем изображение
                     try {
-                        if (isContentProviderUri(artUri)){
+                        if (isContentProviderUri(artUri)) {
                             // Загрузка обложки из  content:/com.android.providers.downloads
                             showImageWithGlide(binding.root.context, artUri, artWork, currentSong, binding)
-                        }else  if (isContentProviderUriPicker(artUri.toString())){
-                            val  photoPickerUri =artUri.toString().toUri()
-                            showImageWithGlide(binding.root.context, photoPickerUri, artWork, currentSong, binding)
-                        }else{
+                        } else if (isContentProviderUriPicker(artUri)) {
+                            showImageWithGlide(binding.root.context, artUri.toUri(), artWork, currentSong, binding)
+                        } else {
                             // Загрузка обложки из кэша приложения
                             showImageWithGlide(binding.root.context, File(artUri), artWork, currentSong, binding)
                         }
@@ -284,7 +300,7 @@ class MainActivity : AppCompatActivity() {
                         //при ошибке грузим картинку ошибки
                         artWork.setImageResource(R.drawable.muz_player3)
                     }
-                }?: artWork.setImageResource(R.drawable.muz_player3)  //если artUri = null
+                }
             }
         }
 
@@ -356,11 +372,11 @@ class MainActivity : AppCompatActivity() {
         tvCurrentTimeMain = binding.appBarMain.contentMain.tvCurrentTimeMain
         tvTotalTimeMain = binding.appBarMain.contentMain.tvTotalTimeMain
 
-        previous.setOnClickListener { viewModel.playPrevious() }
-        playPause.setOnClickListener { viewModel.togglePlayPause() }
-        next.setOnClickListener { viewModel.playNext() }
-        rewindBack.setOnClickListener {viewModel.seekRelative(-5000) } // -5 секунд
-        rewindForward.setOnClickListener {  viewModel.seekRelative(15000) } // +15 секунд
+        previous.setOnClickListener { playerViewModel.playPrevious() }
+        playPause.setOnClickListener { playerViewModel.togglePlayPause() }
+        next.setOnClickListener { playerViewModel.playNext() }
+        rewindBack.setOnClickListener {playerViewModel.seekRelative(-5000) } // -5 секунд
+        rewindForward.setOnClickListener {  playerViewModel.seekRelative(15000) } // +15 секунд
 
         artWork.setOnClickListener { navController.navigate(R.id.playerFragment) }
         title.setOnClickListener { navController.navigate(R.id.playerFragment) }
@@ -370,7 +386,7 @@ class MainActivity : AppCompatActivity() {
         seekBarMain.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 if (fromUser) {
-                    viewModel.seekTo(progress.toLong())
+                    playerViewModel.seekTo(progress.toLong())
                 }
             }
             override fun onStartTrackingTouch(seekBar: SeekBar) {}
@@ -381,7 +397,7 @@ class MainActivity : AppCompatActivity() {
     private fun startMediaScan() {
 
         //сначала сканируем телефон, затем обновляем остальные вкладки (внутри refreshLibrary)
-        viewModel.refreshLibrary {
+        viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
             // Восстанавливаем последнюю песню
             val savedSongId = appPreferences.getCurrentSongId()
             if (savedSongId != -1L) {
@@ -414,6 +430,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        playerViewModel.onTrackChangedListener = null
         Log.d(TAG, "###MainActivity onDestroy currentSong id =  ${currentSong?.id} индекс = ${viewModel.getIndexOfCurrentSong()}")
     }
 

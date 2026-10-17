@@ -22,6 +22,7 @@ import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.AlbumsAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -31,6 +32,7 @@ class AlbumFragment: Fragment() {
     private var _binding: FragmentAlbumBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
     private lateinit var adapter: AlbumsAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
@@ -57,7 +59,7 @@ class AlbumFragment: Fragment() {
         // Изначально показываем картинку-заглушку и крутилку
         showLoadingState()
 
-        adapter = AlbumsAdapter (viewModel){ album ->
+        adapter = AlbumsAdapter (viewModel, albumsViewModel){ album ->
             val playlist = getSortedDataSong(album.songs)
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
 
@@ -85,9 +87,9 @@ class AlbumFragment: Fragment() {
             adapter = this@AlbumFragment.adapter
         }
 
-        //viewModel.loadAlbums()  виснет приложение
+        //albumsViewModel.loadAlbums()  виснет приложение
 
-        viewModel.filteredAlbums.observe(viewLifecycleOwner) { filteredAlbums ->
+        albumsViewModel.filteredAlbums.observe(viewLifecycleOwner) { filteredAlbums ->
             Log.d(TAG,"33 AlbumFragment onViewCreated filteredAlbums.observe: filteredAlbums.size= ${filteredAlbums.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.albums = filteredAlbums  //передаём данные в адаптер
@@ -95,7 +97,7 @@ class AlbumFragment: Fragment() {
             updateEmptyState(filteredAlbums)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.albumRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionAlbum())
+        binding.albumRecyclerView.layoutManager?.scrollToPosition(albumsViewModel.getPositionAlbum())
     }
 
     /**
@@ -123,7 +125,7 @@ class AlbumFragment: Fragment() {
             binding.tvEmptyAlbum.text = if (isSearchActive) {
                 "По вашему запросу ничего не найдено"
             } else {
-                "У вас пока нет папок"
+                "У вас пока нет альбомов"
             }
         } else {
             // Список не пуст — всё скрываем
@@ -151,7 +153,7 @@ class AlbumFragment: Fragment() {
         val manager = binding.albumRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
         Log.d(TAG, "AlbumFragment onPause firstPosition = $firstPosition")
-        viewModel.savePositionAlbum(firstPosition)
+        albumsViewModel.savePositionAlbum(firstPosition)
     }
 
     override fun onDestroyView() {
@@ -187,7 +189,7 @@ class AlbumFragment: Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Устанавливаем флаг, что поиск активен, если есть текст
                 isSearchActive = !newText.isNullOrEmpty()
-                viewModel.filterAlbums(newText.orEmpty())
+                albumsViewModel.filterAlbums(newText.orEmpty())
                 return true
             }
         })
@@ -197,7 +199,7 @@ class AlbumFragment: Fragment() {
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
-                viewModel.filterAlbums("") // сброс фильтра
+                albumsViewModel.filterAlbums("") // сброс фильтра
                 return true
             }
         })
@@ -226,7 +228,7 @@ class AlbumFragment: Fragment() {
         when(item.itemId){
             R.id.action_edit_order -> {
                 toggleEditMode()
-                viewModel.syncAlbums()
+                albumsViewModel.syncAlbums()
                 true
             }
         }

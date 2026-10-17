@@ -27,6 +27,7 @@ import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.adapters.PlaylistAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -35,6 +36,7 @@ class PlaylistFragment():Fragment() {
     private var _binding: FragmentPlaylistBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private lateinit var adapter: PlaylistAdapter
     private var isEditMode = false
     private lateinit var itemTouchHelper: ItemTouchHelper
@@ -63,7 +65,7 @@ class PlaylistFragment():Fragment() {
         // Изначально показываем картинку-заглушку и крутилку
         showLoadingState()
 
-        adapter = PlaylistAdapter (viewModel){ playlist ->
+        adapter = PlaylistAdapter (viewModel, playlistsViewModel){ playlist ->
             //здесь setPlaylist и setSongAndPlaylist не делаем, так как здесь нет песен
 
             // Навигация через Bundle
@@ -94,7 +96,7 @@ class PlaylistFragment():Fragment() {
             showCreatePlaylistDialog()
         }
 
-        viewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
+        playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
             Log.d(TAG,"53 PlaylistFragment onViewCreated filteredPlaylists.observe: filteredPlaylists.size= ${filteredPlaylists.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.playlist = filteredPlaylists  //передаём данные в адаптер
@@ -158,7 +160,7 @@ class PlaylistFragment():Fragment() {
         val manager = binding.playlistRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
         Log.d(TAG, "PlaylistFragment onPause firstPosition = $firstPosition")
-        viewModel.savePositionPlaylist(firstPosition)
+        playlistsViewModel.savePositionPlaylist(firstPosition)
     }
 
     override fun onDestroyView() {
@@ -194,7 +196,7 @@ class PlaylistFragment():Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Устанавливаем флаг, что поиск активен, если есть текст
                 isSearchActive = !newText.isNullOrEmpty()
-                viewModel.filterPlaylists(newText.orEmpty())
+                playlistsViewModel.filterPlaylists(newText.orEmpty())
                 return true
             }
         })
@@ -205,7 +207,7 @@ class PlaylistFragment():Fragment() {
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
-                viewModel.filterPlaylists("") // сброс фильтра
+                playlistsViewModel.filterPlaylists("") // сброс фильтра
                 return true
             }
         })
@@ -310,7 +312,7 @@ class PlaylistFragment():Fragment() {
         btnCreate.setOnClickListener {
             val name=editText.text.toString().trim()
             if (name.isNotEmpty()) {
-                viewModel.createPlaylist(name){
+                playlistsViewModel.createPlaylist(name){
                     // После создания плейлиста состояние обновится автоматически
                     // через observer filteredPlaylists
                     //binding.emptyImageViewPlaylists.visibility =  View.GONE

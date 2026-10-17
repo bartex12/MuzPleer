@@ -24,6 +24,7 @@ import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.adapters.FoldersAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
@@ -32,6 +33,7 @@ class FolderFragment : Fragment(){
     private var _binding: FragmentFoldersBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: FoldersAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
@@ -59,7 +61,7 @@ class FolderFragment : Fragment(){
         // Изначально показываем картинку-заглушку и крутилку
         showLoadingState()
 
-        adapter = FoldersAdapter(viewModel){ folder ->
+        adapter = FoldersAdapter(viewModel, foldersViewModel){ folder ->
             val playlist = getSortedDataSong(folder.songs)
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
 
@@ -85,7 +87,7 @@ class FolderFragment : Fragment(){
             adapter = this@FolderFragment.adapter
         }
 
-        viewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
+        foldersViewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
             Log.d(TAG,"35 FolderFragment onViewCreated filteredFolders.observe: filteredFolders.size= ${filteredFolders.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.folders = filteredFolders  //передаём данные в адаптер
@@ -93,7 +95,7 @@ class FolderFragment : Fragment(){
             updateEmptyState(filteredFolders)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.foldersRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionFolder())
+        binding.foldersRecyclerView.layoutManager?.scrollToPosition(foldersViewModel.getPositionFolder())
     }
 
     /**
@@ -149,7 +151,7 @@ class FolderFragment : Fragment(){
         //определяем первую видимую позицию
         val manager = binding.foldersRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
-        viewModel.savePositionFolder(firstPosition)
+        foldersViewModel.savePositionFolder(firstPosition)
         Log.d(TAG, "FolderFragment onPause firstPosition = $firstPosition")
     }
 
@@ -211,7 +213,7 @@ class FolderFragment : Fragment(){
             override fun onQueryTextChange(newText: String?): Boolean {
                 // Устанавливаем флаг, что поиск активен, если есть текст
                 isSearchActive = !newText.isNullOrEmpty()
-                viewModel.filterFolders(newText.orEmpty())
+                foldersViewModel.filterFolders(newText.orEmpty())
                 return true
             }
         })
@@ -221,7 +223,7 @@ class FolderFragment : Fragment(){
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
-                viewModel.filterFolders("") // сброс фильтра
+                foldersViewModel.filterFolders("") // сброс фильтра
                 return true
             }
         })

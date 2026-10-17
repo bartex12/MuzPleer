@@ -18,11 +18,14 @@ import com.example.muzpleer.databinding.FragmentArtistSelectionBinding
 import com.example.muzpleer.ui.local.adapters.ArtistSelectionAdapter
 import com.example.muzpleer.ui.local.frags.AlbumFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.util.getSortedDataArtist
 
 class ArtistsSelectionFragment: Fragment() {
     private lateinit var binding: FragmentArtistSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
     private lateinit var adapter: ArtistSelectionAdapter
     private var playlistId: Long = -1
     private var selectionType: SelectionType = SelectionType.ALL_SONGS
@@ -49,7 +52,7 @@ class ArtistsSelectionFragment: Fragment() {
 
         viewModel.setAppBarTitle("Выбрать песни исполнителя")
 
-        adapter = ArtistSelectionAdapter (viewModel){ artist ->
+        adapter = ArtistSelectionAdapter (viewModel, artistsViewModel){ artist ->
 
             // Навигация через Bundle
             val bundle = Bundle().apply {
@@ -67,7 +70,7 @@ class ArtistsSelectionFragment: Fragment() {
             adapter = this@ArtistsSelectionFragment.adapter
         }
 
-        viewModel.filteredArtists.observe(viewLifecycleOwner) { filteredArtists ->
+        artistsViewModel.filteredArtists.observe(viewLifecycleOwner) { filteredArtists ->
             Log.d(TAG,"ArtistsSelectionFragment onViewCreated filteredAlbums.observe: filteredAlbums.size= ${filteredArtists.size} ")
             if (viewModel.getSongs().isEmpty()) binding.progressBarArtistSelection.visibility = View.VISIBLE else
                 binding.progressBarArtistSelection.visibility = View.GONE
@@ -78,7 +81,7 @@ class ArtistsSelectionFragment: Fragment() {
         }
 
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.artistSelectionRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionArtist())
+        binding.artistSelectionRecyclerView.layoutManager?.scrollToPosition(artistsViewModel.getPositionArtist())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -97,7 +100,7 @@ class ArtistsSelectionFragment: Fragment() {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.filterArtists(newText.orEmpty())
+                artistsViewModel.filterArtists(newText.orEmpty())
                 return true
             }
         })

@@ -16,6 +16,7 @@ import com.example.muzpleer.MainActivity
 import com.example.muzpleer.databinding.FragmentChoosePlaylistBinding
 import com.example.muzpleer.ui.local.adapters.PlaylistChooseAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class ChoosePlaylistFragment :Fragment()  {
@@ -24,6 +25,8 @@ class ChoosePlaylistFragment :Fragment()  {
     private val binding get() = _binding!!
 
     private val viewModel: SharedViewModel by activityViewModel()
+
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private lateinit var adapter: PlaylistChooseAdapter
     private var songId: Long = -1L
     private var songTitle: String = ""
@@ -70,8 +73,8 @@ class ChoosePlaylistFragment :Fragment()  {
         updateToolbarTitle("Выбор плейлиста")
 
         // Настройка адаптера
-        adapter = PlaylistChooseAdapter(viewModel) { playlist ->
-            viewModel.addSongToPlaylist(songId, playlist.id)
+        adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel) { playlist ->
+            playlistsViewModel.addSongToPlaylist(songId, playlist.id)
             Toast.makeText(
                 requireContext(),
                 "Песня \"$songTitle\" добавлена в \"${playlist.playlistName}\"",
@@ -87,7 +90,7 @@ class ChoosePlaylistFragment :Fragment()  {
         }
 
         // Наблюдаем за списком плейлистов с правильным LifecycleOwner
-        viewModel.filteredPlaylists.observe(viewLifecycleOwner) { playlists ->
+        playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L }
         }
 

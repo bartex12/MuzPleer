@@ -38,6 +38,8 @@ import com.example.muzpleer.databinding.ItemMusicBinding
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
@@ -48,6 +50,8 @@ import java.util.Collections
 
 class FavoritesAdapter(
     private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
     private val navController: NavController,
     private val onItemClick: (Song) -> Unit,
 ) : RecyclerView.Adapter<FavoritesAdapter.MusicViewHolder>(),
@@ -137,7 +141,9 @@ class FavoritesAdapter(
                     Log.e(TAG, "❌FavoritesAdapter exception when loading , track.title = ${track.title}   ${e.message}")
                     binding.trackArtwork.setImageResource(R.drawable.muz_player3)
                 }
-            }?: {
+            } ?: run {
+                //у песни нет обложки: ставим заглушку, иначе переиспользованная строка списка
+                //покажет обложку другой песни (раньше здесь была лямбда, которая никогда не вызывалась)
                 Log.d(TAG, "✅✅✅✅ FavoritesAdapter bind Glide trackArtwork = null Favorite = ${track.title} ")
                 binding.trackArtwork.setImageResource(R.drawable.muz_player3)
             }
@@ -193,13 +199,13 @@ class FavoritesAdapter(
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
         popupView.findViewById<TextView>(R.id.itemAddToPlaylist).setOnClickListener {
             navigateToChoosePlaylistFragment(context, song); popup.dismiss()
         }
@@ -245,7 +251,7 @@ class FavoritesAdapter(
 //        val popup = PopupMenu(context, view)
 //        popup.menuInflater.inflate(R.menu.song_item_menu, popup.menu)
 //
-//        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+//        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
 //            popup.menu.findItem(R.id.action_add_to_favorites).isVisible = !isFavorite
 //            popup.menu.findItem(R.id.action_remove_from_favorites).isVisible = isFavorite
 //        }
@@ -253,11 +259,11 @@ class FavoritesAdapter(
 //        popup.setOnMenuItemClickListener { menuItem ->
 //            when (menuItem.itemId) {
 //                R.id.action_add_to_favorites -> {
-//                    viewModel.toggleFavorite(song)
+//                    favoritesViewModel.toggleFavorite(song)
 //                    true
 //                }
 //                R.id.action_remove_from_favorites -> {
-//                    viewModel.toggleFavorite(song)
+//                    favoritesViewModel.toggleFavorite(song)
 //                    true
 //                }
 //                R.id.action_add_to_playlist -> {
@@ -324,9 +330,9 @@ class FavoritesAdapter(
         dialog.setCancelable(true)
 
         val recyclerView = dialog.findViewById<RecyclerView>(R.id.rvPlaylists)
-        val adapter = PlaylistChooseAdapter(viewModel){ playlist ->
+        val adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel){ playlist ->
             // Добавляем песню в выбранный плейлист
-            viewModel.addSongToPlaylist(song.id, playlist.id)
+            playlistsViewModel.addSongToPlaylist(song.id, playlist.id)
 
             // Показываем уведомление
             Toast.makeText(
@@ -342,7 +348,7 @@ class FavoritesAdapter(
         recyclerView.adapter = adapter
 
         // Загружаем список плейлистов
-        viewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
+        playlistsViewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все песни"
         }
 
@@ -464,7 +470,7 @@ class FavoritesAdapter(
     override fun onDrop() {
         // Сохраняем окончательный порядок
         data = dragData.toList()
-        viewModel.updateFavoritesOrder(data)
+        favoritesViewModel.updateFavoritesOrder(data)
     }
 
     override fun onItemDismiss(position: Int) {
@@ -488,7 +494,7 @@ class FavoritesAdapter(
                 ): Boolean {
                     Log.d(TAG, "❌FavoritesAdapter Glide load failed for" +
                             " track title = ${track.title} URI: $artUri")
-                    viewModel.updateFavoriteArtUri(binding.root.context, track)
+                    favoritesViewModel.updateFavoriteArtUri(binding.root.context, track)
                     return false
                 }
 

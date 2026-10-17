@@ -19,6 +19,9 @@ import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.adapters.PlaylistsSelectionAdapter
 import com.example.muzpleer.ui.local.frags.AlbumFragment.Companion.TAG
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 
 //Фрагмент PlaylistsSelectionFragment – макет fragment_playlist_selection –
 // Адаптер PlaylistsSelectionAdapter  с макетом строки item_playlist_selection
@@ -28,6 +31,8 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 class PlaylistsSelectionFragment:Fragment()  {
     private lateinit var binding: FragmentPlaylistSelectionBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: PlaylistsSelectionAdapter
     private var playlistId: Long = -1
     private var selectionType: SelectionType = SelectionType.ALL_SONGS
@@ -55,7 +60,7 @@ class PlaylistsSelectionFragment:Fragment()  {
 
         viewModel.setAppBarTitle("Выбрать песни из плейлистов")
 
-        adapter = PlaylistsSelectionAdapter (viewModel){ playlist ->
+        adapter = PlaylistsSelectionAdapter (viewModel, playlistsViewModel){ playlist ->
 
             // Навигация через Bundle
             val bundle = Bundle().apply {
@@ -73,7 +78,7 @@ class PlaylistsSelectionFragment:Fragment()  {
             adapter = this@PlaylistsSelectionFragment.adapter
         }
 
-        viewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
+        playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
             Log.d(TAG,"PlaylistSelectionFragment onViewCreated filteredPlaylists.observe: filteredPlaylists.size= ${filteredPlaylists.size} ")
             if (filteredPlaylists.isEmpty()) binding.progressBarPlaylistSelection.visibility = View.VISIBLE else
                 binding.progressBarPlaylistSelection.visibility = View.GONE
@@ -96,7 +101,7 @@ class PlaylistsSelectionFragment:Fragment()  {
                     " filteredPlaylists.size = ${filteredPlaylists.size} newPlaylists.size = ${newPlaylists.size} ")
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
-        binding.playlistSelectionRecyclerView.layoutManager?.scrollToPosition(viewModel.getPositionFolder())
+        binding.playlistSelectionRecyclerView.layoutManager?.scrollToPosition(foldersViewModel.getPositionFolder())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -116,7 +121,7 @@ class PlaylistsSelectionFragment:Fragment()  {
             override fun onQueryTextSubmit(query: String?) = false
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.filterPlaylists(newText.orEmpty())
+                playlistsViewModel.filterPlaylists(newText.orEmpty())
                 return true
             }
         })

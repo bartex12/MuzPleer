@@ -36,6 +36,10 @@ interface FolderDao {
     @Query("DELETE FROM folders")
     suspend fun deleteAll()
 
+    /** Удаляет записи по внутренним id (для пошаговой синхронизации). Вызывать порциями до 500 id. */
+    @Query("DELETE FROM folders WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
+
     @Query("SELECT COUNT(*) FROM folders")
     suspend fun getCount(): Int
 

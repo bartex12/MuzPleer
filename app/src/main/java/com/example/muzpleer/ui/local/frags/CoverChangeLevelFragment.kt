@@ -30,6 +30,11 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentCoverChangeLevelBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -44,6 +49,10 @@ class CoverChangeLevelFragment: Fragment() {
     private val binding get() = _binding!!
     private var isExpanded = false
     private val viewModel: SharedViewModel by activityViewModels()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
 
     private var levelId: Long = -1
     private var levelType: LevelType = LevelType.PLAYLIST
@@ -78,6 +87,30 @@ class CoverChangeLevelFragment: Fragment() {
         return binding.root
     }
 
+    //для альбомов: показываем новую обложку и сохраняем её в базу
+    private fun saveAlbumCover(uri: Uri, albumId: Long) {
+        viewModel.setCoverImageUriLevel(uri)
+        albumsViewModel.saveCoverAlbumToDatabase(requireContext(), uri, albumId)
+    }
+
+    //для исполнителей: показываем новую обложку и сохраняем её в базу
+    private fun saveArtistCover(uri: Uri, artistId: Long) {
+        viewModel.setCoverImageUriLevel(uri)
+        artistsViewModel.saveCoverArtistToDatabase(requireContext(), uri, artistId)
+    }
+
+    //для папок: показываем новую обложку и сохраняем её в базу
+    private fun saveFolderCover(uri: Uri, folderId: Long) {
+        viewModel.setCoverImageUriLevel(uri)
+        foldersViewModel.saveCoverFolderToDatabase(requireContext(), uri, folderId)
+    }
+
+    //для плейлистов: показываем новую обложку и сохраняем её в базу
+    private fun savePlaylistCover(uri: Uri, playlistId: Long) {
+        viewModel.setCoverImageUriLevel(uri)
+        playlistsViewModel.saveCoverPlaylistToDatabase(requireContext(), uri, playlistId)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -107,7 +140,11 @@ class CoverChangeLevelFragment: Fragment() {
                     Log.e(TAG, "❌ CoverChangeLevelFragment exception when loading: ${e.message}")
                     binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
                 }
-            }?: binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+            }?: run {
+                //обложки нет: отменяем незавершённую загрузку прежней картинки, иначе она появится поверх заглушки
+                Glide.with(binding.root.context).clear(binding.coverImageViewLevel)
+                binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+            }
         }
 
         binding.usePhonePhotosLevel.setOnClickListener {
@@ -125,10 +162,10 @@ class CoverChangeLevelFragment: Fragment() {
         binding.restoreDefaultLevel.setOnClickListener {
             val uri:Uri = getDefaultCoverUri()
            when(levelType){
-                LevelType.PLAYLIST ->{ viewModel.updateCoverImageLevelAndSave(uri, levelId)}
-                LevelType.ALBUM ->{viewModel.updateCoverImageAlbumAndSave(uri, levelId)}
-                LevelType.ARTIST ->{viewModel.updateCoverImageArtistsAndSave(uri, levelId)}
-                LevelType.FOLDER ->{viewModel.updateCoverImageFolderAndSave(uri, levelId)}
+                LevelType.PLAYLIST ->{ savePlaylistCover(uri, levelId) }
+                LevelType.ALBUM ->{ saveAlbumCover(uri, levelId) }
+                LevelType.ARTIST ->{ saveArtistCover(uri, levelId) }
+                LevelType.FOLDER ->{ saveFolderCover(uri, levelId) }
             }
         }
 
@@ -136,10 +173,10 @@ class CoverChangeLevelFragment: Fragment() {
             viewModel.getCoverImageUriLevel()?. let{curUri->
                 Log.d(TAG, "4--- CoverChangeLevelFragment saveButtonLevel: curUri = $curUri")
                 when (levelType) {
-                    LevelType.PLAYLIST -> viewModel.updateCoverImageLevelAndSave(curUri, levelId) //+
-                    LevelType.ALBUM -> { viewModel.updateCoverImageAlbumAndSave(curUri, levelId) }
-                    LevelType.ARTIST -> { viewModel.updateCoverImageArtistsAndSave(curUri, levelId) } //+
-                    LevelType.FOLDER -> { viewModel.updateCoverImageFolderAndSave(curUri, levelId) } //+
+                    LevelType.PLAYLIST -> savePlaylistCover(curUri, levelId)
+                    LevelType.ALBUM -> { saveAlbumCover(curUri, levelId) }
+                    LevelType.ARTIST -> { saveArtistCover(curUri, levelId) } //+
+                    LevelType.FOLDER -> { saveFolderCover(curUri, levelId) } //+
                 }
             }
             findNavController().navigateUp() // переходим  назад, откуда пришли

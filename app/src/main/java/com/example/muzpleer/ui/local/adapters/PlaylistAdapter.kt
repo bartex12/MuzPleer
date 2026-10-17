@@ -35,6 +35,7 @@ import com.example.muzpleer.ui.local.TabLocalFragmentDirections
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -45,6 +46,7 @@ import java.util.Collections
 
 class PlaylistAdapter(
     private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
     private val onPlaylistClick: (Playlist) -> Unit
 ) : RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>(),
     ItemTouchHelperAdapter  {
@@ -90,27 +92,27 @@ class PlaylistAdapter(
             //todo время треков
             binding.playlistSubtitle.text=getTracksCountString(playlist.playlistSongs.size)
 
-            playlist.playlistArtUri?.let{artUri->
+            playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){
                         // Загрузка обложки из  content:/com.android.providers.downloads
                         showImageWithGlide(binding.root.context, artUri, binding.playlistArtwork, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }else  if (isContentProviderUriPicker(artUri.toString())){
                         // Загрузка обложки из picker
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.playlistArtwork, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }else{
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.playlistArtwork, playlist.playlistName){
                             // При ошибке сбрасываем в БД
-                            viewModel.updatePlaylistArtUri(binding.root.context, playlist)
+                            playlistsViewModel.updatePlaylistArtUri(binding.root.context, playlist)
                         }
                     }
                 } catch (e: Exception) {
@@ -289,7 +291,7 @@ class PlaylistAdapter(
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
         btnYes.setOnClickListener {
-            viewModel.deletePlaylist(playlist.id)
+            playlistsViewModel.deletePlaylist(playlist.id)
             dialog.dismiss()
         }
 
@@ -308,7 +310,7 @@ class PlaylistAdapter(
 //            deleteDialog.create().dismiss()
 //        }
 //        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
-//            viewModel.deletePlaylist(playlist.id)
+//            playlistsViewModel.deletePlaylist(playlist.id)
 //        }
 //        deleteDialog.show()
 //    }
@@ -357,7 +359,7 @@ class PlaylistAdapter(
                     dialog.dismiss()
                 }
                 else -> {
-                    viewModel.renamePlaylist(playlist.id, newName)
+                    playlistsViewModel.renamePlaylist(playlist.id, newName)
                     dialog.dismiss()
                 }
             }
@@ -412,7 +414,7 @@ class PlaylistAdapter(
 //                        dialog.dismiss()
 //                    }
 //                    else -> {
-//                        viewModel.renamePlaylist(playlist.id, newName)
+//                        playlistsViewModel.renamePlaylist(playlist.id, newName)
 //                        dialog.dismiss()
 //                    }
 //                }
@@ -430,7 +432,12 @@ class PlaylistAdapter(
     }
 
     private fun navigateToChangePlaylistCover(view: View,  playlist: Playlist) {
-        viewModel.setCurrentPlaylistByPlaylistId(playlist.id)
+        //сразу, до перехода: иначе экран замены откроется с обложкой, оставшейся от другого списка
+        //(исполнителя, альбома), а правильное значение придёт из базы позже
+        viewModel.setCoverImageUriLevel(playlist.playlistArtUri)
+        playlistsViewModel.setCurrentPlaylistByPlaylistId(playlist.id) { loaded ->
+            viewModel.setCoverImageUriLevel(loaded?.playlistArtUri)
+        }
         val bundle: Bundle  = Bundle().apply{
             putLong("levelId", playlist.id)
             putSerializable("levelType", LevelType.PLAYLIST)
@@ -473,7 +480,7 @@ class PlaylistAdapter(
     override fun onDrop() {
         // Сохраняем окончательный порядок
         playlist = dragData.toList()
-        viewModel.updatePlaylistOrder(playlist)
+        playlistsViewModel.updatePlaylistOrder(playlist)
     }
 
     override fun onItemDismiss(position: Int) {

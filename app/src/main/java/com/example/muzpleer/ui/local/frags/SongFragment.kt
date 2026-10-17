@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,6 +9,7 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
@@ -25,6 +27,12 @@ import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -32,12 +40,19 @@ class SongFragment : Fragment() {
     private var _binding: FragmentSongsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
+    private val albumsViewModel: AlbumsViewModel by activityViewModel()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
+    private val foldersViewModel: FoldersViewModel by activityViewModel()
     private lateinit var adapter: SongsAdapter
     private var currentSearchQuery = ""
     private lateinit var appPreferences: IPreferenceHelper
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
+    private var searchMenuItem: MenuItem? = null //пункт поиска, чтобы закрыть его при уходе с экрана
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,7 +77,7 @@ class SongFragment : Fragment() {
         appPreferences =PreferenceHelperImpl(App.instance)
         navController = findNavController()
 
-        adapter = SongsAdapter(viewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
             val playlist=getSortedDataSong(viewModel.getSongs())
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
@@ -85,7 +100,12 @@ class SongFragment : Fragment() {
             adapter.data = sortedData  //передаём данные в адаптер
 
             // Управляем видимостью в зависимости от состояния
-            updateEmptyState(filteredSongs)
+            if (filteredSongs.isEmpty() && viewModel.libraryLoaded.value != true) {
+                // библиотека ещё сканируется: показываем загрузку, а не "У вас пока нет треков"
+                showLoadingState()
+            } else {
+                updateEmptyState(filteredSongs)
+            }
         }
 
         //обновление обложки при её замене
@@ -142,11 +162,28 @@ class SongFragment : Fragment() {
         val manager = binding.localRecyclerView.layoutManager as LinearLayoutManager
         Log.d( TAG,"1---SongsFragment onResume manager = $manager ")
         manager.scrollToPositionWithOffset(pos, 0)
+        // Пересоздаём меню, как на вкладках альбомов, папок и исполнителей
+        requireActivity().invalidateOptionsMenu()
     }
 
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
     override fun onPause() {
         super.onPause()
+        //при уходе с экрана поиск закрывается, как на вкладках альбомов, папок и исполнителей:
+        //иначе при возврате список остаётся урезанным, а строка поиска свёрнута и пуста.
+        //К этому моменту строка поиска уже свёрнута, поэтому проверять её состояние нельзя -
+        //закрываем всегда
+        view?.let { v ->
+            //прячем клавиатуру
+            (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                ?.hideSoftInputFromWindow(v.windowToken, 0)
+        }
+        //сворачиваем строку поиска (слушатель сворачивания сбросит фильтр)
+        searchMenuItem?.collapseActionView()
+        isSearchActive = false
+        viewModel.filterSongs("")
+        Log.d(TAG, "SongFragment onPause поиск сброшен")
+
         //определяем первую видимую позицию
         val manager = binding.localRecyclerView.layoutManager as LinearLayoutManager
         val firstPosition = manager.findFirstVisibleItemPosition()
@@ -174,6 +211,7 @@ class SongFragment : Fragment() {
         inflater.inflate(R.menu.song_menu, menu)
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
+        searchMenuItem = searchItem
         val searchView =searchItem.actionView as SearchView
         //значок лупы слева в развёрнутом сост и сворачиваем строку поиска (true)
         searchView.setIconifiedByDefault(true)
@@ -231,7 +269,7 @@ class SongFragment : Fragment() {
             }
             R.id.updateSongs->{
                 val currentSong = viewModel.getCurrentSong()
-                viewModel.refreshLibrary {
+                viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
                         viewModel.setCurrentSongById(currentSong.id)
@@ -241,7 +279,7 @@ class SongFragment : Fragment() {
                 return  true
             }
             R.id.action_shuffle->{
-                val newShuffleState = viewModel.setPlaybackMode()
+                val newShuffleState = playerViewModel.setPlaybackMode()
                 // Меняем иконку в зависимости от состояния
                 if (newShuffleState) {
                     item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()

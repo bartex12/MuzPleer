@@ -31,6 +31,10 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
 import com.google.android.material.textfield.TextInputLayout
@@ -41,6 +45,10 @@ class SongListArtistFragment:Fragment() {
     private val binding get() = _binding!!
     private lateinit var adapter: SongsAdapter
     private val viewModel: SharedViewModel by activityViewModel()
+    private val favoritesViewModel: FavoritesViewModel by activityViewModel()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
+    private val artistsViewModel: ArtistsViewModel by activityViewModel()
+    private val playerViewModel: PlayerViewModel by activityViewModel()
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
     private var artistName: String? = null //имя артиста
     private lateinit var navController: NavController
@@ -68,7 +76,7 @@ class SongListArtistFragment:Fragment() {
 
         initMenu()
 
-        adapter = SongsAdapter(viewModel, navController) { song ->
+        adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             val playlist=viewModel.getPlaylist()
 
             viewModel.setSongAndPlaylist(
@@ -92,16 +100,16 @@ class SongListArtistFragment:Fragment() {
             val artistId = arguments?.getLong("artistId")!!
             Log.d(TAG, "43!@# SongListArtistFragment arguments artistId  $artistId")
 
-            viewModel.getSongsByArtist(artistId)
+            artistsViewModel.getSongsByArtist(artistId)
 
             // Слушаем ОБЩИЙ список избранных песен (не отфильтрованный)
-            viewModel.listArtistSong.observe(viewLifecycleOwner) { artistSongs ->
+            artistsViewModel.listArtistSong.observe(viewLifecycleOwner) { artistSongs ->
                 totalSongsCount = artistSongs.size
                 updateSearchVisibility()
                 Log.d(TAG, "###SongListArtistFragment totalSongsCount: $totalSongsCount")
             }
 
-            viewModel.filteredListArtistSong.observe(viewLifecycleOwner) { artistSongs ->
+            artistsViewModel.filteredListArtistSong.observe(viewLifecycleOwner) { artistSongs ->
                 Log.d(TAG, "44!@# SongListArtistFragment filteredListArtistSong.observe filteredListArtistSong size ${artistSongs.size}")
                 //здесь нельзя делать сортировку, иначе собьётся перемещение !!!
                 //adapter.data = getSortedDataSong(artistSongs)
@@ -186,7 +194,7 @@ class SongListArtistFragment:Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 // Ищем при каждом изменении текста
                 s?.let { query ->
-                    viewModel.filterArtistSongs(query.toString())
+                    artistsViewModel.filterArtistSongs(query.toString())
                 }
             }
 
@@ -206,7 +214,7 @@ class SongListArtistFragment:Fragment() {
         binding.inputLayoutSearchAllTracks.setEndIconOnClickListener {
             if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
                 binding.inputEditTextSearchAllTracks.text?.clear()
-                viewModel.filterArtistSongs("")
+                artistsViewModel.filterArtistSongs("")
             } else {
                 performSearch()
             }
@@ -240,7 +248,7 @@ class SongListArtistFragment:Fragment() {
         //стираем текст в поле ввода и показываем весь список
         if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
             binding.inputEditTextSearchAllTracks.text?.clear()
-            viewModel.filterArtistSongs("")
+            artistsViewModel.filterArtistSongs("")
         }
 
         // Скрываем клавиатуру
@@ -252,7 +260,7 @@ class SongListArtistFragment:Fragment() {
     private fun performSearch() {
         val query = binding.inputEditTextSearchAllTracks.text.toString().trim()
         if (query.isNotEmpty()) {
-            viewModel.filterArtistSongs(query)
+            artistsViewModel.filterArtistSongs(query)
             hideKeyboard()
         } else {
             toast("Введите текст для поиска")
@@ -297,7 +305,7 @@ class SongListArtistFragment:Fragment() {
 
                 // Очищаем текст поиска
                 binding.inputEditTextSearchAllTracks.text?.clear()
-                viewModel.filterArtistSongs("")
+                artistsViewModel.filterArtistSongs("")
                 hideKeyboard()
             }
         }
@@ -320,7 +328,7 @@ class SongListArtistFragment:Fragment() {
             override fun onPrepareMenu(menu: Menu) {
                 menu.findItem(R.id.action_edit_order2).isVisible = false
                 var songsCount = 0
-                songsCount =  viewModel.filteredListArtistSong.value?.size?:0
+                songsCount =  artistsViewModel.filteredListArtistSong.value?.size?:0
                 Log.d(TAG, "$$$$$ SongListArtistFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше 7 песен
                 menu.findItem(R.id.action_go_to_song2).isVisible = songsCount > 7
@@ -330,7 +338,7 @@ class SongListArtistFragment:Fragment() {
                 when(menuItem.itemId){
                     R.id.action_go_to_song2->{
                         if (arguments?.getLong("artistId") != null)  {
-                            val artistSongs = viewModel.listArtistSong.value //список песен артиста
+                            val artistSongs = artistsViewModel.listArtistSong.value //список песен артиста
                             val currentSong = viewModel.getCurrentSong()
                             if (artistSongs!=null){
                                 val indexOfSong = artistSongs.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
@@ -343,7 +351,7 @@ class SongListArtistFragment:Fragment() {
                         return true
                     }
                     R.id.action_shuffle->{
-                        val newShuffleState = viewModel.setPlaybackMode()
+                        val newShuffleState = playerViewModel.setPlaybackMode()
                         // Меняем иконку в зависимости от состояния
                         if (newShuffleState) {
                             menuItem.setIcon(R.drawable.baseline_shuffle_24) // подсвеченная иконка

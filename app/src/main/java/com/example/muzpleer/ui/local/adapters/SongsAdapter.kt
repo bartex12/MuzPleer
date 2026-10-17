@@ -38,9 +38,12 @@ import com.example.muzpleer.databinding.ItemMusicBinding
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.util.formatAsTime
 import com.example.muzpleer.util.formatDate
 import com.example.muzpleer.util.formatFileSize
+import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -48,6 +51,8 @@ import java.io.File
 
 class SongsAdapter(
     private val viewModel: SharedViewModel,
+    private val playlistsViewModel: PlaylistsViewModel,
+    private val favoritesViewModel: FavoritesViewModel,
     private val navController: NavController,
     private val onItemClick: (Song) -> Unit
 ) : RecyclerView.Adapter<SongsAdapter.MusicViewHolder>() {
@@ -95,14 +100,6 @@ class SongsAdapter(
                     Log.d(TAG, "SongsAdapter Ошибка: ${e.message}")
                 }
             }
-    }
-
-    fun getNormalizedPath(uriString: String): String {
-        return if (uriString.startsWith("file://")) {
-            Uri.decode(uriString.substring(7))
-        } else {
-            uriString
-        }
     }
 
     override fun getItemCount(): Int {
@@ -173,13 +170,13 @@ class SongsAdapter(
         val itemAddFav = popupView.findViewById<TextView>(R.id.itemAddToFavorites)
         val itemRemFav = popupView.findViewById<TextView>(R.id.itemRemoveFromFavorites)
 
-        viewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
+        favoritesViewModel.checkIsFavoriteWithCallback(song.id) {isFavorite->
             itemAddFav.isVisible = !isFavorite
             itemRemFav.isVisible = isFavorite
         }
 
-        itemAddFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
-        itemRemFav.setOnClickListener { viewModel.toggleFavorite(song); popup.dismiss() }
+        itemAddFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
+        itemRemFav.setOnClickListener { favoritesViewModel.toggleFavorite(song); popup.dismiss() }
         popupView.findViewById<TextView>(R.id.itemAddToPlaylist).setOnClickListener {
             navigateToChoosePlaylistFragment(context, song); popup.dismiss()
         }
@@ -252,9 +249,9 @@ class SongsAdapter(
         dialog.setCancelable(true)
 
         val recyclerView = dialog.findViewById<RecyclerView>(R.id.rvPlaylists)
-        val adapter = PlaylistChooseAdapter(viewModel) { playlist ->
+        val adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel) { playlist ->
             // Добавляем песню в выбранный плейлист
-            viewModel.addSongToPlaylist(song.id, playlist.id)
+            playlistsViewModel.addSongToPlaylist(song.id, playlist.id)
 
             // Показываем уведомление
             Toast.makeText(
@@ -273,7 +270,7 @@ class SongsAdapter(
 //        //используется context as LifecycleOwner для наблюдения за filteredPlaylists,
 //        // но диалог не является LifecycleOwner! Наблюдатель никогда не получает
 //        // обновлений, поэтому adapter.playlists остаётся пустым.
-//        viewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
+//        playlistsViewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
 //            adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все песни"
 //        }
         // 🔧 ИСПРАВЛЕНИЕ: Используем observeForever с ручной отпиской
@@ -281,11 +278,11 @@ class SongsAdapter(
             adapter.playlists = playlists.filter { it.id != -1L }
         }
 
-        viewModel.filteredPlaylists.observeForever(observer)
+        playlistsViewModel.filteredPlaylists.observeForever(observer)
 
         // Отписываемся при закрытии диалога
         dialog.setOnDismissListener {
-            viewModel.filteredPlaylists.removeObserver(observer)
+            playlistsViewModel.filteredPlaylists.removeObserver(observer)
         }
 
         dialog.show()

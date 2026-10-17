@@ -19,6 +19,7 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.ItemAlbumSelectionBinding
 import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -26,6 +27,7 @@ import java.io.File
 
 class FoldersSelectionAdapter (
     private val viewModel: SharedViewModel,
+    private val foldersViewModel: FoldersViewModel,
     private val onFolderClick: (Folder) -> Unit
 ) : RecyclerView.Adapter<FoldersSelectionAdapter.AlbumViewHolder>() {
 
@@ -66,7 +68,7 @@ class FoldersSelectionAdapter (
             binding.albumArtistSelection.text = folder.path
             binding.tracksCountSelection.text = getTracksCountString( folder.songs.size)
 
-            folder.artworkUri?.let{artUri->
+            folder.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
                 try {
                     if (isContentProviderUri(artUri.toString())){
@@ -114,7 +116,7 @@ class FoldersSelectionAdapter (
                 ): Boolean {
                     Log.d(TAG, "❌FoldersSelectionAdapter Glide load failed for" +
                             " folder Name = ${folder.name} URI: $artUri")
-                    viewModel.updateFolderArtUri(binding.root.context, folder)
+                    foldersViewModel.updateFolderArtUri(binding.root.context, folder)
                     return false
                 }
 

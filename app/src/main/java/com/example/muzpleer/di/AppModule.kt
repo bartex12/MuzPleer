@@ -6,13 +6,22 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.service.MusicServiceHandler
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
+import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
+import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
+import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.ToastMessenger
+import com.example.muzpleer.util.UserMessenger
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
 val appModule = module {
     single<IPreferenceHelper> { PreferenceHelperImpl(get()) }
+    single<UserMessenger> { ToastMessenger(androidContext()) }
     single { provideExoPlayer(get()) }
     factory {
         MusicServiceHandler(
@@ -21,7 +30,13 @@ val appModule = module {
         )
     }
 
-    viewModel { SharedViewModel(get(),get(),get(),get(),get(),get(),get(),get())}
+    viewModel { SharedViewModel(get(), get(), get(), androidContext()) }
+    viewModel { AlbumsViewModel(get(), get()) }
+    viewModel { ArtistsViewModel(get(), get()) }
+    viewModel { FoldersViewModel(get(), get()) }
+    viewModel { PlaylistsViewModel(get(), get(), get()) }
+    viewModel { FavoritesViewModel(get(), get()) }
+    viewModel { PlayerViewModel(get()) }
 
     // Регистрируем заглушку для колбэка (реальная реализация будет в ViewModel)
     factory<MusicServiceHandler.PlayerCallback> {

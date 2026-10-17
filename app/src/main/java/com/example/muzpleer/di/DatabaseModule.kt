@@ -34,7 +34,7 @@ val databaseModule = module {
     single<AlbumRepository> { AlbumRepository(get(), get()) }
     single<ArtistRepository> { ArtistRepository(get(), get(), get()) }
     single<FolderRepository> { FolderRepository(get(), get()) }
-    single<FavoriteRepository> { FavoriteRepository(get(), get()) }
-    single<PlaylistRepository> { PlaylistRepository(get(), get()) }
+    single<FavoriteRepository> { FavoriteRepository(get(), get(), get()) }
+    single<PlaylistRepository> { PlaylistRepository(get(), get(), get()) }
 
 }
