@@ -94,6 +94,8 @@ class AlbumsViewModel(
     }
 
     internal fun filterAlbums(query: String) {
+        //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
+        if (albums.value == null) return
         val originalAlbumList: MutableList<Album> = (albums.value ?: listOf()).toMutableList()
         val filteredAlbumList: MutableList<Album> = (filteredAlbums.value ?: listOf()).toMutableList()
         filteredAlbumList.clear()

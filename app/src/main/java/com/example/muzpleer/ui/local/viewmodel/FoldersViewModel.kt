@@ -104,6 +104,8 @@ class FoldersViewModel(
     }
 
     internal fun filterFolders(query: String) {
+        //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
+        if (folders.value == null) return
         val originalFolderList: MutableList<Folder> = (folders.value ?: listOf()).toMutableList()
         val filteredFolderList: MutableList<Folder> = (filteredFolders.value ?: listOf()).toMutableList()
         filteredFolderList.clear()
