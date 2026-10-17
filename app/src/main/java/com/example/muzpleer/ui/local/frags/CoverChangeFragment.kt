@@ -103,11 +103,16 @@ class CoverChangeFragment : Fragment() {
         }
 
         binding.saveButton.setOnClickListener {
-            viewModel.getCoverImageUri()?. let{curUri->
+            //назад уходим после записи в базу: список, на который вернёмся, читает песни из базы
+            binding.saveButton.isEnabled = false
+            val curUri = viewModel.getCoverImageUri()
+            val goBack = { if (_binding != null) findNavController().navigateUp() }
+            if (curUri != null) {
                 Log.d(TAG, "1*** CoverChangeFragment saveButton: curUri = $curUri")
-                viewModel.updateCoverImageAndSave(curUri)
+                viewModel.updateCoverImageAndSave(curUri, goBack)
+            } else {
+                goBack()
             }
-            findNavController().navigateUp()
         }
 
         binding.coverImageView.setOnClickListener {
