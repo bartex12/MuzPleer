@@ -47,6 +47,22 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
 
+            <TextView
+                android:id="@+id/tvEmptyPlaylistsSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="У вас пока нет плейлистов"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:layout_marginTop="54dp"
+                android:elevation="10dp"
+                android:visibility="gone"
+                android:textColor="@color/white"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/divider"
+                tools:visibility="visible" />
+
             <!-- Список плейлистов -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvPlaylists"

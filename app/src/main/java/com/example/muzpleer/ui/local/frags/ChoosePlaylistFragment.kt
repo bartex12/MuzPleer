@@ -6,17 +6,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.R
-import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.databinding.FragmentChoosePlaylistBinding
 import com.example.muzpleer.ui.local.adapters.PlaylistChooseAdapter
-import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class ChoosePlaylistFragment :Fragment()  {
@@ -92,6 +89,11 @@ class ChoosePlaylistFragment :Fragment()  {
         // Наблюдаем за списком плейлистов с правильным LifecycleOwner
         playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L }
+            if (playlists.isEmpty()){
+                binding.tvEmptyPlaylistsSelect.visibility = View.VISIBLE
+            }else{
+                binding.tvEmptyPlaylistsSelect.visibility = View.GONE
+            }
         }
 
         viewModel.coverImageUriLevel.observe(viewLifecycleOwner) {uri->
