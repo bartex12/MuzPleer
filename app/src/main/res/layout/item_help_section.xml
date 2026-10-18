@@ -11,7 +11,7 @@
         android:background="?attr/selectableItemBackground"
         android:drawablePadding="12dp"
         android:padding="16dp"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="@color/help_text_title"
         android:textSize="17sp"
         android:textStyle="bold" />
 
@@ -23,12 +23,12 @@
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
         android:paddingBottom="16dp"
-        android:textColor="?android:attr/textColorSecondary"
+        android:textColor="@color/help_text_body"
         android:textSize="15sp"
         android:visibility="gone" />
 
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="?android:attr/listDivider" />
+        android:background="#33000000" />
 </LinearLayout>
