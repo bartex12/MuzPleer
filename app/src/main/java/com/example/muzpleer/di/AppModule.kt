@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.service.MusicServiceHandler
+import com.example.muzpleer.ui.download.DownloadViewModel
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
@@ -37,6 +38,7 @@ val appModule = module {
     viewModel { PlaylistsViewModel(get(), get(), get()) }
     viewModel { FavoritesViewModel(get(), get()) }
     viewModel { PlayerViewModel(get()) }
+    viewModel { DownloadViewModel(androidContext()) }
 
     // Регистрируем заглушку для колбэка (реальная реализация будет в ViewModel)
     factory<MusicServiceHandler.PlayerCallback> {

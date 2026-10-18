@@ -114,4 +114,18 @@
         <item>Если нужных песен нет в списке, проверьте, что приложению выдан доступ к аудиофайлам (Настройки телефона → Приложения → MuzPleer → Разрешения). Затем на вкладке «Все песни» выберите в меню «Обновить данные» — приложение заново просмотрит устройство.</item>
     </string-array>
 
+
+    <!-- Скачивание трека -->
+    <string name="download_track">Скачать трек</string>
+    <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) или на страницу трека suno.com. Файл сохранится в папку Music/MuzPleer и появится в списке песен.</string>
+    <string name="download_url_hint">Ссылка на трек</string>
+    <string name="download_paste">Вставить из буфера</string>
+    <string name="download_playlist_label">Добавить в плейлист</string>
+    <string name="download_no_playlist">Не добавлять в плейлист</string>
+    <string name="download_start">Скачать</string>
+    <string name="download_cancel">Отменить</string>
+    <string name="download_loading">Загрузка…</string>
+    <string name="download_enter_url">Введите ссылку</string>
+    <string name="download_done">Трек «%1$s» скачан</string>
+    <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>
 </resources>

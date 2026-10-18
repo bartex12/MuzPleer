@@ -16,6 +16,10 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Запись скачанных треков в общую папку Music до Android 10 -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
+
     <application
         android:name="com.example.muzpleer.di.App"
         android:allowBackup="true"
