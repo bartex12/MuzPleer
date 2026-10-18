@@ -22,6 +22,11 @@
         android:name="com.example.muzpleer.setting.SettingsFragment"
         android:label="Настройки" />
     <fragment
+        android:id="@+id/helpFragment"
+        android:name="com.example.muzpleer.ui.help.HelpFragment"
+        android:label="Справка"
+        tools:layout="@layout/fragment_help" />
+    <fragment
         android:id="@+id/tabLocalFragment"
         android:name="com.example.muzpleer.ui.local.TabLocalFragment"
         android:label="Музыка на ладони"
