@@ -42,4 +42,7 @@
 
     <color name="popup_divider30">#4DFFFFFF</color>  <!-- белый 30% -->
     <color name="popup_divider20">#33FFFFFF</color>  <!-- белый 20%, деликатнее -->
+    <color name="help_background">#FFF1CD</color>
+    <color name="help_text_title">#FF212121</color>
+    <color name="help_text_body">#FF424242</color>
 </resources>
