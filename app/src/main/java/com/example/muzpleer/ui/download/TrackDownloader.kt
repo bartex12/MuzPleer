@@ -5,9 +5,11 @@ import android.content.ContentValues
 import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
+import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -27,7 +29,8 @@ data class ResolvedTrack(
     val candidates: List<String>,
     val title: String?,
     val artist: String? = null,
-    val coverUrl: String? = null
+    val coverUrl: String? = null,
+    val isSuno: Boolean = false   //ссылка на suno.com: файл по ней приходит в защищённом виде
 ) {
     val audioUrl: String get() = candidates.first()
 }
@@ -77,7 +80,10 @@ private class StreamInfo(val contentType: String) {
 private class SavedFile(val mediaId: Long, val durationMs: Long)
 
 /** Понятная пользователю ошибка загрузки. */
-class DownloadException(message: String) : IOException(message)
+open class DownloadException(message: String) : IOException(message)
+
+/** Файл прочитан, но это не аудио. */
+class NotAudioException(message: String) : DownloadException(message)
 
 /**
  * Загрузка mp3 по ссылке в папку Music/MuzPleer.
@@ -147,7 +153,7 @@ class TrackDownloader(private val context: Context) {
         val artist = (SUNO_DISPLAY_NAME.find(html)?.groupValues?.get(1)
             ?: SUNO_HANDLE.find(html)?.groupValues?.get(1))?.trim()?.takeIf { it.isNotEmpty() }
         val cover = OG_IMAGE.find(html)?.groupValues?.get(1)?.replace("&amp;", "&")?.takeIf { it.startsWith("http") }
-        return ResolvedTrack(candidates.toList(), title, artist, cover)
+        return ResolvedTrack(candidates.toList(), title, artist, cover, isSuno = true)
     }
 
     /** Скачивает файл. [onProgress] получает проценты 0..100, либо -1, если размер неизвестен. */
@@ -179,7 +185,7 @@ class TrackDownloader(private val context: Context) {
                 val info = StreamInfo(body.contentType()?.toString().orEmpty())
 
                 val artist = track.artist ?: "Suno"
-                val saved = saveToMusicFolder(displayName, title, artist, mime, info) { out ->
+                val saved = try { saveToMusicFolder(displayName, title, artist, mime, info) { out ->
                     val buf = ByteArray(64 * 1024)
                     var done = 0L
                     var lastPercent = -2
@@ -196,11 +202,130 @@ class TrackDownloader(private val context: Context) {
                         }
                     }
                     if (done == 0L) throw DownloadException("Получен пустой файл")
+                } } catch (e: NotAudioException) {
+                    if (track.isSuno) throw DownloadException(SUNO_PROTECTED) else throw e
                 }
                 val cover = track.coverUrl?.let { downloadCover(it, saved.mediaId) }
                 DownloadedTrack(saved.mediaId, title, artist, saved.durationMs, cover)
             }
         }
+
+    /** Название, исполнитель и встроенная обложка из тегов выбранного файла. */
+    private class FileTags(val title: String?, val artist: String?, val picture: ByteArray?)
+
+    private fun readTags(uri: Uri): FileTags {
+        val r = MediaMetadataRetriever()
+        return try {
+            r.setDataSource(context, uri)
+            FileTags(
+                r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)?.trim()?.takeIf { it.isNotEmpty() },
+                r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)?.trim()?.takeIf { it.isNotEmpty() },
+                r.embeddedPicture
+            )
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader readTags error = ${e.message}")
+            FileTags(null, null, null)
+        } finally {
+            try { r.release() } catch (e: Exception) { /* ignore */ }
+        }
+    }
+
+    /**
+     * Данные со страницы трека suno.com (название, автор, обложка) для файла, выбранного пользователем.
+     * Ссылка необязательна: при любой ошибке или чужом сайте возвращает null.
+     */
+    suspend fun resolveMeta(rawUrl: String): ResolvedTrack? {
+        if (rawUrl.isBlank()) return null
+        return try { resolve(rawUrl).takeIf { it.isSuno } } catch (e: Exception) { null }
+    }
+
+    /**
+     * Копирует выбранный пользователем аудиофайл в Music/MuzPleer. Название и исполнитель берутся из тегов файла,
+     * недостающее - из [meta] (страница Suno) или из имени файла.
+     */
+    suspend fun importFile(uri: Uri, meta: ResolvedTrack?, onProgress: (Int) -> Unit): DownloadedTrack =
+        withContext(Dispatchers.IO) {
+            val resolver = context.contentResolver
+            var name = "track"
+            var total = -1L
+            try {
+                resolver.query(uri, arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE), null, null, null)
+                    ?.use { c ->
+                        if (c.moveToFirst()) {
+                            c.getString(0)?.let { name = it }
+                            if (!c.isNull(1)) total = c.getLong(1)
+                        }
+                    }
+            } catch (e: Exception) {
+                Log.d(TAG, "TrackDownloader importFile query error = ${e.message}")
+            }
+            val tags = readTags(uri)
+            val baseName = name.substringBeforeLast('.', name)
+            val title = tags.title ?: meta?.title ?: baseName.ifBlank { "track" }
+            val artist = tags.artist ?: meta?.artist ?: UNKNOWN_ARTIST
+            val ext = importExtension(name, resolver.getType(uri))
+            val mime = mimeForExtension(ext)
+            val displayName = safeFileName(title) + "." + ext
+            val job = currentCoroutineContext()
+            val info = StreamInfo(resolver.getType(uri).orEmpty())
+
+            val saved = try {
+                saveToMusicFolder(displayName, title, artist, mime, info) { out ->
+                    val input = resolver.openInputStream(uri) ?: throw DownloadException("Не удалось открыть выбранный файл")
+                    val buf = ByteArray(64 * 1024)
+                    var done = 0L
+                    var lastPercent = -2
+                    input.use {
+                        while (true) {
+                            val n = it.read(buf)
+                            if (n < 0) break
+                            out.write(buf, 0, n)
+                            info.feed(buf, n)
+                            done += n
+                            job.ensureActive()
+                            val percent = if (total > 0) (done * 100 / total).toInt() else -1
+                            if (percent != lastPercent) { lastPercent = percent; onProgress(percent) }
+                        }
+                    }
+                    if (done == 0L) throw DownloadException("Выбранный файл пустой")
+                }
+            } catch (e: NotAudioException) {
+                throw DownloadException("Выбранный файл не распознан как аудио (${info.describe()}).")
+            }
+            val cover = tags.picture?.takeIf { it.size >= 100 }?.let { saveCover(it, saved.mediaId) }
+                ?: meta?.coverUrl?.let { downloadCover(it, saved.mediaId) }
+            DownloadedTrack(saved.mediaId, title, artist, saved.durationMs, cover)
+        }
+
+    private fun saveCover(bytes: ByteArray, mediaId: Long): String? = try {
+        val f = File(context.filesDir, "downloaded_covers/$mediaId.jpg")
+        f.parentFile?.mkdirs()
+        f.writeBytes(bytes)
+        f.absolutePath
+    } catch (e: Exception) {
+        Log.d(TAG, "TrackDownloader saveCover error = ${e.message}")
+        null
+    }
+
+    private fun importExtension(name: String, mimeType: String?): String {
+        val fromName = name.substringAfterLast('.', "").lowercase()
+        if (fromName in AUDIO_EXTENSIONS) return fromName
+        return when {
+            mimeType?.contains("mp4") == true || mimeType?.contains("aac") == true -> "m4a"
+            mimeType?.contains("flac") == true -> "flac"
+            mimeType?.contains("ogg") == true -> "ogg"
+            mimeType?.contains("wav") == true -> "wav"
+            else -> "mp3"
+        }
+    }
+
+    private fun mimeForExtension(ext: String): String = when (ext) {
+        "m4a", "aac" -> "audio/mp4"
+        "flac" -> "audio/flac"
+        "ogg", "opus" -> "audio/ogg"
+        "wav" -> "audio/x-wav"
+        else -> "audio/mpeg"
+    }
 
     /** Картинка трека: сохраняется в память приложения, ошибки не критичны (вернёт null). */
     private fun downloadCover(url: String, mediaId: Long): String? = try {
@@ -227,7 +352,7 @@ class TrackDownloader(private val context: Context) {
         if (duration > 0) return
         Log.d(TAG, "TrackDownloader checkIsAudio: ${info.describe()}")
         if (!info.looksLikeAudio()) {
-            throw DownloadException("Сервер вернул не аудиофайл (${info.describe()}). Возможно, файл зашифрован или закрыт для скачивания.")
+            throw NotAudioException("Сервер вернул не аудиофайл (${info.describe()}). Возможно, файл зашифрован или закрыт для скачивания.")
         }
     }
 
@@ -360,6 +485,11 @@ class TrackDownloader(private val context: Context) {
     companion object {
         const val TAG = "33333"
         const val FOLDER = "MuzPleer"
+        private const val UNKNOWN_ARTIST = "Неизвестный исполнитель"
+        private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "aac", "wav", "flac", "ogg", "opus")
+        private const val SUNO_PROTECTED =
+            "Suno отдаёт этот трек в защищённом (зашифрованном) виде, напрямую его скачать нельзя. " +
+                "Скачайте трек кнопкой Download в Suno и нажмите «Выбрать файл с устройства»."
         private const val BROWSER_UA =
             "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
         private val SUNO_SONG = Regex("/song/([0-9a-fA-F-]{36})")

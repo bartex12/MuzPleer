@@ -1,6 +1,7 @@
 package com.example.muzpleer.ui.download
 
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -54,6 +55,32 @@ class DownloadViewModel(context: Context) : ViewModel() {
             } catch (e: Exception) {
                 Log.d(TAG, "DownloadViewModel start error = $e")
                 _state.value = DownloadState.Error("Не удалось скачать трек: ${e.message ?: e.javaClass.simpleName}")
+            }
+        }
+    }
+
+    /**
+     * Копирует выбранный пользователем файл в Music/MuzPleer. [metaUrl] - необязательная ссылка на страницу
+     * трека suno.com: оттуда берутся название, автор и обложка, если их нет в тегах файла.
+     */
+    fun importFile(uri: Uri, metaUrl: String, playlistId: Long?) {
+        if (isBusy()) return
+        _state.value = DownloadState.Loading(-1, null)
+        job = viewModelScope.launch {
+            try {
+                val meta = downloader.resolveMeta(metaUrl)
+                val saved = downloader.importFile(uri, meta) { percent ->
+                    _state.postValue(DownloadState.Loading(percent, meta?.title))
+                }
+                _state.value = DownloadState.Done(saved, playlistId)
+            } catch (e: CancellationException) {
+                _state.value = DownloadState.Idle
+                throw e
+            } catch (e: DownloadException) {
+                _state.value = DownloadState.Error(e.message ?: "Не удалось добавить файл")
+            } catch (e: Exception) {
+                Log.d(TAG, "DownloadViewModel importFile error = $e")
+                _state.value = DownloadState.Error("Не удалось добавить файл: ${e.message ?: e.javaClass.simpleName}")
             }
         }
     }
