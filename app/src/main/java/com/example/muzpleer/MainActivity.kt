@@ -155,7 +155,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.tabLocalFragment,  R.id.settingsFragment), drawerLayout
+                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         //автоматически связывает пункты меню с destinations в NavGraph
@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.nav_help ->{
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_help")
-                        //navController.navigate(R.id.helpFragment)
+                        navController.navigate(R.id.helpFragment)
                         true
                     }
                     R.id.nav_share -> {
