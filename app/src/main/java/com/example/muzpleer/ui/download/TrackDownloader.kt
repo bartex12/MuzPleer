@@ -86,7 +86,9 @@ class TrackDownloader(private val context: Context) {
         //адрес аудио, если он прямо есть в коде страницы
         Regex("https://cdn[^\"'\\\\\\s<>]*?$songId\\.(?:m4a|mp3)[^\"'\\\\\\s<>]*").findAll(html)
             .forEach { candidates.add(it.value) }
-        //в сети браузера у трека виден файл <id>.m4a; mp3 оставлен запасным вариантом
+        //адрес, который реально запрашивает веб-плеер Suno (виден во вкладке "Сеть" браузера)
+        candidates.add("https://d2lwuy8qc234o3.cloudfront.net/1/clip/$songId.m4a")
+        //запасные варианты на случай, если Suno сменит хранилище
         candidates.add("https://cdn1.suno.ai/$songId.m4a")
         candidates.add("https://cdn1.suno.ai/$songId.mp3")
         candidates.add("https://cdn-o.suno.com/$songId.m4a")
