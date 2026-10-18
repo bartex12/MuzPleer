@@ -84,10 +84,12 @@ class TrackDownloader(private val context: Context) {
 
         val candidates = linkedSetOf<String>()
         //адрес аудио, если он прямо есть в коде страницы
-        Regex("https://cdn[^\"'\\\\\\s<>]*?$songId\\.mp3[^\"'\\\\\\s<>]*").findAll(html)
+        Regex("https://cdn[^\"'\\\\\\s<>]*?$songId\\.(?:m4a|mp3)[^\"'\\\\\\s<>]*").findAll(html)
             .forEach { candidates.add(it.value) }
+        //в сети браузера у трека виден файл <id>.m4a; mp3 оставлен запасным вариантом
+        candidates.add("https://cdn1.suno.ai/$songId.m4a")
         candidates.add("https://cdn1.suno.ai/$songId.mp3")
-        candidates.add("https://cdn-o.suno.com/$songId.mp3")
+        candidates.add("https://cdn-o.suno.com/$songId.m4a")
         val title = OG_TITLE.find(html)?.groupValues?.get(1)
             ?.replace("&nbsp;", " ")?.replace("&amp;", "&")?.replace("&quot;", "\"")
             ?.replace("&#x27;", "'")?.trim()?.takeIf { it.isNotEmpty() }
@@ -115,11 +117,13 @@ class TrackDownloader(private val context: Context) {
             resp.use {
                 val body = resp.body ?: throw DownloadException("Пустой ответ сервера")
                 val title = track.title ?: fileNameFromUrl(track.audioUrl)
-                val displayName = safeFileName(title) + ".mp3"
+                val ext = audioExtension(resp.request.url.encodedPath, resp.body?.contentType()?.toString())
+                val mime = if (ext == "m4a") "audio/mp4" else "audio/mpeg"
+                val displayName = safeFileName(title) + "." + ext
                 val total = body.contentLength()
                 val job = currentCoroutineContext()
 
-                saveToMusicFolder(displayName, title) { out ->
+                saveToMusicFolder(displayName, title, mime) { out ->
                     val buf = ByteArray(64 * 1024)
                     var done = 0L
                     var lastPercent = -2
@@ -141,14 +145,14 @@ class TrackDownloader(private val context: Context) {
 
     /** Создаёт файл в Music/MuzPleer, пишет в него через [writer] и возвращает id в MediaStore. */
     private suspend fun saveToMusicFolder(
-        displayName: String, title: String, writer: (java.io.OutputStream) -> Unit
+        displayName: String, title: String, mime: String, writer: (java.io.OutputStream) -> Unit
     ): Long {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, displayName)
                 put(MediaStore.Audio.Media.TITLE, title)
-                put(MediaStore.Audio.Media.MIME_TYPE, "audio/mpeg")
+                put(MediaStore.Audio.Media.MIME_TYPE, mime)
                 put(MediaStore.Audio.Media.IS_MUSIC, 1)
                 put(MediaStore.Audio.Media.RELATIVE_PATH, "${Environment.DIRECTORY_MUSIC}/$FOLDER")
                 put(MediaStore.Audio.Media.IS_PENDING, 1)
@@ -175,12 +179,12 @@ class TrackDownloader(private val context: Context) {
                 file.delete()
                 throw e
             }
-            return scanLegacy(file)
+            return scanLegacy(file, mime)
         }
     }
 
-    private suspend fun scanLegacy(file: File): Long = suspendCancellableCoroutine<Long> { cont ->
-        MediaScannerConnection.scanFile(context, arrayOf(file.path), arrayOf("audio/mpeg")) { _, uri ->
+    private suspend fun scanLegacy(file: File, mime: String): Long = suspendCancellableCoroutine<Long> { cont ->
+        MediaScannerConnection.scanFile(context, arrayOf(file.path), arrayOf(mime)) { _, uri ->
             cont.resume(uri?.let { ContentUris.parseId(it) } ?: -1L)
         }
     }.also { if (it < 0) throw DownloadException("Файл сохранён, но не попал в медиатеку") }
@@ -188,8 +192,16 @@ class TrackDownloader(private val context: Context) {
     private fun uniqueFile(dir: File, name: String): File {
         var f = File(dir, name)
         var i = 1
-        while (f.exists()) { f = File(dir, name.removeSuffix(".mp3") + " ($i).mp3"); i++ }
+        val base = name.substringBeforeLast('.')
+        val ext = name.substringAfterLast('.', "mp3")
+        while (f.exists()) { f = File(dir, "$base ($i).$ext"); i++ }
         return f
+    }
+
+    /** m4a, если файл такой (по адресу или типу ответа), иначе mp3. */
+    private fun audioExtension(path: String, contentType: String?): String = when {
+        path.endsWith(".m4a", true) || contentType?.contains("mp4") == true || contentType?.contains("aac") == true -> "m4a"
+        else -> "mp3"
     }
 
     private fun hostOf(url: String): String = try { URI(url).host ?: url } catch (e: Exception) { url }
