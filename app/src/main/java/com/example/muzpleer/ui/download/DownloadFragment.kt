@@ -114,9 +114,11 @@ class DownloadFragment : Fragment() {
         startDownload()
     }
 
-    private fun needWritePermission() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
-        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
-        != PackageManager.PERMISSION_GRANTED
+    private fun needWritePermission(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) return false
+        val state = ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        return state != PackageManager.PERMISSION_GRANTED
+    }
 
     private fun onFilePicked(uri: Uri) {
         if (needWritePermission()) {
