@@ -20,8 +20,10 @@ import java.io.IOException
 import java.net.URI
 import kotlin.coroutines.resume
 
-/** Что именно качаем: адрес аудиофайла и (если удалось узнать) название трека. */
-data class ResolvedTrack(val audioUrl: String, val title: String?)
+/** Что именно качаем: адреса, которые пробуем по очереди, и (если удалось узнать) название трека. */
+data class ResolvedTrack(val candidates: List<String>, val title: String?) {
+    val audioUrl: String get() = candidates.first()
+}
 
 /** Скачанный файл: id в MediaStore (совпадает с id песни в базе приложения) и имя. */
 data class DownloadedTrack(val mediaId: Long, val title: String)
@@ -37,7 +39,15 @@ class TrackDownloader(private val context: Context) {
 
     private val client = OkHttpClient()
 
-    /** Превращает введённую ссылку в адрес аудиофайла. */
+    /** Запрос "как из браузера": многие сайты отдают 403 запросам с UA библиотеки. */
+    private fun browserRequest(url: String): Request = Request.Builder()
+        .url(url)
+        .header("User-Agent", BROWSER_UA)
+        .header("Referer", "https://suno.com/")
+        .header("Accept", "*/*")
+        .build()
+
+    /** Превращает введённую ссылку в список возможных адресов аудиофайла. */
     suspend fun resolve(rawUrl: String): ResolvedTrack = withContext(Dispatchers.IO) {
         val url = rawUrl.trim()
         val uri = try { URI(url) } catch (e: Exception) { null }
@@ -45,43 +55,65 @@ class TrackDownloader(private val context: Context) {
         if (uri == null || host == null || !(url.startsWith("https://") || url.startsWith("http://"))) {
             throw DownloadException("Введите ссылку, начинающуюся с https://")
         }
-        val sunoId = SUNO_SONG.find(uri.path ?: "")?.groupValues?.get(1)
-        if (host.endsWith("suno.com") && sunoId != null) {
-            //страница трека: адрес файла строится по id, название берём со страницы
-            ResolvedTrack("https://cdn1.suno.ai/$sunoId.mp3", fetchPageTitle(url))
+        if (host == "suno.com" || host.endsWith(".suno.com")) {
+            resolveSuno(url, uri.path ?: "")
         } else {
-            ResolvedTrack(url, null)
+            ResolvedTrack(listOf(url), null)
         }
     }
 
-    private fun fetchPageTitle(pageUrl: String): String? = try {
-        client.newCall(Request.Builder().url(pageUrl).build()).execute().use { resp ->
-            val html = resp.body?.string().orEmpty()
-            OG_TITLE.find(html)?.groupValues?.get(1)
-                ?.replace("&nbsp;", " ")?.replace("&amp;", "&")?.replace("&quot;", "\"")
-                ?.replace("&#x27;", "'")?.trim()?.takeIf { it.isNotEmpty() }
+    /**
+     * Страница трека (suno.com/song/<id>) или короткая ссылка из приложения (suno.com/s/...):
+     * находим id трека и название, адрес файла строим по id.
+     */
+    private fun resolveSuno(url: String, path: String): ResolvedTrack {
+        var id = SUNO_SONG.find(path)?.groupValues?.get(1)
+        var html = ""
+        try {
+            client.newCall(browserRequest(url)).execute().use { resp ->
+                html = resp.body?.string().orEmpty()
+                //короткая ссылка перенаправляет на страницу трека
+                if (id == null) id = SUNO_SONG.find(resp.request.url.encodedPath)?.groupValues?.get(1)
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader resolveSuno error = ${e.message}")
         }
-    } catch (e: Exception) {
-        Log.d(TAG, "TrackDownloader fetchPageTitle error = ${e.message}")
-        null
+        //запасной вариант: id в адресе canonical / og:image
+        if (id == null) id = SUNO_SONG_ANY.find(html)?.groupValues?.get(1)
+        val songId = id ?: throw DownloadException("Не удалось найти трек по этой ссылке suno.com")
+
+        val candidates = linkedSetOf<String>()
+        //адрес аудио, если он прямо есть в коде страницы
+        Regex("https://cdn[^\"'\\\\\\s<>]*?$songId\\.mp3[^\"'\\\\\\s<>]*").findAll(html)
+            .forEach { candidates.add(it.value) }
+        candidates.add("https://cdn1.suno.ai/$songId.mp3")
+        candidates.add("https://cdn-o.suno.com/$songId.mp3")
+        val title = OG_TITLE.find(html)?.groupValues?.get(1)
+            ?.replace("&nbsp;", " ")?.replace("&amp;", "&")?.replace("&quot;", "\"")
+            ?.replace("&#x27;", "'")?.trim()?.takeIf { it.isNotEmpty() }
+        return ResolvedTrack(candidates.toList(), title)
     }
 
     /** Скачивает файл. [onProgress] получает проценты 0..100, либо -1, если размер неизвестен. */
     suspend fun download(track: ResolvedTrack, onProgress: (Int) -> Unit): DownloadedTrack =
         withContext(Dispatchers.IO) {
-            val request = Request.Builder().url(track.audioUrl).build()
-            client.newCall(request).execute().use { resp ->
-                if (!resp.isSuccessful) {
-                    throw DownloadException(
-                        if (resp.code == 403 || resp.code == 404) "Файл по этой ссылке не найден или недоступен (код ${resp.code})"
-                        else "Сервер ответил ошибкой ${resp.code}"
-                    )
-                }
+            val failures = mutableListOf<String>()
+            var response: okhttp3.Response? = null
+            for (candidate in track.candidates) {
+                val r = try { client.newCall(browserRequest(candidate)).execute() }
+                catch (e: IOException) { failures.add("${hostOf(candidate)}: ${e.message}"); continue }
+                val type = r.body?.contentType()?.toString().orEmpty()
+                if (r.isSuccessful && !type.startsWith("text/")) { response = r; break }
+                failures.add("${hostOf(candidate)}: " + if (r.isSuccessful) "веб-страница вместо аудио" else "код ${r.code}")
+                r.close()
+            }
+            val resp = response ?: throw DownloadException(
+                if (track.candidates.size > 1)
+                    "Не удалось скачать файл трека (${failures.joinToString("; ")}). Возможно, сайт закрыл прямой доступ к файлу."
+                else "Не удалось скачать файл (${failures.joinToString("; ")})"
+            )
+            resp.use {
                 val body = resp.body ?: throw DownloadException("Пустой ответ сервера")
-                val type = body.contentType()?.toString().orEmpty()
-                if (type.startsWith("text/")) {
-                    throw DownloadException("По ссылке открывается веб-страница, а не аудиофайл")
-                }
                 val title = track.title ?: fileNameFromUrl(track.audioUrl)
                 val displayName = safeFileName(title) + ".mp3"
                 val total = body.contentLength()
@@ -160,6 +192,8 @@ class TrackDownloader(private val context: Context) {
         return f
     }
 
+    private fun hostOf(url: String): String = try { URI(url).host ?: url } catch (e: Exception) { url }
+
     private fun fileNameFromUrl(url: String): String =
         url.substringBefore('?').substringAfterLast('/').substringBeforeLast('.').ifBlank { "track" }
 
@@ -169,7 +203,10 @@ class TrackDownloader(private val context: Context) {
     companion object {
         const val TAG = "33333"
         const val FOLDER = "MuzPleer"
+        private const val BROWSER_UA =
+            "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
         private val SUNO_SONG = Regex("/song/([0-9a-fA-F-]{36})")
+        private val SUNO_SONG_ANY = Regex("suno\\.com/song/([0-9a-fA-F-]{36})")
         private val OG_TITLE = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']*)[\"']")
     }
 }
