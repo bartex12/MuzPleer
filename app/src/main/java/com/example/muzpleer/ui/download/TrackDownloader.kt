@@ -3,6 +3,7 @@ package com.example.muzpleer.ui.download
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.media.MediaMetadataRetriever
 import android.media.MediaScannerConnection
 import android.os.Build
 import android.os.Environment
@@ -10,6 +11,7 @@ import android.provider.MediaStore
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -21,12 +23,26 @@ import java.net.URI
 import kotlin.coroutines.resume
 
 /** Что именно качаем: адреса, которые пробуем по очереди, и (если удалось узнать) название трека. */
-data class ResolvedTrack(val candidates: List<String>, val title: String?) {
+data class ResolvedTrack(
+    val candidates: List<String>,
+    val title: String?,
+    val artist: String? = null,
+    val coverUrl: String? = null
+) {
     val audioUrl: String get() = candidates.first()
 }
 
 /** Скачанный файл: id в MediaStore (совпадает с id песни в базе приложения) и имя. */
-data class DownloadedTrack(val mediaId: Long, val title: String)
+data class DownloadedTrack(
+    val mediaId: Long,
+    val title: String,
+    val artist: String,
+    val durationMs: Long,
+    val coverPath: String?   //обложка, скачанная вместе с треком (если удалось)
+)
+
+/** Результат записи файла в медиатеку. */
+private class SavedFile(val mediaId: Long, val durationMs: Long)
 
 /** Понятная пользователю ошибка загрузки. */
 class DownloadException(message: String) : IOException(message)
@@ -95,7 +111,11 @@ class TrackDownloader(private val context: Context) {
         val title = OG_TITLE.find(html)?.groupValues?.get(1)
             ?.replace("&nbsp;", " ")?.replace("&amp;", "&")?.replace("&quot;", "\"")
             ?.replace("&#x27;", "'")?.trim()?.takeIf { it.isNotEmpty() }
-        return ResolvedTrack(candidates.toList(), title)
+        //автор и обложка со страницы (если нашлись)
+        val artist = (SUNO_DISPLAY_NAME.find(html)?.groupValues?.get(1)
+            ?: SUNO_HANDLE.find(html)?.groupValues?.get(1))?.trim()?.takeIf { it.isNotEmpty() }
+        val cover = OG_IMAGE.find(html)?.groupValues?.get(1)?.replace("&amp;", "&")?.takeIf { it.startsWith("http") }
+        return ResolvedTrack(candidates.toList(), title, artist, cover)
     }
 
     /** Скачивает файл. [onProgress] получает проценты 0..100, либо -1, если размер неизвестен. */
@@ -125,7 +145,8 @@ class TrackDownloader(private val context: Context) {
                 val total = body.contentLength()
                 val job = currentCoroutineContext()
 
-                saveToMusicFolder(displayName, title, mime) { out ->
+                val artist = track.artist ?: "Suno"
+                val saved = saveToMusicFolder(displayName, title, artist, mime) { out ->
                     val buf = ByteArray(64 * 1024)
                     var done = 0L
                     var lastPercent = -2
@@ -141,19 +162,84 @@ class TrackDownloader(private val context: Context) {
                         }
                     }
                     if (done == 0L) throw DownloadException("Получен пустой файл")
-                }.let { DownloadedTrack(it, title) }
+                }
+                val cover = track.coverUrl?.let { downloadCover(it, saved.mediaId) }
+                DownloadedTrack(saved.mediaId, title, artist, saved.durationMs, cover)
             }
         }
 
-    /** Создаёт файл в Music/MuzPleer, пишет в него через [writer] и возвращает id в MediaStore. */
+    /** Картинка трека: сохраняется в память приложения, ошибки не критичны (вернёт null). */
+    private fun downloadCover(url: String, mediaId: Long): String? = try {
+        client.newCall(browserRequest(url)).execute().use { r ->
+            val bytes = r.body?.bytes()
+            if (!r.isSuccessful || bytes == null || bytes.size < 100) null
+            else {
+                val f = File(context.filesDir, "downloaded_covers/$mediaId.jpg")
+                f.parentFile?.mkdirs()
+                f.writeBytes(bytes)
+                f.absolutePath
+            }
+        }
+    } catch (e: Exception) {
+        Log.d(TAG, "TrackDownloader downloadCover error = ${e.message}")
+        null
+    }
+
+    /** Длительность файла в мс по данным самого файла; 0, если он не читается как аудио. */
+    private fun probeDuration(uri: android.net.Uri?, path: String?): Long {
+        val r = MediaMetadataRetriever()
+        return try {
+            if (uri != null) r.setDataSource(context, uri) else r.setDataSource(path)
+            r.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader probeDuration error = ${e.message}")
+            0L
+        } finally {
+            try { r.release() } catch (e: Exception) { /* ignore */ }
+        }
+    }
+
+    /** Записывает название и исполнителя в медиатеку, чтобы сканер приложения взял их оттуда. */
+    private fun writeTags(mediaId: Long, title: String, artist: String) {
+        try {
+            val uri = ContentUris.withAppendedId(
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL), mediaId
+            )
+            context.contentResolver.update(uri, ContentValues().apply {
+                put(MediaStore.Audio.Media.TITLE, title)
+                put(MediaStore.Audio.Media.ARTIST, artist)
+            }, null, null)
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader writeTags error = ${e.message}")
+        }
+    }
+
+    /** Ждём, пока медиатека сама определит длительность (она читает файл не мгновенно). */
+    private suspend fun waitMediaStoreDuration(mediaId: Long) {
+        val uri = ContentUris.withAppendedId(
+            MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL), mediaId
+        )
+        repeat(10) {
+            val d = try {
+                context.contentResolver.query(uri, arrayOf(MediaStore.Audio.Media.DURATION), null, null, null)
+                    ?.use { c -> if (c.moveToFirst()) c.getLong(0) else 0L } ?: 0L
+            } catch (e: Exception) { 0L }
+            if (d > 0) return
+            delay(300)
+        }
+    }
+
+    /** Создаёт файл в Music/MuzPleer, пишет в него через [writer], проверяет, что это аудио, и возвращает id в MediaStore. */
     private suspend fun saveToMusicFolder(
-        displayName: String, title: String, mime: String, writer: (java.io.OutputStream) -> Unit
-    ): Long {
+        displayName: String, title: String, artist: String, mime: String,
+        writer: (java.io.OutputStream) -> Unit
+    ): SavedFile {
         val resolver = context.contentResolver
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val values = ContentValues().apply {
                 put(MediaStore.Audio.Media.DISPLAY_NAME, displayName)
                 put(MediaStore.Audio.Media.TITLE, title)
+                put(MediaStore.Audio.Media.ARTIST, artist)
                 put(MediaStore.Audio.Media.MIME_TYPE, mime)
                 put(MediaStore.Audio.Media.IS_MUSIC, 1)
                 put(MediaStore.Audio.Media.RELATIVE_PATH, "${Environment.DIRECTORY_MUSIC}/$FOLDER")
@@ -164,8 +250,16 @@ class TrackDownloader(private val context: Context) {
             try {
                 resolver.openOutputStream(uri)?.use { writer(it) }
                     ?: throw DownloadException("Не удалось открыть файл для записи")
+                //пока файл "в ожидании", проверяем, что его можно прочитать как аудио
+                val duration = probeDuration(uri, null)
+                if (duration <= 0) throw DownloadException(
+                    "Файл скачан, но не распознан как аудио (формат не поддерживается или файл повреждён)"
+                )
                 resolver.update(uri, ContentValues().apply { put(MediaStore.Audio.Media.IS_PENDING, 0) }, null, null)
-                return ContentUris.parseId(uri)
+                val id = ContentUris.parseId(uri)
+                writeTags(id, title, artist)
+                waitMediaStoreDuration(id)
+                return SavedFile(id, duration)
             } catch (e: Throwable) {
                 resolver.delete(uri, null, null) //не оставляем недокачанный файл
                 throw e
@@ -181,7 +275,15 @@ class TrackDownloader(private val context: Context) {
                 file.delete()
                 throw e
             }
-            return scanLegacy(file, mime)
+            val duration = probeDuration(null, file.path)
+            if (duration <= 0) {
+                file.delete()
+                throw DownloadException("Файл скачан, но не распознан как аудио (формат не поддерживается или файл повреждён)")
+            }
+            val id = scanLegacy(file, mime)
+            writeTags(id, title, artist)
+            waitMediaStoreDuration(id)
+            return SavedFile(id, duration)
         }
     }
 
@@ -220,6 +322,9 @@ class TrackDownloader(private val context: Context) {
         private const val BROWSER_UA =
             "Mozilla/5.0 (Linux; Android 14; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Mobile Safari/537.36"
         private val SUNO_SONG = Regex("/song/([0-9a-fA-F-]{36})")
+        private val SUNO_DISPLAY_NAME = Regex("""\\*"display_name\\*":\\*"([^"\\\\]+)"""")
+        private val SUNO_HANDLE = Regex("""\\*"handle\\*":\\*"([^"\\\\]+)"""")
+        private val OG_IMAGE = Regex("<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']*)[\"']")
         private val SUNO_SONG_ANY = Regex("suno\\.com/song/([0-9a-fA-F-]{36})")
         private val OG_TITLE = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']*)[\"']")
     }

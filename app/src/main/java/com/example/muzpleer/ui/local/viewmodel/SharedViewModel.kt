@@ -350,6 +350,19 @@ class SharedViewModel(
         _currentSong.value?.let { if (it.id == songId) _currentSong.value = transform(it) }
     }
 
+    /** Обложка, скачанная вместе с треком: пишем в базу и обновляем песню во всех списках. */
+    fun setSongCover(songId: Long, coverPath: String, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                repository.updateCoverPath(songId, coverPath)
+                patchSong(songId) { it.copy(artUri = coverPath) }
+            } catch (e: Exception) {
+                Log.d(TAG, "SharedViewModel setSongCover error = ${e.message}")
+            }
+            onDone()
+        }
+    }
+
     fun updateSongInfo(
         songId: Long,
         title: String,

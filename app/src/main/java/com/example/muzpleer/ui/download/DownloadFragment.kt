@@ -137,7 +137,13 @@ class DownloadFragment : Fragment() {
             foldersViewModel.syncFolders()
             playlistsViewModel.loadPlaylists()
         }) {
-            done.playlistId?.let { playlistsViewModel.addToPlaylist(it, listOf(done.track.mediaId)) }
+            val addToPlaylist = {
+                done.playlistId?.let { playlistsViewModel.addToPlaylist(it, listOf(done.track.mediaId)) }
+                Unit
+            }
+            val cover = done.track.coverPath
+            if (cover != null) sharedViewModel.setSongCover(done.track.mediaId, cover, addToPlaylist)
+            else addToPlaylist()
         }
         Toast.makeText(requireContext(), getString(R.string.download_done, done.track.title), Toast.LENGTH_LONG).show()
     }
