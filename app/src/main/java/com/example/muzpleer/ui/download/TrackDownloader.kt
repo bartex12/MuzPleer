@@ -41,6 +41,38 @@ data class DownloadedTrack(
     val coverPath: String?   //обложка, скачанная вместе с треком (если удалось)
 )
 
+/** Что пришло с сервера: начало файла, размер и тип - для проверки и сообщения об ошибке. */
+private class StreamInfo(val contentType: String) {
+    val head = ByteArray(16)
+    var headLen = 0
+    var size = 0L
+
+    fun feed(buf: ByteArray, n: Int) {
+        if (headLen < head.size) {
+            val take = minOf(n, head.size - headLen)
+            System.arraycopy(buf, 0, head, headLen, take)
+            headLen += take
+        }
+        size += n
+    }
+
+    private fun at(i: Int) = if (i < headLen) head[i].toInt() and 0xFF else -1
+    private fun text(from: Int, len: Int) = (from until from + len).map { at(it) }.let { l ->
+        if (l.any { it < 0 }) "" else l.map { it.toChar() }.joinToString("")
+    }
+
+    /** Похоже ли начало на известный аудиоформат (MP4/M4A, MP3, Ogg, FLAC, WAV). */
+    fun looksLikeAudio(): Boolean =
+        text(4, 4) == "ftyp" || text(0, 3) == "ID3" || (at(0) == 0xFF && (at(1) and 0xE0) == 0xE0) ||
+            text(0, 4) == "OggS" || text(0, 4) == "fLaC" || text(0, 4) == "RIFF"
+
+    fun describe(): String {
+        val hex = (0 until headLen).joinToString(" ") { "%02X".format(at(it)) }
+        val ascii = (0 until headLen).map { at(it) }.map { if (it in 32..126) it.toChar() else '.' }.joinToString("")
+        return "размер $size байт, тип «${contentType.ifBlank { "не указан" }}», начало файла: $hex ($ascii)"
+    }
+}
+
 /** Результат записи файла в медиатеку. */
 private class SavedFile(val mediaId: Long, val durationMs: Long)
 
@@ -144,9 +176,10 @@ class TrackDownloader(private val context: Context) {
                 val displayName = safeFileName(title) + "." + ext
                 val total = body.contentLength()
                 val job = currentCoroutineContext()
+                val info = StreamInfo(body.contentType()?.toString().orEmpty())
 
                 val artist = track.artist ?: "Suno"
-                val saved = saveToMusicFolder(displayName, title, artist, mime) { out ->
+                val saved = saveToMusicFolder(displayName, title, artist, mime, info) { out ->
                     val buf = ByteArray(64 * 1024)
                     var done = 0L
                     var lastPercent = -2
@@ -155,6 +188,7 @@ class TrackDownloader(private val context: Context) {
                             val n = input.read(buf)
                             if (n < 0) break
                             out.write(buf, 0, n)
+                            info.feed(buf, n)
                             done += n
                             job.ensureActive() //отмена загрузки
                             val percent = if (total > 0) (done * 100 / total).toInt() else -1
@@ -183,6 +217,18 @@ class TrackDownloader(private val context: Context) {
     } catch (e: Exception) {
         Log.d(TAG, "TrackDownloader downloadCover error = ${e.message}")
         null
+    }
+
+    /**
+     * Если система не смогла прочитать длительность, смотрим на начало файла: известный аудиоформат -
+     * не отклоняем (длительность определит медиатека), иначе сообщаем, что именно пришло.
+     */
+    private fun checkIsAudio(duration: Long, info: StreamInfo) {
+        if (duration > 0) return
+        Log.d(TAG, "TrackDownloader checkIsAudio: ${info.describe()}")
+        if (!info.looksLikeAudio()) {
+            throw DownloadException("Сервер вернул не аудиофайл (${info.describe()}). Возможно, файл зашифрован или закрыт для скачивания.")
+        }
     }
 
     /** Длительность файла в мс по данным самого файла; 0, если он не читается как аудио. */
@@ -231,7 +277,7 @@ class TrackDownloader(private val context: Context) {
 
     /** Создаёт файл в Music/MuzPleer, пишет в него через [writer], проверяет, что это аудио, и возвращает id в MediaStore. */
     private suspend fun saveToMusicFolder(
-        displayName: String, title: String, artist: String, mime: String,
+        displayName: String, title: String, artist: String, mime: String, info: StreamInfo,
         writer: (java.io.OutputStream) -> Unit
     ): SavedFile {
         val resolver = context.contentResolver
@@ -252,9 +298,7 @@ class TrackDownloader(private val context: Context) {
                     ?: throw DownloadException("Не удалось открыть файл для записи")
                 //пока файл "в ожидании", проверяем, что его можно прочитать как аудио
                 val duration = probeDuration(uri, null)
-                if (duration <= 0) throw DownloadException(
-                    "Файл скачан, но не распознан как аудио (формат не поддерживается или файл повреждён)"
-                )
+                checkIsAudio(duration, info)
                 resolver.update(uri, ContentValues().apply { put(MediaStore.Audio.Media.IS_PENDING, 0) }, null, null)
                 val id = ContentUris.parseId(uri)
                 writeTags(id, title, artist)
@@ -276,10 +320,7 @@ class TrackDownloader(private val context: Context) {
                 throw e
             }
             val duration = probeDuration(null, file.path)
-            if (duration <= 0) {
-                file.delete()
-                throw DownloadException("Файл скачан, но не распознан как аудио (формат не поддерживается или файл повреждён)")
-            }
+            try { checkIsAudio(duration, info) } catch (e: DownloadException) { file.delete(); throw e }
             val id = scanLegacy(file, mime)
             writeTags(id, title, artist)
             waitMediaStoreDuration(id)
