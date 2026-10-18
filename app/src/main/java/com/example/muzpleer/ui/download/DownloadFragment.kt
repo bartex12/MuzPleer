@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -45,8 +46,22 @@ class DownloadFragment : Fragment() {
     //до Android 10 для записи в общую папку Music нужно разрешение
     private val writePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (granted) startDownload()
-            else Toast.makeText(requireContext(), R.string.download_need_permission, Toast.LENGTH_LONG).show()
+            if (granted) {
+                val picked = pendingPicked
+                pendingPicked = null
+                if (picked != null) startImport(picked) else startDownload()
+            } else {
+                pendingPicked = null
+                Toast.makeText(requireContext(), R.string.download_need_permission, Toast.LENGTH_LONG).show()
+            }
+        }
+
+    //выбранный файл, пока запрашивается разрешение на запись (Android 9 и ниже)
+    private var pendingPicked: Uri? = null
+
+    private val pickAudio =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) onFilePicked(uri)
         }
 
     override fun onCreateView(
@@ -63,6 +78,9 @@ class DownloadFragment : Fragment() {
             val clip = requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
             val text = clip.primaryClip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(requireContext())
             if (!text.isNullOrBlank()) binding.etUrl.setText(text.toString().trim())
+        }
+        binding.btnPickFile.setOnClickListener {
+            if (!downloadViewModel.isBusy()) pickAudio.launch(arrayOf("audio/*", "application/octet-stream"))
         }
         binding.btnDownload.setOnClickListener {
             if (downloadViewModel.isBusy()) downloadViewModel.cancel() else onDownloadClicked()
@@ -96,6 +114,24 @@ class DownloadFragment : Fragment() {
         startDownload()
     }
 
+    private fun needWritePermission() = Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+        ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        != PackageManager.PERMISSION_GRANTED
+
+    private fun onFilePicked(uri: Uri) {
+        if (needWritePermission()) {
+            pendingPicked = uri
+            writePermission.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        } else startImport(uri)
+    }
+
+    private fun startImport(uri: Uri) {
+        val url = binding.etUrl.text?.toString().orEmpty().trim()
+        val pos = binding.spPlaylist.selectedItemPosition
+        val playlistId = if (pos > 0) playlists.getOrNull(pos - 1)?.id else null
+        downloadViewModel.importFile(uri, url, playlistId)
+    }
+
     private fun startDownload() {
         val url = binding.etUrl.text?.toString().orEmpty().trim()
         val pos = binding.spPlaylist.selectedItemPosition
@@ -107,6 +143,7 @@ class DownloadFragment : Fragment() {
         val loading = state is DownloadState.Loading
         binding.btnDownload.setText(if (loading) R.string.download_cancel else R.string.download_start)
         binding.etUrl.isEnabled = !loading
+        binding.btnPickFile.isEnabled = !loading
         binding.spPlaylist.isEnabled = !loading
         binding.progress.visibility = if (loading) View.VISIBLE else View.GONE
         when (state) {

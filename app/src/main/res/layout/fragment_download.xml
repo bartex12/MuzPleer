@@ -62,6 +62,22 @@
             android:layout_marginTop="16dp"
             android:text="@string/download_start" />
 
+        <Button
+            android:id="@+id/btnPickFile"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/download_pick_file" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="@string/download_pick_hint"
+            android:textColor="?android:attr/textColorSecondary"
+            android:textSize="13sp" />
+
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyleHorizontal"
