@@ -50,6 +50,10 @@ class DownloadFragment : Fragment() {
     //плейлист, в который только что добавлен трек: на него указывает кнопка "Открыть плейлист"
     private var targetPlaylist: Playlist? = null
 
+    //на экране показан итог последнего копирования ("Трек скачан" / "уже есть") для этого плейлиста (null - без плейлиста)
+    private var resultShown = false
+    private var resultPlaylistId: Long? = null
+
     //до Android 10 для записи в общую папку Music нужно разрешение
     private val writePermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -105,7 +109,12 @@ class DownloadFragment : Fragment() {
         binding.spPlaylist.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, v: View?, position: Int, id: Long) {
                 val selectedId = if (position > 0) playlists.getOrNull(position - 1)?.id else null
-                if (selectedId != targetPlaylist?.id) hideOpenPlaylist()
+                if (resultShown && selectedId != resultPlaylistId) {
+                    //выбран другой плейлист: итог прошлого копирования и кнопка перехода больше не актуальны
+                    resultShown = false
+                    binding.tvStatus.text = ""
+                    hideOpenPlaylist()
+                }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
@@ -170,7 +179,7 @@ class DownloadFragment : Fragment() {
 
     private fun render(state: DownloadState) {
         val loading = state is DownloadState.Loading
-        if (loading) hideOpenPlaylist()
+        if (loading) { hideOpenPlaylist(); resultShown = false }
         binding.btnDownload.setText(if (loading) R.string.download_cancel else R.string.download_start)
         binding.etUrl.isEnabled = !loading
         binding.btnPickFile.isEnabled = !loading
@@ -212,6 +221,8 @@ class DownloadFragment : Fragment() {
     }
 
     private fun onDownloaded(done: DownloadState.Done) {
+        resultShown = true
+        resultPlaylistId = done.playlistId
         showOpenPlaylist(done.playlistId)
         if (done.track.alreadyExisted) {
             //копию не создавали; при необходимости только добавляем имеющийся трек в плейлист
