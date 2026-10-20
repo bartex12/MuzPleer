@@ -117,7 +117,7 @@
 
     <!-- Скачивание трека -->
     <string name="download_track">Скачать трек</string>
-    <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) и нажмите «Скачать». Либо выберите файл, уже сохранённый на устройстве. В любом случае он будет скопирован в папку Music/MuzPleer и появится в списке песен.</string>
+    <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) и нажмите «Скачать». Либо выберите файл, уже сохранённый на устройстве.</string>
     <string name="download_pick_file">Выбрать файл с устройства</string>
     <string name="download_pick_hint">Для трека из Suno скачайте его кнопкой Download в Suno, затем выберите файл. Чтобы подтянуть название, автора и обложку, вставьте выше ссылку на страницу трека suno.com.</string>
     <string name="download_url_hint">Ссылка на трек (для Suno - необязательно)</string>
@@ -128,6 +128,7 @@
     <string name="download_cancel">Отменить</string>
     <string name="download_loading">Загрузка…</string>
     <string name="download_enter_url">Введите ссылку</string>
+    <string name="download_open_playlist">Открыть плейлист «%1$s»</string>
     <string name="download_exists">Трек «%1$s» уже есть в папке Music/MuzPleer, повторно не копируем</string>
     <string name="download_done">Трек «%1$s» скачан</string>
     <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>

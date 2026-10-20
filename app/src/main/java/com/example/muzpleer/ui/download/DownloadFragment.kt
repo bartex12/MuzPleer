@@ -10,11 +10,15 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentDownloadBinding
 import com.example.muzpleer.model.Playlist
@@ -42,6 +46,13 @@ class DownloadFragment : Fragment() {
     private val foldersViewModel: FoldersViewModel by activityViewModel()
 
     private var playlists: List<Playlist> = emptyList()
+
+    //плейлист, в который только что добавлен трек: на него указывает кнопка "Открыть плейлист"
+    private var targetPlaylist: Playlist? = null
+
+    //на экране показан итог последнего копирования ("Трек скачан" / "уже есть") для этого плейлиста (null - без плейлиста)
+    private var resultShown = false
+    private var resultPlaylistId: Long? = null
 
     //до Android 10 для записи в общую папку Music нужно разрешение
     private val writePermission =
@@ -81,6 +92,31 @@ class DownloadFragment : Fragment() {
         }
         binding.btnPickFile.setOnClickListener {
             if (!downloadViewModel.isBusy()) pickAudio.launch(arrayOf("audio/*", "application/octet-stream"))
+        }
+        binding.btnOpenPlaylist.setOnClickListener {
+            targetPlaylist?.let {
+                //кнопка "Назад" из плейлиста должна вести на экран плейлистов (вкладка 3 главного экрана),
+                //поэтому экран загрузки убираем из стека, а вкладку запоминаем заранее
+                sharedViewModel.saveTabsLocalPosition(PLAYLISTS_TAB)
+                findNavController().navigate(
+                    R.id.songPlaylistFragment,
+                    bundleOf("playlistId" to it.id, "playlistName" to it.playlistName),
+                    navOptions { popUpTo(R.id.downloadFragment) { inclusive = true } }
+                )
+            }
+        }
+        //пользователь выбрал в списке другой плейлист - кнопка про прежний плейлист больше не нужна
+        binding.spPlaylist.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, v: View?, position: Int, id: Long) {
+                val selectedId = if (position > 0) playlists.getOrNull(position - 1)?.id else null
+                if (resultShown && selectedId != resultPlaylistId) {
+                    //выбран другой плейлист: итог прошлого копирования и кнопка перехода больше не актуальны
+                    resultShown = false
+                    binding.tvStatus.text = ""
+                    hideOpenPlaylist()
+                }
+            }
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
         binding.btnDownload.setOnClickListener {
             if (downloadViewModel.isBusy()) downloadViewModel.cancel() else onDownloadClicked()
@@ -143,6 +179,7 @@ class DownloadFragment : Fragment() {
 
     private fun render(state: DownloadState) {
         val loading = state is DownloadState.Loading
+        if (loading) { hideOpenPlaylist(); resultShown = false }
         binding.btnDownload.setText(if (loading) R.string.download_cancel else R.string.download_start)
         binding.etUrl.isEnabled = !loading
         binding.btnPickFile.isEnabled = !loading
@@ -170,7 +207,23 @@ class DownloadFragment : Fragment() {
     }
 
     /** Файл уже в MediaStore: обновляем медиатеку приложения и, если выбран плейлист, добавляем в него. */
+    private fun showOpenPlaylist(playlistId: Long?) {
+        val playlist = playlistId?.let { id -> playlists.firstOrNull { it.id == id } }
+        if (playlist == null) { hideOpenPlaylist(); return }
+        targetPlaylist = playlist
+        binding.btnOpenPlaylist.text = getString(R.string.download_open_playlist, playlist.playlistName)
+        binding.btnOpenPlaylist.visibility = View.VISIBLE
+    }
+
+    private fun hideOpenPlaylist() {
+        targetPlaylist = null
+        _binding?.btnOpenPlaylist?.visibility = View.GONE
+    }
+
     private fun onDownloaded(done: DownloadState.Done) {
+        resultShown = true
+        resultPlaylistId = done.playlistId
+        showOpenPlaylist(done.playlistId)
         if (done.track.alreadyExisted) {
             //копию не создавали; при необходимости только добавляем имеющийся трек в плейлист
             done.playlistId?.let { playlistsViewModel.addToPlaylist(it, listOf(done.track.mediaId)) }
@@ -193,6 +246,10 @@ class DownloadFragment : Fragment() {
             else addToPlaylist()
         }
         Toast.makeText(requireContext(), getString(R.string.download_done, done.track.title), Toast.LENGTH_LONG).show()
+    }
+
+    companion object {
+        private const val PLAYLISTS_TAB = 3   //номер вкладки "Мои плейлисты" в ViewPageAdapterLocal
     }
 
     override fun onDestroyView() {
