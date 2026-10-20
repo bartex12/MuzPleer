@@ -31,6 +31,7 @@ val appModule = module {
         MusicServiceHandler(
             context = androidContext(),
             player = get(),
+            preferences = get(),
             callback = get() // Получаем реализацию колбэка из контейнера
         )
     }
