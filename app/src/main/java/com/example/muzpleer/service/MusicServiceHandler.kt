@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -74,7 +75,10 @@ class MusicServiceHandler(
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     //трек готов: сообщаем длительность, в том числе когда стоит пауза
-                    if (playbackState == Player.STATE_READY) emitPosition()
+                    if (playbackState == Player.STATE_READY) {
+                        emitPosition()
+                        refreshItemDuration()
+                    }
                 }
     }
 
@@ -84,6 +88,23 @@ class MusicServiceHandler(
         player.addListener(playerListener)
         //начальное состояние; дальше позиция опрашивается только во время воспроизведения
         emitPosition()
+    }
+
+    /**
+     * Длительность в базе у некоторых файлов неверна или равна 0, а виджет на экране блокировки берёт её из
+     * метаданных трека (без неё не рисует шкалу времени). Когда плеер узнал настоящую длительность, обновляем ею
+     * метаданные текущего трека; при этом тот же адрес файла, так что воспроизведение не прерывается.
+     */
+    private fun refreshItemDuration() {
+        val real = player.duration
+        if (real == C.TIME_UNSET || real <= 0) return
+        val item = player.currentMediaItem ?: return
+        val declared = item.mediaMetadata.durationMs
+        if (declared != null && kotlin.math.abs(declared - real) < DURATION_TOLERANCE_MS) return
+        val updated = item.buildUpon()
+            .setMediaMetadata(item.mediaMetadata.buildUpon().setDurationMs(real).build())
+            .build()
+        player.replaceMediaItem(player.currentMediaItemIndex, updated)
     }
 
     /**
@@ -147,7 +168,7 @@ class MusicServiceHandler(
             .setArtist(track.artist)
             .setArtworkUri(artwork)
             //длительность из базы: пока плеер не прочитал файл, уведомление и экран блокировки уже могут показать шкалу времени
-            .setDurationMs(track.duration.takeIf { it > 0 } ?: androidx.media3.common.C.TIME_UNSET)
+            .setDurationMs(track.duration.takeIf { it > 0 })
             .build()
         return MediaItem.Builder().setMediaId(track.id.toString()).setUri(uri).setMediaMetadata(metadata).build()
     }
@@ -215,6 +236,7 @@ class MusicServiceHandler(
 
     companion object{
         const val TAG = "33333"
+        private const val DURATION_TOLERANCE_MS = 2000L
     }
 }
 

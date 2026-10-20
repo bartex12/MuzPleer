@@ -109,9 +109,11 @@ class MusicRepository(
                     val isTitleChanged = existingFile.title != title
                     val isArtistChanged = existingFile.artist != artist
                     val isAlbumChanged = existingFile.album != album
+                    //в базе длительность могла остаться пустой или старой (файл ещё не успели проиндексировать)
+                    val isDurationChanged = duration > 0 && existingFile.duration != duration
                     // Обложку проверяем у всех изменившихся песен, в том числе у тех, где её пока нет:
                     // вдруг в файле появилась встроенная картинка
-                    if (isModified || isMoved || isTitleChanged || isArtistChanged || isAlbumChanged) {
+                    if (isModified || isMoved || isTitleChanged || isArtistChanged || isAlbumChanged || isDurationChanged) {
                         // При изменении файла проверяем, не появилась ли новая встроенная обложка
                         // Если появилась,сохраняем изображение в кэш и возвращаем URI в строковом виде
                         //один проход по файлу: обложка и теги, которых ещё нет в базе
