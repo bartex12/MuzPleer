@@ -33,19 +33,14 @@ class MusicServiceHandler(
 ) {
     //подключение к службе: пока оно есть, система не останавливает службу, а служба показывает уведомление
     private var controllerFuture: ListenableFuture<MediaController>? = null
+    //список песен, которые лежат в плеере (порядок совпадает с очередью плеера)
     internal var playlist: List<Song> = emptyList()
-    private var currentIndex = 0
     private var positionUpdateJob: Job? = null
 
-    // 1. Новые переменные для управления Shuffle-режимом
-    var isShuffleMode: Boolean = false
-        set(value) {
-            field = value
-            if (value && playlist.isNotEmpty()) {
-                generateShuffledIndices()
-            }
-        }
-    private var shuffledIndices: List<Int> = emptyList()
+    /** Случайный порядок включает сам плеер: так "следующий" из уведомления и наушников тоже его учитывает. */
+    var isShuffleMode: Boolean
+        get() = player.shuffleModeEnabled
+        set(value) { player.shuffleModeEnabled = value }
 
     interface PlayerCallback {
         fun onTrackChanged(track: Song)
@@ -62,11 +57,10 @@ class MusicServiceHandler(
                 }
 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    // Убираем отсюда дублирующий вызов playNext(),
-                    // так как STATE_ENDED ниже уже обрабатывает окончание трека.
-//                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-//                        playNext()
-//                    }
+                    //смена трека самим плеером (конец трека, "следующий" из уведомления или наушников);
+                    //при замене списка о треке сообщает setPlaylist
+                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
+                    currentTrack()?.let { callback.onTrackChanged(it) }
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
@@ -74,18 +68,14 @@ class MusicServiceHandler(
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
-                    when(playbackState){
-                        // Автопереключение при окончании трека
-                        Player.STATE_ENDED ->{
-                            playNext()
-                        }
-                        // трек готов: сообщаем длительность, в том числе когда стоит пауза
-                        Player.STATE_READY -> emitPosition()
-                    }
+                    //трек готов: сообщаем длительность, в том числе когда стоит пауза
+                    if (playbackState == Player.STATE_READY) emitPosition()
                 }
     }
 
     init {
+        //после последнего трека начинаем сначала (как и раньше); следующий трек плеер включает сам
+        player.repeatMode = Player.REPEAT_MODE_ALL
         player.addListener(playerListener)
         //начальное состояние; дальше позиция опрашивается только во время воспроизведения
         emitPosition()
@@ -100,46 +90,39 @@ class MusicServiceHandler(
         emitPosition()
     }
 
+    /** Трек, который сейчас стоит в плеере (null, если плеер пуст). */
+    fun currentTrack(): Song? =
+        if (player.mediaItemCount == 0) null else playlist.getOrNull(player.currentMediaItemIndex)
+
+    /** Загружает список песен в плеер и начинает играть с [startIndex]. */
     fun setPlaylist(tracks: List<Song>, startIndex: Int = 0) {
+        if (startIndex !in tracks.indices) return
         // Проверяем, не тот ли это же плейлист и тот же трек
-        if (playlist == tracks && currentIndex == startIndex && player.isPlaying == true) {
+        if (playlist == tracks && player.currentMediaItemIndex == startIndex && player.isPlaying) {
             // Уже играет этот же трек, ничего не делаем
             Log.d(TAG, "@@@MusicServiceHandler setPlaylist: тот же трек уже играет, пропускаем")
             return
         }
-        playlist = tracks
-        currentIndex = startIndex
-        // 2. Если включен Shuffle, генерируем новый порядок при установке плейлиста
-        if (isShuffleMode) {
-            generateShuffledIndices()
-        }
-        playTrack(startIndex)
-    }
-
-    // 3. Вспомогательный метод для генерации случайной последовательности
-    private fun generateShuffledIndices() {
-        if (playlist.isEmpty()) return
-        // Создаем список индексов [0, 1, 2...] и перемешиваем его
-        val indices = playlist.indices.toMutableList()
-        indices.remove(currentIndex) // Удаляем текущий трек, чтобы перемешать остальные
-        indices.shuffle()
-        indices.add(0, currentIndex) // Ставим текущий трек на первое место, чтобы он не прервался
-        shuffledIndices = indices
-    }
-
-    fun playTrack(index: Int) {
-        if (index !in playlist.indices) return
-        currentIndex = index
-        val track = playlist[index]
-        Log.d(TAG, "@@@MusicServiceHandler playTrack: index = $index  track = ${track.title}")
-        val uri = track.getContentUri()
-        val mediaItem = buildMediaItem(track, uri)
-        Log.d(TAG, "@@@MusicServiceHandler playTrack:mediaUri = ${track.mediaUri} uri = $uri artUri = ${track.artUri}")
         connectToService() //служба и уведомление нужны с первого запуска музыки
-        player.setMediaItem(mediaItem)
+        if (playlist == tracks && player.mediaItemCount == tracks.size) {
+            //тот же список - только переходим к нужному треку
+            player.seekTo(startIndex, 0L)
+        } else {
+            playlist = tracks
+            player.setMediaItems(tracks.map { buildMediaItem(it) }, startIndex, 0L)
+        }
         player.prepare()
         player.play()
-        callback.onTrackChanged(track)
+        callback.onTrackChanged(tracks[startIndex])
+    }
+
+    /** Переключает на песню с номером [index] в текущем списке. */
+    fun playTrack(index: Int) {
+        if (index !in playlist.indices) return
+        player.seekTo(index, 0L)
+        player.prepare()
+        player.play()
+        callback.onTrackChanged(playlist[index])
     }
 
     fun togglePlayPause() {
@@ -147,7 +130,8 @@ class MusicServiceHandler(
     }
 
     /** Трек с названием, исполнителем и обложкой: их показывает уведомление и экран блокировки. */
-    private fun buildMediaItem(track: Song, uri: Uri): MediaItem {
+    private fun buildMediaItem(track: Song): MediaItem {
+        val uri = track.getContentUri()
         val artwork = track.artUri?.takeIf { it.isNotBlank() }?.let {
             if (it.startsWith("/")) Uri.fromFile(java.io.File(it)) else Uri.parse(it)
         }
@@ -156,7 +140,7 @@ class MusicServiceHandler(
             .setArtist(track.artist)
             .setArtworkUri(artwork)
             .build()
-        return MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build()
+        return MediaItem.Builder().setMediaId(track.id.toString()).setUri(uri).setMediaMetadata(metadata).build()
     }
 
     /**
@@ -173,51 +157,18 @@ class MusicServiceHandler(
         }
     }
 
-    // 4. Обновленная логика «Вперед» с учетом Shuffle
+    /** "Вперёд" с учётом случайного порядка; после последнего трека - первый. */
     fun playNext() {
-        if (playlist.isEmpty()) return
-
-        if (isShuffleMode) {
-            val currentShufflePosition = shuffledIndices.indexOf(currentIndex)
-            if (currentShufflePosition < shuffledIndices.size - 1) {
-                // Играем следующий случайный трек
-                playTrack(shuffledIndices[currentShufflePosition + 1])
-            } else {
-                // Плейлист закончился. Перемешиваем заново и включаем первый трек из нового списка
-                generateShuffledIndices()
-                playTrack(shuffledIndices[0])
-            }
-        } else {
-            // Обычный прямой порядок
-            if (currentIndex < playlist.size - 1) {
-                playTrack(currentIndex + 1)
-            } else {
-                playTrack(0)
-            }
-        }
+        if (player.mediaItemCount == 0) return
+        player.seekToNextMediaItem()
+        player.play()
     }
 
-    // 5. Обновленная логика «Назад» с учетом Shuffle
+    /** "Назад" с учётом случайного порядка; перед первым треком - последний. */
     fun playPrevious() {
-        if (playlist.isEmpty()) return
-
-        if (isShuffleMode) {
-            val currentShufflePosition = shuffledIndices.indexOf(currentIndex)
-            if (currentShufflePosition > 0) {
-                // Возвращаемся по истории случайного порядка назад
-                playTrack(shuffledIndices[currentShufflePosition - 1])
-            } else {
-                // Если мы в самом начале shuffle-списка, переходим в конец
-                playTrack(shuffledIndices.last())
-            }
-        } else {
-            // Обычный прямой порядок
-            if (currentIndex > 0) {
-                playTrack(currentIndex - 1)
-            } else {
-                playTrack(playlist.size - 1) // Опционально: переход к концу, если нажали назад на 1-м треке
-            }
-        }
+        if (player.mediaItemCount == 0) return
+        player.seekToPreviousMediaItem()
+        player.play()
     }
 
     fun seekTo(position: Long) {

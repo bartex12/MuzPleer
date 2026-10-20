@@ -36,6 +36,11 @@ class PlayerViewModel(
 
     /** Вызывается при смене трека плеером. Без повторной доставки, в отличие от LiveData. */
     var onTrackChangedListener: ((Song) -> Unit)? = null
+        set(value) {
+            field = value
+            //приложение открыли заново, пока музыка играет в фоне: сразу сообщаем, какой трек сейчас в плеере
+            if (value != null) playerHandler.currentTrack()?.let(value)
+        }
 
     init {
         playerHandler.callback = this  //иначе не работает
