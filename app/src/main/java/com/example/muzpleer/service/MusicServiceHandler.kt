@@ -1,11 +1,18 @@
 package com.example.muzpleer.service
 
+import android.content.ComponentName
 import android.content.Context
+import android.net.Uri
 import android.util.Log
+import androidx.core.content.ContextCompat
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import com.example.muzpleer.model.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,11 +21,18 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+/**
+ * Управляет воспроизведением. Плеер ([player]) общий на всё приложение и принадлежит не экрану, а процессу:
+ * его же использует [PlaybackService] (уведомление, управление с экрана блокировки и наушников),
+ * поэтому музыка не прерывается, когда приложение закрыто.
+ */
 class MusicServiceHandler(
     private val context: Context,
+    private val player: ExoPlayer,
     internal var callback: PlayerCallback
 ) {
-    private var player: ExoPlayer? = null
+    //подключение к службе: пока оно есть, система не останавливает службу, а служба показывает уведомление
+    private var controllerFuture: ListenableFuture<MediaController>? = null
     internal var playlist: List<Song> = emptyList()
     private var currentIndex = 0
     private var positionUpdateJob: Job? = null
@@ -40,12 +54,7 @@ class MusicServiceHandler(
         fun onError(message: String)
     }
 
-    init {  initializePlayer() }
-
-    private fun initializePlayer() {
-        player = ExoPlayer.Builder(context).build().apply {
-
-            addListener(object : Player.Listener {
+    private val playerListener = object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     callback.onPlaybackStateChanged(isPlaying)
                     //позицию опрашиваем только пока играет музыка
@@ -74,14 +83,26 @@ class MusicServiceHandler(
                         Player.STATE_READY -> emitPosition()
                     }
                 }
-            })
-        }
-        emitPosition() //начальное состояние; дальше позиция опрашивается только во время воспроизведения
+    }
+
+    init {
+        player.addListener(playerListener)
+        //начальное состояние; дальше позиция опрашивается только во время воспроизведения
+        emitPosition()
+    }
+
+    /**
+     * Сообщает экрану текущее состояние плеера. Нужно, когда приложение открыли заново, а музыка
+     * в это время уже играла (плеер жил в службе).
+     */
+    fun syncState() {
+        callback.onPlaybackStateChanged(player.isPlaying)
+        emitPosition()
     }
 
     fun setPlaylist(tracks: List<Song>, startIndex: Int = 0) {
         // Проверяем, не тот ли это же плейлист и тот же трек
-        if (playlist == tracks && currentIndex == startIndex && player?.isPlaying == true) {
+        if (playlist == tracks && currentIndex == startIndex && player.isPlaying == true) {
             // Уже играет этот же трек, ничего не делаем
             Log.d(TAG, "@@@MusicServiceHandler setPlaylist: тот же трек уже играет, пропускаем")
             return
@@ -111,20 +132,44 @@ class MusicServiceHandler(
         currentIndex = index
         val track = playlist[index]
         Log.d(TAG, "@@@MusicServiceHandler playTrack: index = $index  track = ${track.title}")
-        player?.let { p ->
-            val uri = track.getContentUri()
-            val mediaItem =MediaItem.fromUri(uri)
-            Log.d(TAG, "@@@MusicServiceHandler playTrack:mediaUri = ${track.mediaUri} uri = $uri artUri = ${track.artUri}")
-            p.setMediaItem(mediaItem)
-            p.prepare()
-            p.play()
-            callback.onTrackChanged(track)
-        }
+        val uri = track.getContentUri()
+        val mediaItem = buildMediaItem(track, uri)
+        Log.d(TAG, "@@@MusicServiceHandler playTrack:mediaUri = ${track.mediaUri} uri = $uri artUri = ${track.artUri}")
+        connectToService() //служба и уведомление нужны с первого запуска музыки
+        player.setMediaItem(mediaItem)
+        player.prepare()
+        player.play()
+        callback.onTrackChanged(track)
     }
 
     fun togglePlayPause() {
-        player?.let {
-            if (it.isPlaying) it.pause() else it.play()
+        if (player.isPlaying) player.pause() else player.play()
+    }
+
+    /** Трек с названием, исполнителем и обложкой: их показывает уведомление и экран блокировки. */
+    private fun buildMediaItem(track: Song, uri: Uri): MediaItem {
+        val artwork = track.artUri?.takeIf { it.isNotBlank() }?.let {
+            if (it.startsWith("/")) Uri.fromFile(java.io.File(it)) else Uri.parse(it)
+        }
+        val metadata = MediaMetadata.Builder()
+            .setTitle(track.title)
+            .setArtist(track.artist)
+            .setArtworkUri(artwork)
+            .build()
+        return MediaItem.Builder().setUri(uri).setMediaMetadata(metadata).build()
+    }
+
+    /**
+     * Подключается к [PlaybackService]: система создаёт службу и держит её, а при начале воспроизведения
+     * служба сама переходит в режим с уведомлением. Подключение делаем один раз.
+     */
+    private fun connectToService() {
+        if (controllerFuture != null) return
+        try {
+            val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+            controllerFuture = MediaController.Builder(context, token).buildAsync()
+        } catch (e: Exception) {
+            Log.d(TAG, "MusicServiceHandler connectToService error = ${e.message}")
         }
     }
 
@@ -176,14 +221,14 @@ class MusicServiceHandler(
     }
 
     fun seekTo(position: Long) {
-        player?.seekTo(position)
+        player.seekTo(position)
         emitPosition() //на паузе опроса нет, поэтому новую позицию сообщаем сразу
     }
 
-    fun getCurrentPosition(): Long = player?.currentPosition ?: 0
+    fun getCurrentPosition(): Long = player.currentPosition
 
     private fun emitPosition() {
-        player?.let { callback.onPositionChanged(it.currentPosition, it.duration) }
+        callback.onPositionChanged(player.currentPosition, player.duration)
     }
 
     private fun startPositionUpdates() {
@@ -202,10 +247,10 @@ class MusicServiceHandler(
         emitPosition() //последнее значение на момент паузы
     }
 
+    /** Плеер здесь не освобождается: он общий и живёт, пока работает приложение или служба. */
     fun release() {
         positionUpdateJob?.cancel()
-        player?.release()
-        player = null
+        player.removeListener(playerListener)
     }
 
     companion object{

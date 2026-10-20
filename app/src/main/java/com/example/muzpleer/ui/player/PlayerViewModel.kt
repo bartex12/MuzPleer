@@ -39,6 +39,7 @@ class PlayerViewModel(
 
     init {
         playerHandler.callback = this  //иначе не работает
+        playerHandler.syncState()      //приложение могли открыть заново, пока музыка играет
         Log.d(TAG, "PlayerViewModel init: playerHandler = $playerHandler")
     }
 
@@ -105,7 +106,16 @@ class PlayerViewModel(
     override fun onCleared() {
         super.onCleared()
         onTrackChangedListener = null
-        playerHandler.release()
+        //обработчик общий и живёт дальше (музыка продолжает играть): только отвязываем себя от него
+        if (playerHandler.callback === this) playerHandler.callback = NoCallback
+    }
+
+    /** Заглушка на время, пока нет ни одного экрана. */
+    private object NoCallback : MusicServiceHandler.PlayerCallback {
+        override fun onTrackChanged(track: Song) {}
+        override fun onPlaybackStateChanged(isPlaying: Boolean) {}
+        override fun onPositionChanged(position: Long, duration: Long) {}
+        override fun onError(message: String) {}
     }
 
     companion object {
