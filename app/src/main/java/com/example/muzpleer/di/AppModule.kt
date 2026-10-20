@@ -1,6 +1,8 @@
 package com.example.muzpleer.di
 
 import android.content.Context
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.service.MusicServiceHandler
@@ -24,9 +26,11 @@ val appModule = module {
     single<IPreferenceHelper> { PreferenceHelperImpl(get()) }
     single<UserMessenger> { ToastMessenger(androidContext()) }
     single { provideExoPlayer(get()) }
-    factory {
+    //один на всё приложение: музыка играет и после закрытия экрана, поэтому состояние плеера не привязано к Activity
+    single {
         MusicServiceHandler(
             context = androidContext(),
+            player = get(),
             callback = get() // Получаем реализацию колбэка из контейнера
         )
     }
@@ -52,5 +56,15 @@ val appModule = module {
 }
 
 private fun provideExoPlayer(context: Context): ExoPlayer {
-    return ExoPlayer.Builder(context).build()
+    return ExoPlayer.Builder(context)
+        //музыка: уступать звук звонку и другим плеерам, не играть "вслепую" при отключении наушников
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build(),
+            true
+        )
+        .setHandleAudioBecomingNoisy(true)
+        .build()
 }

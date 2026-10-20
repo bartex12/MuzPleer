@@ -104,6 +104,24 @@ class MainActivity : AppCompatActivity() {
         } else {
             handlePermissionDenied()
         }
+        requestNotificationPermissionIfNeeded()
+    }
+
+    //Android 13+: без этого разрешения служба играет, но уведомление с кнопками не показывается
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { /* результат не нужен: без разрешения музыка просто играет без уведомления */ }
+
+    private var notificationPermissionAsked = false
+
+    private fun requestNotificationPermissionIfNeeded() {
+        if (notificationPermissionAsked || Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
+        notificationPermissionAsked = true
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 
     private val manageStorageLauncher = registerForActivityResult(
@@ -114,6 +132,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             handlePermissionDenied()
         }
+        requestNotificationPermissionIfNeeded()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -443,6 +462,7 @@ class MainActivity : AppCompatActivity() {
         when {
             hasStoragePermission() -> {
                 scanForMusic()
+                requestNotificationPermissionIfNeeded()
             }
             shouldShowRequestPermissionRationale(getRequiredPermission()) -> {
                 showPermissionRationale()
