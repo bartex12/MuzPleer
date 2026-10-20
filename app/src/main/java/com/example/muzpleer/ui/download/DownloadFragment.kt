@@ -163,6 +163,7 @@ class DownloadFragment : Fragment() {
             is DownloadState.Done -> {
                 binding.tvStatus.text = getString(R.string.download_done, state.track.title)
                 onDownloaded(state)
+                if (state.track.alreadyExisted) binding.tvStatus.text = getString(R.string.download_exists, state.track.title)
                 downloadViewModel.reset()
             }
         }
@@ -170,6 +171,13 @@ class DownloadFragment : Fragment() {
 
     /** Файл уже в MediaStore: обновляем медиатеку приложения и, если выбран плейлист, добавляем в него. */
     private fun onDownloaded(done: DownloadState.Done) {
+        if (done.track.alreadyExisted) {
+            //копию не создавали; при необходимости только добавляем имеющийся трек в плейлист
+            done.playlistId?.let { playlistsViewModel.addToPlaylist(it, listOf(done.track.mediaId)) }
+            binding.tvStatus.text = getString(R.string.download_exists, done.track.title)
+            Toast.makeText(requireContext(), getString(R.string.download_exists, done.track.title), Toast.LENGTH_LONG).show()
+            return
+        }
         sharedViewModel.refreshLibrary(onScanned = {
             albumsViewModel.syncAlbums()
             artistsViewModel.syncArtist()

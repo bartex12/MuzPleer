@@ -41,7 +41,8 @@ data class DownloadedTrack(
     val title: String,
     val artist: String,
     val durationMs: Long,
-    val coverPath: String?   //обложка, скачанная вместе с треком (если удалось)
+    val coverPath: String?,   //обложка, скачанная вместе с треком (если удалось)
+    val alreadyExisted: Boolean = false   //такой файл уже лежал в Music/MuzPleer, новая копия не создавалась
 )
 
 /** Что пришло с сервера: начало файла, размер и тип - для проверки и сообщения об ошибке. */
@@ -185,6 +186,7 @@ class TrackDownloader(private val context: Context) {
                 val info = StreamInfo(body.contentType()?.toString().orEmpty())
 
                 val artist = track.artist ?: "Suno"
+                findExisting(displayName, total)?.let { return@withContext it.copy(alreadyExisted = true) }
                 val saved = try { saveToMusicFolder(displayName, title, artist, mime, info) { out ->
                     val buf = ByteArray(64 * 1024)
                     var done = 0L
@@ -209,6 +211,45 @@ class TrackDownloader(private val context: Context) {
                 DownloadedTrack(saved.mediaId, title, artist, saved.durationMs, cover)
             }
         }
+
+    /**
+     * Ищет в Music/MuzPleer такой же файл: тот же размер и имя (либо имя с добавкой " (1)", которую система
+     * дописывает сама при совпадении). Так один и тот же трек не копируется повторно и не занимает память.
+     * Размер неизвестен (<= 0) - не проверяем.
+     */
+    @Suppress("DEPRECATION")
+    private fun findExisting(displayName: String, size: Long): DownloadedTrack? {
+        if (size <= 0) return null
+        val base = displayName.substringBeforeLast('.')
+        val ext = displayName.substringAfterLast('.', "")
+        val nameRe = Regex("^" + Regex.escape(base) + "( \\(\\d+\\))?\\." + Regex.escape(ext) + "$", RegexOption.IGNORE_CASE)
+        val (selection, arg) = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+            "${MediaStore.Audio.Media.SIZE}=? AND ${MediaStore.Audio.Media.RELATIVE_PATH} LIKE ?" to
+                "${Environment.DIRECTORY_MUSIC}/$FOLDER/%"
+        else
+            "${MediaStore.Audio.Media.SIZE}=? AND ${MediaStore.Audio.Media.DATA} LIKE ?" to "%/${Environment.DIRECTORY_MUSIC}/$FOLDER/%"
+        return try {
+            context.contentResolver.query(
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                arrayOf(
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION
+                ),
+                selection, arrayOf(size.toString(), arg), null
+            )?.use { c ->
+                var found: DownloadedTrack? = null
+                while (found == null && c.moveToNext()) {
+                    if (nameRe.matches(c.getString(1).orEmpty())) {
+                        found = DownloadedTrack(c.getLong(0), c.getString(2).orEmpty(), c.getString(3).orEmpty(), c.getLong(4), null)
+                    }
+                }
+                found
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader findExisting error = ${e.message}")
+            null
+        }
+    }
 
     /** Название, исполнитель и встроенная обложка из тегов выбранного файла. */
     private class FileTags(val title: String?, val artist: String?, val picture: ByteArray?)
@@ -269,6 +310,7 @@ class TrackDownloader(private val context: Context) {
             val job = currentCoroutineContext()
             val info = StreamInfo(resolver.getType(uri).orEmpty())
 
+            findExisting(displayName, total)?.let { return@withContext it.copy(alreadyExisted = true) }
             val saved = try {
                 saveToMusicFolder(displayName, title, artist, mime, info) { out ->
                     val input = resolver.openInputStream(uri) ?: throw DownloadException("Не удалось открыть выбранный файл")
