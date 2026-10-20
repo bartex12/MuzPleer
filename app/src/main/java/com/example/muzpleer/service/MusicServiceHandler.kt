@@ -2,10 +2,11 @@ package com.example.muzpleer.service
 
 import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.ContextCompat
-import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -14,8 +15,10 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
+import com.example.muzpleer.R
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -75,10 +78,7 @@ class MusicServiceHandler(
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
                     //трек готов: сообщаем длительность, в том числе когда стоит пауза
-                    if (playbackState == Player.STATE_READY) {
-                        emitPosition()
-                        refreshItemDuration()
-                    }
+                    if (playbackState == Player.STATE_READY) emitPosition()
                 }
     }
 
@@ -88,23 +88,6 @@ class MusicServiceHandler(
         player.addListener(playerListener)
         //начальное состояние; дальше позиция опрашивается только во время воспроизведения
         emitPosition()
-    }
-
-    /**
-     * Длительность в базе у некоторых файлов неверна или равна 0, а виджет на экране блокировки берёт её из
-     * метаданных трека (без неё не рисует шкалу времени). Когда плеер узнал настоящую длительность, обновляем ею
-     * метаданные текущего трека; при этом тот же адрес файла, так что воспроизведение не прерывается.
-     */
-    private fun refreshItemDuration() {
-        val real = player.duration
-        if (real == C.TIME_UNSET || real <= 0) return
-        val item = player.currentMediaItem ?: return
-        val declared = item.mediaMetadata.durationMs
-        if (declared != null && kotlin.math.abs(declared - real) < DURATION_TOLERANCE_MS) return
-        val updated = item.buildUpon()
-            .setMediaMetadata(item.mediaMetadata.buildUpon().setDurationMs(real).build())
-            .build()
-        player.replaceMediaItem(player.currentMediaItemIndex, updated)
     }
 
     /**
@@ -157,6 +140,21 @@ class MusicServiceHandler(
         if (player.isPlaying) player.pause() else player.play()
     }
 
+    //картинка "по умолчанию" в виде байтов (JPEG), готовится один раз
+    private val defaultArtwork: ByteArray? by lazy {
+        try {
+            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.muz_player3) ?: return@lazy null
+            val scaled = if (bitmap.width > ARTWORK_MAX_SIDE || bitmap.height > ARTWORK_MAX_SIDE) {
+                val k = ARTWORK_MAX_SIDE.toFloat() / maxOf(bitmap.width, bitmap.height)
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * k).toInt(), (bitmap.height * k).toInt(), true)
+            } else bitmap
+            ByteArrayOutputStream().also { scaled.compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
+        } catch (e: Exception) {
+            Log.d(TAG, "MusicServiceHandler defaultArtwork error = ${e.message}")
+            null
+        }
+    }
+
     /** Трек с названием, исполнителем и обложкой: их показывает уведомление и экран блокировки. */
     private fun buildMediaItem(track: Song): MediaItem {
         val uri = track.getContentUri()
@@ -166,7 +164,12 @@ class MusicServiceHandler(
         val metadata = MediaMetadata.Builder()
             .setTitle(track.title)
             .setArtist(track.artist)
-            .setArtworkUri(artwork)
+            .apply {
+                if (artwork != null) setArtworkUri(artwork)
+                //у трека нет обложки: без картинки виджет на экране блокировки (MIUI, Android 10) не рисует шкалу времени,
+                //поэтому отдаём обложку по умолчанию
+                else defaultArtwork?.let { setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
+            }
             //длительность из базы: пока плеер не прочитал файл, уведомление и экран блокировки уже могут показать шкалу времени
             .setDurationMs(track.duration.takeIf { it > 0 })
             .build()
@@ -236,7 +239,7 @@ class MusicServiceHandler(
 
     companion object{
         const val TAG = "33333"
-        private const val DURATION_TOLERANCE_MS = 2000L
+        private const val ARTWORK_MAX_SIDE = 512
     }
 }
 
