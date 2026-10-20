@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.navOptions
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentDownloadBinding
 import com.example.muzpleer.model.Playlist
@@ -90,9 +91,13 @@ class DownloadFragment : Fragment() {
         }
         binding.btnOpenPlaylist.setOnClickListener {
             targetPlaylist?.let {
+                //кнопка "Назад" из плейлиста должна вести на экран плейлистов (вкладка 3 главного экрана),
+                //поэтому экран загрузки убираем из стека, а вкладку запоминаем заранее
+                sharedViewModel.saveTabsLocalPosition(PLAYLISTS_TAB)
                 findNavController().navigate(
                     R.id.songPlaylistFragment,
-                    bundleOf("playlistId" to it.id, "playlistName" to it.playlistName)
+                    bundleOf("playlistId" to it.id, "playlistName" to it.playlistName),
+                    navOptions { popUpTo(R.id.downloadFragment) { inclusive = true } }
                 )
             }
         }
@@ -230,6 +235,10 @@ class DownloadFragment : Fragment() {
             else addToPlaylist()
         }
         Toast.makeText(requireContext(), getString(R.string.download_done, done.track.title), Toast.LENGTH_LONG).show()
+    }
+
+    companion object {
+        private const val PLAYLISTS_TAB = 3   //номер вкладки "Мои плейлисты" в ViewPageAdapterLocal
     }
 
     override fun onDestroyView() {
