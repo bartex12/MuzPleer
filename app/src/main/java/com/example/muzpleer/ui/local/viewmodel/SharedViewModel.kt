@@ -124,6 +124,8 @@ class SharedViewModel(
         _libraryLoaded.value = true //раньше списков: наблюдатели списка должны уже знать, что загрузка закончилась
         _songs.value = songs
         _filteredSongs.value  = _songs.value
+        //трек мог быть назван плеером раньше, чем загрузился список: теперь можно найти его индекс
+        _currentSong.value?.let { updateIndexOfCurrentSong(it) }
         Log.d(TAG, "SharedViewModel initParamsSong songs.size = ${songs.size}")
     }
 
@@ -154,6 +156,10 @@ class SharedViewModel(
     fun onTrackChanged(track: Song) {
         //так не меняется автоматом- остаётся старый artUri из плейлиста
         _currentSong.value = track
+        updateIndexOfCurrentSong(track)
+    }
+
+    private fun updateIndexOfCurrentSong(track: Song) {
         //считаем индекс выбранной песни в отсортированном списке песен,
         // чтобы при возврате на песни можно было перейти к этой песне по индексу
         val trackMediaUri = getNormalizedPath(track.mediaUri)
@@ -194,12 +200,13 @@ class SharedViewModel(
     }
 
 
+    //до загрузки библиотеки значения ещё нет (плеер может сообщить о треке раньше, при повторном открытии приложения)
     fun getSongs():List<Song> {
-       return songs.value
+       return songs.value ?: emptyList()
     }
 
     fun getPlaylist():List<Song> {
-        return playlist.value
+        return playlist.value ?: emptyList()
     }
 
     fun getPositionSong(): Int{  return helper.getPositionSong() }
