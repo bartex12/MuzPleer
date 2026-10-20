@@ -119,6 +119,8 @@ class MusicServiceHandler(
         } else {
             playlist = tracks
             player.setMediaItems(tracks.map { buildMediaItem(it) }, startIndex, 0L)
+            //запоминаем список (плейлист, избранное, альбом...), чтобы после перезапуска приложения играл он же, а не общий
+            preferences.saveQueueIds(tracks.map { it.id })
         }
         player.prepare()
         player.play()

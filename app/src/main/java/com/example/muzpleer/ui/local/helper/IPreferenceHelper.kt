@@ -20,6 +20,9 @@ interface IPreferenceHelper {
     fun getTabsLocalPosition(): Int
 
     fun saveCurrentSongId(id:Long)
+    /** id песен списка, который сейчас стоит в плеере (откуда пользователь выбрал песню), в порядке воспроизведения. */
+    fun saveQueueIds(ids: List<Long>)
+    fun getQueueIds(): List<Long>
     fun getCurrentSongId(): Long
 
     fun getPositionMyTracks(): Int

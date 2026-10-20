@@ -222,6 +222,26 @@ class SharedViewModel(
     fun setSelectedFolderPosition(position: Int) { _selectedFolderPosition.value = position }
     fun setSelectedPlaylistPosition(position: Int) { _selectedPlaylistPosition.value = position }
 
+    /**
+     * Восстановление последней песни при запуске: играть продолжает тот список, из которого она была выбрана
+     * ([queueIds] из настроек), а не общий список всех песен. Если сохранённого списка нет или в нём уже нет
+     * этой песни - общий список.
+     */
+    fun restoreLastSong(songId: Long, queueIds: List<Long>) {
+        val all = getSongs()
+        val song = all.find { it.id == songId } ?: return
+        val byId = all.associateBy { it.id }
+        val queue = queueIds.mapNotNull { byId[it] }
+        val playlist = if (queue.any { it.id == songId }) queue else getSortedSongs()
+        _currentSong.value = song
+        setSongAndPlaylist(SongAndPlaylist(song = song, playlist = playlist))
+    }
+
+    /** После обновления библиотеки берём свежий объект текущей песни; воспроизведение и список не трогаем. */
+    fun reloadCurrentSong(songId: Long) {
+        songs.value?.find { it.id == songId }?.let { _currentSong.value = it }
+    }
+
     fun setCurrentSongById(songId: Long) {
         songs.value?.find { it.id == songId }?.let { song ->
             _currentSong.value = song //передаём сохранённую песню из преференсис
