@@ -272,7 +272,7 @@ class SongFragment : Fragment() {
                 viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
-                        viewModel.setCurrentSongById(currentSong.id)
+                        viewModel.reloadCurrentSong(currentSong.id)
                     }
                     Log.d(TAG, "###SongFragment onMenuItemSelected currentSong = ${currentSong?.title} ")
                 }

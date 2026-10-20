@@ -426,7 +426,7 @@ class MainActivity : AppCompatActivity() {
             //если музыка уже играет в фоне, текущий трек известен плееру: возвращать сохранённый (старый) трек нельзя
             val savedSongId = appPreferences.getCurrentSongId()
             if (savedSongId != -1L && !playerViewModel.hasCurrentTrack()) {
-                viewModel.setCurrentSongById(savedSongId)
+                viewModel.restoreLastSong(savedSongId, appPreferences.getQueueIds())
             }
 
             //Обновляем обложки принудительно очень медленно грузится всё//todo

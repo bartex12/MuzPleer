@@ -19,6 +19,7 @@ class PreferenceHelperImpl(private  val app: Application): IPreferenceHelper {
         const val FIRST_POSITION_PLAYLIST = "FIRST_POSITION_PLAYLIST"
         const val PAGER_LOCAL_POSITION ="PAGER_LOCAL_POSITION"
         const val CURRENT_SONG_KEY = "CURRENT_SONG_KEY"
+        const val QUEUE_IDS_KEY = "QUEUE_IDS_KEY"
         const val FIRST_POSITION_FAVORITE_SONG = "FIRST_POSITION_FAVORITE_SONG"
         const val INDEX_OF_CURRENT_SONG = "INDEX_OF_CURRENT_SONG"
         const val TOOLBAR_TITLE = "TOOLBAR_TITLE"
@@ -111,6 +112,13 @@ class PreferenceHelperImpl(private  val app: Application): IPreferenceHelper {
     override fun saveCurrentSongId(id: Long) {
         putValue(CURRENT_SONG_KEY to id)
     }
+
+    override fun saveQueueIds(ids: List<Long>) {
+        putValue(QUEUE_IDS_KEY to ids.joinToString(","))
+    }
+
+    override fun getQueueIds(): List<Long> =
+        prefs.getString(QUEUE_IDS_KEY, null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
 
     override fun getCurrentSongId(): Long {
         return  prefs.getLong(CURRENT_SONG_KEY, -1L)
