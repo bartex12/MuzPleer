@@ -14,6 +14,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.example.muzpleer.model.Song
+import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -29,6 +30,7 @@ import kotlinx.coroutines.launch
 class MusicServiceHandler(
     private val context: Context,
     private val player: ExoPlayer,
+    private val preferences: IPreferenceHelper,
     internal var callback: PlayerCallback
 ) {
     //подключение к службе: пока оно есть, система не останавливает службу, а служба показывает уведомление
@@ -60,7 +62,10 @@ class MusicServiceHandler(
                     //смена трека самим плеером (конец трека, "следующий" из уведомления или наушников);
                     //при замене списка о треке сообщает setPlaylist
                     if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
-                    currentTrack()?.let { callback.onTrackChanged(it) }
+                    currentTrack()?.let {
+                        preferences.saveCurrentSongId(it.id) //чтобы при следующем запуске приложения не вернуться к старому треку
+                        callback.onTrackChanged(it)
+                    }
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
@@ -113,6 +118,7 @@ class MusicServiceHandler(
         }
         player.prepare()
         player.play()
+        preferences.saveCurrentSongId(tracks[startIndex].id)
         callback.onTrackChanged(tracks[startIndex])
     }
 
@@ -122,6 +128,7 @@ class MusicServiceHandler(
         player.seekTo(index, 0L)
         player.prepare()
         player.play()
+        preferences.saveCurrentSongId(playlist[index].id)
         callback.onTrackChanged(playlist[index])
     }
 

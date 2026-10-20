@@ -423,8 +423,9 @@ class MainActivity : AppCompatActivity() {
         //сначала сканируем телефон, затем обновляем остальные вкладки (внутри refreshLibrary)
         viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
             // Восстанавливаем последнюю песню
+            //если музыка уже играет в фоне, текущий трек известен плееру: возвращать сохранённый (старый) трек нельзя
             val savedSongId = appPreferences.getCurrentSongId()
-            if (savedSongId != -1L) {
+            if (savedSongId != -1L && !playerViewModel.hasCurrentTrack()) {
                 viewModel.setCurrentSongById(savedSongId)
             }
 

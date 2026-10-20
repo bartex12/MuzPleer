@@ -48,6 +48,9 @@ class PlayerViewModel(
         Log.d(TAG, "PlayerViewModel init: playerHandler = $playerHandler")
     }
 
+    /** В плеере уже есть трек (музыка играла в фоне, пока приложение было закрыто). */
+    fun hasCurrentTrack(): Boolean = playerHandler.currentTrack() != null
+
     fun setPlayerVisibility(visible: Boolean) {
         _playerVisibility.value = visible
     }
