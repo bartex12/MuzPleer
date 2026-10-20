@@ -146,6 +146,8 @@ class MusicServiceHandler(
             .setTitle(track.title)
             .setArtist(track.artist)
             .setArtworkUri(artwork)
+            //длительность из базы: пока плеер не прочитал файл, уведомление и экран блокировки уже могут показать шкалу времени
+            .setDurationMs(track.duration.takeIf { it > 0 } ?: androidx.media3.common.C.TIME_UNSET)
             .build()
         return MediaItem.Builder().setMediaId(track.id.toString()).setUri(uri).setMediaMetadata(metadata).build()
     }
