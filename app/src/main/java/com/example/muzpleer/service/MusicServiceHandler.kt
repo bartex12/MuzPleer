@@ -14,6 +14,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
@@ -48,7 +49,20 @@ class MusicServiceHandler(
     /** Случайный порядок включает сам плеер: так "следующий" из уведомления и наушников тоже его учитывает. */
     var isShuffleMode: Boolean
         get() = player.shuffleModeEnabled
-        set(value) { player.shuffleModeEnabled = value }
+        set(value) {
+            //плеер запоминает порядок и при повторном включении использует тот же: перемешиваем заново при каждом включении
+            if (value) applyNewShuffleOrder()
+            player.shuffleModeEnabled = value
+        }
+
+    /** Новый случайный порядок: текущая песня первая, остальные в случайном порядке. */
+    private fun applyNewShuffleOrder() {
+        val count = player.mediaItemCount
+        if (count == 0) return
+        val current = player.currentMediaItemIndex.coerceIn(0, count - 1)
+        val order = intArrayOf(current) + (0 until count).filter { it != current }.shuffled().toIntArray()
+        player.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(order, System.nanoTime()))
+    }
 
     interface PlayerCallback {
         fun onTrackChanged(track: Song)
@@ -121,6 +135,7 @@ class MusicServiceHandler(
         } else {
             playlist = tracks
             player.setMediaItems(tracks.map { buildMediaItem(it) }, startIndex, 0L)
+            if (player.shuffleModeEnabled) applyNewShuffleOrder() //выбранная песня первая, дальше случайно
             //запоминаем список (плейлист, избранное, альбом...), чтобы после перезапуска приложения играл он же, а не общий
             preferences.saveQueueIds(tracks.map { it.id })
         }
