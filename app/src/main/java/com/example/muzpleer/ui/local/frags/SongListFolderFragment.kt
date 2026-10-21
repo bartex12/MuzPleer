@@ -37,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
 import com.google.android.material.textfield.TextInputLayout
@@ -332,9 +333,11 @@ class SongListFolderFragment:Fragment() {
 
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_other_2, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
             }
 
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 menu.findItem(R.id.action_edit_order2).isVisible = false
                 var songsCount = 0
                 songsCount =  foldersViewModel.filteredListFolderSong.value?.size?:0
