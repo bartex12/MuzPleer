@@ -37,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -356,12 +357,14 @@ class FavoritesFragment: Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_favorites, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
                 editItem.title = if (isEditMode) "Готово" else "Редактировать порядок"
             }
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 super.onPrepareMenu(menu)
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
 

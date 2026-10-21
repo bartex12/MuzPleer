@@ -37,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
@@ -383,6 +384,7 @@ class SongPlaylistFragment:Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_other_2, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order2)
@@ -390,6 +392,7 @@ class SongPlaylistFragment:Fragment() {
             }
 
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 //menu.findItem(R.id.action_edit_order2).isVisible =false
                 val editItem = menu.findItem(R.id.action_edit_order2)
 

@@ -36,6 +36,7 @@ import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
+import com.example.muzpleer.util.syncShuffleIcon
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SongFragment : Fragment() {
@@ -212,6 +213,7 @@ class SongFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         menu.clear() // Очищаем меню
         inflater.inflate(R.menu.song_menu, menu)
+        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
         searchMenuItem = searchItem
@@ -254,6 +256,7 @@ class SongFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
+        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
     }
 

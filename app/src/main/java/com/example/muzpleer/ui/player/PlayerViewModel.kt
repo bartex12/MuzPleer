@@ -88,6 +88,9 @@ class PlayerViewModel(
         }
     }
 
+    /** Включён ли случайный порядок на самом деле (состояние плеера, а не значка). */
+    fun isShuffleMode(): Boolean = playerHandler.isShuffleMode
+
     fun setPlaybackMode(): Boolean {
         // Меняем состояние на противоположное
         val newShuffleState = !playerHandler.isShuffleMode
