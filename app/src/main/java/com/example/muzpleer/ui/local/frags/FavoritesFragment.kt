@@ -28,6 +28,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentFavoriteBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
@@ -73,6 +75,7 @@ class FavoritesFragment: Fragment() {
             //устанавливаем список песен как плейлист
             val playlist=favoritesViewModel.getFavoriteSongs()
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.FAVORITES))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,  //текущая песня

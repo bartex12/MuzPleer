@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlltracksForPlaylistBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsPlaylistAdapter
@@ -94,6 +96,9 @@ class SongPlaylistFragment:Fragment() {
                         "= ${playlistSongs.first().title} "
             )
 
+            viewModel.setPlaybackSource(
+                PlaybackSource(SourceType.PLAYLIST, id = playlistId, name = arguments?.getString("playlistName").orEmpty())
+            )
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,

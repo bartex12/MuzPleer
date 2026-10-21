@@ -28,6 +28,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -46,7 +47,9 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.databinding.ActivityMainBinding
 import com.example.muzpleer.databinding.ItemMusicBinding
+import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.Song
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.ui.local.TabLocalFragment
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
 import com.example.muzpleer.ui.local.frags.SongListFolderFragment
@@ -418,6 +421,53 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    private var playbackSourceOpened = false
+
+    /**
+     * При запуске приложения открывает экран со списком песен (плейлист, альбом, исполнитель, папка) или вкладку
+     * (песни, избранное), из которых была выбрана играющая песня. Один раз за запуск и только с главного экрана.
+     */
+    private fun openPlaybackSource() {
+        if (playbackSourceOpened) return
+        playbackSourceOpened = true
+        if (navController.currentDestination?.id != R.id.tabLocalFragment) return
+        val source = appPreferences.getPlaybackSource() ?: return
+        val tabs = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+            ?.childFragmentManager?.primaryNavigationFragment as? TabLocalFragment ?: return
+        if (!tabs.isAdded || tabs.view == null) return
+
+        when (source.type) {
+            SourceType.SONGS, SourceType.FAVORITES -> tabs.viewPager.currentItem = source.type.tab
+            SourceType.PLAYLIST -> {
+                //плейлиста могло уже не быть
+                playlistsViewModel.setCurrentPlaylistByPlaylistId(source.id) { playlist ->
+                    if (playlist != null && navController.currentDestination?.id == R.id.tabLocalFragment) {
+                        tabs.viewPager.currentItem = source.type.tab
+                        navController.navigate(
+                            R.id.songPlaylistFragment,
+                            bundleOf("playlistId" to source.id, "playlistName" to source.name)
+                        )
+                    }
+                }
+            }
+            SourceType.ALBUM, SourceType.ARTIST, SourceType.FOLDER -> {
+                //экран списка берёт для щелчка по песне общий список из SharedViewModel: восстанавливаем его
+                val songs = viewModel.songsFromIds(appPreferences.getQueueIds())
+                if (songs.isEmpty()) return
+                viewModel.setPlaylist(songs)
+                tabs.viewPager.currentItem = source.type.tab
+                when (source.type) {
+                    SourceType.ALBUM -> navController.navigate(
+                        R.id.songListAlbumFragment, bundleOf("albumId" to source.id, "albumName" to source.name))
+                    SourceType.ARTIST -> navController.navigate(
+                        R.id.songListArtistFragment, bundleOf("artistId" to source.id, "artistName" to source.name))
+                    else -> navController.navigate(
+                        R.id.songListFolderFragment, bundleOf("folderPath" to source.key, "folderName" to source.name))
+                }
+            }
+        }
+    }
+
     private fun startMediaScan() {
 
         //сначала сканируем телефон, затем обновляем остальные вкладки (внутри refreshLibrary)
@@ -434,6 +484,9 @@ class MainActivity : AppCompatActivity() {
 
             //восстанавливаем заголовок тулбара
             resetToTabTitle()
+            //песня играет или стоит на паузе: открываем список, из которого она выбрана
+            if (playerViewModel.hasCurrentTrack()) openPlaybackSource()
+
             Log.d(TAG, "###MainActivity startMediaScan savedSongId = $savedSongId CurrentSong =  ${ viewModel.getCurrentSong()?.title}")
         }
     }
