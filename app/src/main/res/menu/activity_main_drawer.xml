@@ -9,6 +9,10 @@
             android:icon="@drawable/ic_baseline_favorite_24"
             android:title="@string/favorites" />
         <item
+            android:id="@+id/nav_download"
+            android:icon="@drawable/ic_download_24"
+            android:title="@string/download_track" />
+        <item
             android:id="@+id/nav_setting"
             android:icon="@drawable/ic_settings_red_24dp"
             android:title="@string/settings"/>

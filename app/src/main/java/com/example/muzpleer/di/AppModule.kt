@@ -1,9 +1,12 @@
 package com.example.muzpleer.di
 
 import android.content.Context
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.service.MusicServiceHandler
+import com.example.muzpleer.ui.download.DownloadViewModel
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
@@ -23,9 +26,12 @@ val appModule = module {
     single<IPreferenceHelper> { PreferenceHelperImpl(get()) }
     single<UserMessenger> { ToastMessenger(androidContext()) }
     single { provideExoPlayer(get()) }
-    factory {
+    //один на всё приложение: музыка играет и после закрытия экрана, поэтому состояние плеера не привязано к Activity
+    single {
         MusicServiceHandler(
             context = androidContext(),
+            player = get(),
+            preferences = get(),
             callback = get() // Получаем реализацию колбэка из контейнера
         )
     }
@@ -37,6 +43,7 @@ val appModule = module {
     viewModel { PlaylistsViewModel(get(), get(), get()) }
     viewModel { FavoritesViewModel(get(), get()) }
     viewModel { PlayerViewModel(get()) }
+    viewModel { DownloadViewModel(androidContext()) }
 
     // Регистрируем заглушку для колбэка (реальная реализация будет в ViewModel)
     factory<MusicServiceHandler.PlayerCallback> {
@@ -50,5 +57,15 @@ val appModule = module {
 }
 
 private fun provideExoPlayer(context: Context): ExoPlayer {
-    return ExoPlayer.Builder(context).build()
+    return ExoPlayer.Builder(context)
+        //музыка: уступать звук звонку и другим плеерам, не играть "вслепую" при отключении наушников
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build(),
+            true
+        )
+        .setHandleAudioBecomingNoisy(true)
+        .build()
 }

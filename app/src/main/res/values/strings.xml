@@ -114,4 +114,24 @@
         <item>Если нужных песен нет в списке, проверьте, что приложению выдан доступ к аудиофайлам (Настройки телефона → Приложения → MuzPleer → Разрешения). Затем на вкладке «Все песни» выберите в меню «Обновить данные» — приложение заново просмотрит устройство.</item>
     </string-array>
 
+
+    <!-- Скачивание трека -->
+    <string name="download_track">Скачать трек</string>
+    <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) и нажмите «Скачать». Либо выберите файл, уже сохранённый на устройстве.</string>
+    <string name="download_pick_file">Выбрать файл с устройства</string>
+    <string name="download_pick_hint">Для трека из Suno скачайте его кнопкой Download в Suno, затем выберите файл. Чтобы подтянуть название, автора и обложку, вставьте выше ссылку на страницу трека suno.com.</string>
+    <string name="download_url_hint">Ссылка на трек (для Suno - необязательно)</string>
+    <string name="download_paste">Вставить из буфера</string>
+    <string name="download_playlist_label">Добавить в плейлист</string>
+    <string name="download_no_playlist">Не добавлять в плейлист</string>
+    <string name="download_start">Скачать</string>
+    <string name="download_cancel">Отменить</string>
+    <string name="download_loading">Загрузка…</string>
+    <string name="download_enter_url">Введите ссылку</string>
+    <string name="download_open_playlist">Открыть плейлист «%1$s»</string>
+    <string name="playlist_deleted_playing">Плейлист удалён, воспроизведение остановлено. Выберите другой трек.</string>
+    <string name="single_song_in_list">В списке всего одна песня</string>
+    <string name="download_exists">Трек «%1$s» уже есть в папке Music/MuzPleer, повторно не копируем</string>
+    <string name="download_done">Трек «%1$s» скачан</string>
+    <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>
 </resources>

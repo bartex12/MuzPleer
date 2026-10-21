@@ -140,11 +140,15 @@ class PlaylistsViewModel(
         }
     }
 
+    /** Вызывается после удаления плейлиста: MainActivity по нему останавливает музыку из удалённого плейлиста. */
+    var onPlaylistDeleted: ((Long) -> Unit)? = null
+
     fun deletePlaylist(playlistId: Long) {
         viewModelScope.launch {
             try {
                 playlistRepository.deletePlaylist(playlistId)
                 loadPlaylists()
+                onPlaylistDeleted?.invoke(playlistId)
             } catch (e: Exception) {
                 Log.d(TAG,"PlaylistsViewModel deletePlaylist Error deleting playlist error = ${e.message}")
             }

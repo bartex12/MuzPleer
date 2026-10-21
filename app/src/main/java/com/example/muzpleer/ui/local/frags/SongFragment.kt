@@ -20,6 +20,8 @@ import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentSongsBinding
 import com.example.muzpleer.di.App
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
@@ -81,6 +83,7 @@ class SongFragment : Fragment() {
             //устанавливаем список песен как плейлист
             val playlist=getSortedDataSong(viewModel.getSongs())
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.SONGS))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,  //текущая песня
@@ -272,7 +275,7 @@ class SongFragment : Fragment() {
                 viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
-                        viewModel.setCurrentSongById(currentSong.id)
+                        viewModel.reloadCurrentSong(currentSong.id)
                     }
                     Log.d(TAG, "###SongFragment onMenuItemSelected currentSong = ${currentSong?.title} ")
                 }
