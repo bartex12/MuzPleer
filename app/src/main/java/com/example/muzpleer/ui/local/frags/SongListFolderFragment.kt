@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlltracksBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
@@ -82,6 +84,7 @@ class SongListFolderFragment:Fragment() {
         adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             val playlist=viewModel.getPlaylist()
 
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.FOLDER, key = arguments?.getString("folderPath").orEmpty(), name = folderName.orEmpty()))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,

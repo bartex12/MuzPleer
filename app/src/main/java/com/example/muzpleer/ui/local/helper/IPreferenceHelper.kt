@@ -1,5 +1,7 @@
 package com.example.muzpleer.ui.local.helper
 
+import com.example.muzpleer.model.PlaybackSource
+
 interface IPreferenceHelper {
     fun savePositionSong(position:Int)
     fun getPositionSong(): Int
@@ -23,6 +25,9 @@ interface IPreferenceHelper {
     /** id песен списка, который сейчас стоит в плеере (откуда пользователь выбрал песню), в порядке воспроизведения. */
     fun saveQueueIds(ids: List<Long>)
     fun getQueueIds(): List<Long>
+    /** Экран, из которого выбрана играющая песня: по нему приложение при запуске открывает нужный список. */
+    fun savePlaybackSource(source: PlaybackSource)
+    fun getPlaybackSource(): PlaybackSource?
     fun getCurrentSongId(): Long
 
     fun getPositionMyTracks(): Int

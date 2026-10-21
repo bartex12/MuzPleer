@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.muzpleer.R
+import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.repository.MusicRepository
@@ -235,6 +236,15 @@ class SharedViewModel(
         val playlist = if (queue.any { it.id == songId }) queue else getSortedSongs()
         _currentSong.value = song
         setSongAndPlaylist(SongAndPlaylist(song = song, playlist = playlist))
+    }
+
+    /** Запоминает, из какого списка (экрана) выбрана песня: при следующем запуске приложение откроет этот список. */
+    fun setPlaybackSource(source: PlaybackSource) = helper.savePlaybackSource(source)
+
+    /** Песни по сохранённым id в том же порядке (те, что пропали из библиотеки, пропускаются). */
+    fun songsFromIds(ids: List<Long>): List<Song> {
+        val byId = getSongs().associateBy { it.id }
+        return ids.mapNotNull { byId[it] }
     }
 
     /** После обновления библиотеки берём свежий объект текущей песни; воспроизведение и список не трогаем. */
