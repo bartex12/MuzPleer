@@ -129,6 +129,7 @@
     <string name="download_loading">Загрузка…</string>
     <string name="download_enter_url">Введите ссылку</string>
     <string name="download_open_playlist">Открыть плейлист «%1$s»</string>
+    <string name="playlist_deleted_playing">Плейлист удалён, воспроизведение остановлено. Выберите другой трек.</string>
     <string name="single_song_in_list">В списке всего одна песня</string>
     <string name="download_exists">Трек «%1$s» уже есть в папке Music/MuzPleer, повторно не копируем</string>
     <string name="download_done">Трек «%1$s» скачан</string>

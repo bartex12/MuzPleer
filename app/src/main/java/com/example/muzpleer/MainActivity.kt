@@ -241,6 +241,7 @@ class MainActivity : AppCompatActivity() {
                 playerViewModel.stopAndClear()
                 viewModel.clearCurrentSong()
                 appPreferences.savePlaybackSource(PlaybackSource(SourceType.SONGS))
+                Toast.makeText(this, R.string.playlist_deleted_playing, Toast.LENGTH_LONG).show()
             }
         }
 
