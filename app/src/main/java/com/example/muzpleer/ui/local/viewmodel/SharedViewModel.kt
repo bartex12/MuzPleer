@@ -238,6 +238,12 @@ class SharedViewModel(
         setSongAndPlaylist(SongAndPlaylist(song = song, playlist = playlist))
     }
 
+    /** Нет текущей песни (музыка остановлена, очередь очищена). */
+    fun clearCurrentSong() {
+        _currentSong.value = null
+        _indexOfCurrentSong.value = -1
+    }
+
     /** Запоминает, из какого списка (экрана) выбрана песня: при следующем запуске приложение откроет этот список. */
     fun setPlaybackSource(source: PlaybackSource) = helper.savePlaybackSource(source)
 

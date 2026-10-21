@@ -59,6 +59,11 @@ class PlayerViewModel(
         playerHandler.setPlaylist(playlist, initialIndex)
     }
 
+    /** Остановить музыку и очистить очередь (например, удалён плейлист, из которого играла песня). */
+    fun stopAndClear() {
+        playerHandler.stopAndClear()
+    }
+
     fun togglePlayPause() {
         playerHandler.togglePlayPause()
     }

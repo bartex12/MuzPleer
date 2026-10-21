@@ -6,7 +6,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -192,9 +194,30 @@ class MusicServiceHandler(
         }
     }
 
+    /** В списке одна песня: переключать некуда, сообщаем об этом. */
+    private fun isSingleSong(): Boolean {
+        if (player.mediaItemCount != 1) return false
+        Toast.makeText(context, R.string.single_song_in_list, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    /**
+     * Останавливает музыку и очищает очередь. Нужно, когда список, из которого играла песня, удалён:
+     * его песни дальше играть не должны. Сохранённые песня и список тоже сбрасываются.
+     */
+    fun stopAndClear() {
+        player.stop()
+        player.clearMediaItems()
+        playlist = emptyList()
+        preferences.saveQueueIds(emptyList())
+        preferences.saveCurrentSongId(-1L)
+        emitPosition()
+    }
+
     /** "Вперёд" с учётом случайного порядка; после последнего трека - первый. */
     fun playNext() {
         if (player.mediaItemCount == 0) return
+        if (isSingleSong()) return
         player.seekToNextMediaItem()
         player.play()
     }
@@ -202,6 +225,7 @@ class MusicServiceHandler(
     /** "Назад" с учётом случайного порядка; перед первым треком - последний. */
     fun playPrevious() {
         if (player.mediaItemCount == 0) return
+        if (isSingleSong()) return
         player.seekToPreviousMediaItem()
         player.play()
     }
@@ -214,7 +238,7 @@ class MusicServiceHandler(
     fun getCurrentPosition(): Long = player.currentPosition
 
     private fun emitPosition() {
-        callback.onPositionChanged(player.currentPosition, player.duration)
+        callback.onPositionChanged(player.currentPosition, player.duration.takeIf { it != C.TIME_UNSET } ?: 0L)
     }
 
     private fun startPositionUpdates() {

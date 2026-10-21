@@ -234,6 +234,17 @@ class MainActivity : AppCompatActivity() {
         //плеер сообщает о смене трека, а список песен и текущая песня хранятся в SharedViewModel
         playerViewModel.onTrackChangedListener = { track -> viewModel.onTrackChanged(track) }
 
+        //удалили плейлист, из которого играет песня: его песни дальше играть не должны
+        playlistsViewModel.onPlaylistDeleted = { deletedId ->
+            val source = appPreferences.getPlaybackSource()
+            if (source?.type == SourceType.PLAYLIST && source.id == deletedId) {
+                playerViewModel.stopAndClear()
+                viewModel.clearCurrentSong()
+                appPreferences.savePlaybackSource(PlaybackSource(SourceType.SONGS))
+                Toast.makeText(this, R.string.playlist_deleted_playing, Toast.LENGTH_LONG).show()
+            }
+        }
+
         playerViewModel.currentPosition.observe(this) { position ->
             tvCurrentTimeMain.text = formatTime(position)
             seekBarMain.progress = position.toInt()
@@ -268,9 +279,13 @@ class MainActivity : AppCompatActivity() {
         viewModel.currentSong.observe(this) {songCurrent->
             currentSong = songCurrent
 
-            songCurrent?. let {
+            if (songCurrent != null) {
                 title.text=songCurrent.title
                 artist.text=songCurrent.artist
+            } else {
+                //музыка остановлена, очередь очищена
+                title.text = ""
+                artist.text = ""
             }
 
             songCurrent?.artUri?.let{artUri->
@@ -405,9 +420,11 @@ class MainActivity : AppCompatActivity() {
         rewindBack.setOnClickListener {playerViewModel.seekRelative(-5000) } // -5 секунд
         rewindForward.setOnClickListener {  playerViewModel.seekRelative(15000) } // +15 секунд
 
-        artWork.setOnClickListener { navController.navigate(R.id.playerFragment) }
-        title.setOnClickListener { navController.navigate(R.id.playerFragment) }
-        artist.setOnClickListener { navController.navigate(R.id.playerFragment) }
+        //экрану плеера нужна текущая песня: без неё (очередь очищена) переходить некуда
+        val openPlayerScreen: () -> Unit = { if (currentSong != null) navController.navigate(R.id.playerFragment) }
+        artWork.setOnClickListener { openPlayerScreen() }
+        title.setOnClickListener { openPlayerScreen() }
+        artist.setOnClickListener { openPlayerScreen() }
 
         ///перемещение прогресса в нижнем плеере
         seekBarMain.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -509,6 +526,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         playerViewModel.onTrackChangedListener = null
+        playlistsViewModel.onPlaylistDeleted = null
         Log.d(TAG, "###MainActivity onDestroy currentSong id =  ${currentSong?.id} индекс = ${viewModel.getIndexOfCurrentSong()}")
     }
 
