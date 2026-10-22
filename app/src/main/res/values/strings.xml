@@ -26,6 +26,8 @@
     <string name="search_artist">поиск исполнителя</string>
     <string name="search_folder">поиск папки</string>
     <string name="search_favorite">поиск в избранном</string>
+    <string name="no_playlists_yet">У вас ещё нет плейлистов</string>
+    <string name="search_playlist_helper">Найдите плейлист в списке плейлистов</string>
     <string name="search_text">начните вводить название</string>
     <string name="my_tracks">Избранное</string>
     <string name="my_playlists">Плейлисты</string>
