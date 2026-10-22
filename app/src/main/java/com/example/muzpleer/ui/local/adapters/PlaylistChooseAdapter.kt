@@ -20,6 +20,7 @@ import com.example.muzpleer.databinding.ItemPlaylistChooseBinding
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -59,7 +60,7 @@ class PlaylistChooseAdapter(
 
         fun bind(playlist: Playlist) {
             binding.tvPlaylistName.text = playlist.playlistName
-            binding.tvSongsCount.text = "${playlist.songCount} песен"
+            binding.tvSongsCount.text = getTracksCountString(playlist.songCount)
 
             // 🔧 Добавляем логирование
             Log.d(TAG, "**%%** PlaylistChooseAdapter bind Playlist: ${playlist.playlistName}, artUri: ${playlist.playlistArtUri}")
