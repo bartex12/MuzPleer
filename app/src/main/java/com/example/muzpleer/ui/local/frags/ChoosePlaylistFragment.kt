@@ -100,10 +100,13 @@ class ChoosePlaylistFragment :Fragment()  {
         // Строка поиска плейлиста
         setupSearch()
 
-        // Поиск показываем, только если есть из чего выбирать
+        // Поиск показываем, только если есть из чего выбирать; без плейлистов - надпись
         playlistsViewModel.playlists.observe(viewLifecycleOwner) { all ->
-            binding.inputLayoutSearch.visibility =
-                if (all.any { it.id != -1L }) View.VISIBLE else View.GONE
+            val hasPlaylists = all.any { it.id != -1L }
+            binding.inputLayoutSearch.visibility = if (hasPlaylists) View.VISIBLE else View.GONE
+            //плейлистов нет вообще: вместо пустого списка надпись
+            binding.tvNoPlaylists.visibility = if (hasPlaylists) View.GONE else View.VISIBLE
+            binding.rvPlaylists.visibility = if (hasPlaylists) View.VISIBLE else View.GONE
         }
 
         // Наблюдаем за списком плейлистов с правильным LifecycleOwner
