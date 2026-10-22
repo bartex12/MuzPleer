@@ -82,11 +82,13 @@ class ChoosePlaylistFragment :Fragment()  {
 
         // Настройка адаптера
         adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel) { playlist ->
+            // Контекст берём заранее: после navigateUp фрагмент уже отсоединён, а результат приходит позже
+            val ctx = requireContext().applicationContext
+            val title = songTitle
             playlistsViewModel.addSongToPlaylist(songId, playlist.id) { added ->
-                val ctx = context ?: return@addSongToPlaylist
                 Toast.makeText(
                     ctx,
-                    if (added) "Песня \"$songTitle\" добавлена в \"${playlist.playlistName}\""
+                    if (added) "Песня \"$title\" добавлена в \"${playlist.playlistName}\""
                     else ctx.getString(R.string.song_already_in_playlist),
                     Toast.LENGTH_SHORT
                 ).show()
