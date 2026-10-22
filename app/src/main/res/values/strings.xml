@@ -136,4 +136,5 @@
     <string name="download_exists">Трек «%1$s» уже есть в папке Music/MuzPleer, повторно не копируем</string>
     <string name="download_done">Трек «%1$s» скачан</string>
     <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>
+    <string name="song_already_in_playlist">Эта песня уже есть в плейлисте</string>
 </resources>

@@ -281,20 +281,21 @@ class PlaylistsViewModel(
         }
     }
 
-    fun addSongToPlaylist(songId: Long, playlistId: Long) {
+    fun addSongToPlaylist(songId: Long, playlistId: Long, onResult: ((added: Boolean) -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 // Проверяем, нет ли уже этой песни в плейлисте
                 val isAlreadyInPlaylist = playlistRepository.isSongInPlaylist(songId, playlistId)
 
                 if (isAlreadyInPlaylist) {
-                    // Можно показать сообщение, что песня уже есть
                     Log.d(TAG, "Песня уже есть в плейлисте")
+                    onResult?.invoke(false)
                     return@launch
                 }
 
                 // Добавляем песню в плейлист
                 playlistRepository.addSongToPlaylist(songId, playlistId)
+                onResult?.invoke(true)
 
                 // Обновляем список плейлистов
                 refreshPlaylists()
