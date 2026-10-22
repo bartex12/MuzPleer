@@ -251,14 +251,14 @@ class SongsAdapter(
         val recyclerView = dialog.findViewById<RecyclerView>(R.id.rvPlaylists)
         val adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel) { playlist ->
             // Добавляем песню в выбранный плейлист
-            playlistsViewModel.addSongToPlaylist(song.id, playlist.id)
-
-            // Показываем уведомление
-            Toast.makeText(
-                context,
-                "Песня добавлена в \"${playlist.playlistName}\"",
-                Toast.LENGTH_SHORT
-            ).show()
+            playlistsViewModel.addSongToPlaylist(song.id, playlist.id) { added ->
+                Toast.makeText(
+                    context,
+                    if (added) "Песня добавлена в \"${playlist.playlistName}\""
+                    else context.getString(R.string.song_already_in_playlist),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
 
             dialog.dismiss()
         }
