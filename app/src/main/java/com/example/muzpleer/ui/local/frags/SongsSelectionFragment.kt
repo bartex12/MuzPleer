@@ -393,7 +393,7 @@ class SongsSelectionFragment : Fragment() {
     private fun addSelectedSongsToPlaylist() {
         val selectedSongs = adapter.getSelectedSongs()
         if (selectedSongs.isNotEmpty()) {
-            playlistsViewModel.addByTimeLimitMs = null
+            //заданное время не сбрасываем: пользователь может продолжить выбор из другого источника
             playlistsViewModel.addSongsToPlaylistWhithSongs(playlistId, selectedSongs)
             findNavController().navigateUp() // Вернуться к выбору источника, если песни или избранное
             if(selectionType == SelectionType.ALBUM || selectionType == SelectionType.ARTIST ||

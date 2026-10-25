@@ -10,12 +10,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import com.example.muzpleer.databinding.FragmentAddSongsSourceBinding
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 //экран выбора источника для замены обложки
 class AddSongsSourceFragment : Fragment() {
     private lateinit var binding: FragmentAddSongsSourceBinding
     private val viewModel: SharedViewModel by activityViewModels()
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private var playlistId: Long = -1
 
     override fun onCreateView(
@@ -38,6 +41,12 @@ class AddSongsSourceFragment : Fragment() {
         viewModel.setAppBarTitle("Выбор источника")
 
         setupClickListeners()
+    }
+
+    //Экран источника закрыт совсем (не ушли глубже): режим «Добавить треки по времени» заканчивается
+    override fun onDestroy() {
+        super.onDestroy()
+        if (isRemoving) playlistsViewModel.addByTimeLimitMs = null
     }
 
     private fun setupClickListeners() {

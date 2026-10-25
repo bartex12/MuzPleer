@@ -102,24 +102,24 @@
         android:weightSum="2">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTimeOk"
+            android:id="@+id/btnTimeCancel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
-            android:text="Далее"
+            android:text="Отмена"
             android:background="@drawable/item_list_effects_button"
             android:textColor="@color/white"
             app:backgroundTint="@null"
             app:cornerRadius="8dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnTimeCancel"
+            android:id="@+id/btnTimeOk"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Отмена"
+            android:text="Далее"
             android:background="@drawable/item_list_effects_button"
             android:textColor="@color/white"
             app:backgroundTint="@null"
