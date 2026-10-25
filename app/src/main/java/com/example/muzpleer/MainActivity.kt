@@ -378,7 +378,7 @@ class MainActivity : AppCompatActivity() {
         if (currentFragment is TabLocalFragment) {
             val currentPosition = currentFragment.viewPager.currentItem
             val tabTitle = when (currentPosition) {
-                0 -> "Песни"
+                0 -> "Треки"
                 1 -> "Папки"
                 2 -> "Избранное"
                 3 -> "Плейлисты"

@@ -50,7 +50,7 @@ class ArtistsSelectionFragment: Fragment() {
         selectionType = arguments?.getSerializable("selectionType") as? SelectionType
             ?: SelectionType.ALL_SONGS
 
-        viewModel.setAppBarTitle("Выбрать песни исполнителя")
+        viewModel.setAppBarTitle("Выбрать треки исполнителя")
 
         adapter = ArtistSelectionAdapter (viewModel, artistsViewModel){ artist ->
 

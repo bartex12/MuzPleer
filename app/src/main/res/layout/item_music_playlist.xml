@@ -37,7 +37,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:textSize="16sp"
-            android:text="Название песни может быть длинным и даже очень длинным и занимать две строки"
+            android:text="Название трека может быть длинным и даже очень длинным и занимать две строки"
             android:textColor="@color/song_text_color"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -71,7 +71,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/whisper"
-                android:text="Исполнитель песни очень известный и популярный"
+                android:text="Исполнитель трека очень известный и популярный"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
 
 

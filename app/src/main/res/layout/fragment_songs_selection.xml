@@ -73,7 +73,7 @@
         app:endIconDrawable="@drawable/baseline_search_24"
         app:endIconMode="custom"
         app:endIconTint="@android:color/white"
-        app:helperText="Найдите песню в списке песен"
+        app:helperText="Найдите трек в списке треков"
         app:helperTextTextColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -196,9 +196,9 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    messenger.show("Песня удалена из плейлиста")
+                    messenger.show("Трек удалён из плейлиста")
                 } else {
-                    messenger.show("Ошибка удаления песни")
+                    messenger.show("Ошибка удаления трека")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing song from playlist: ${e.message}", e)
@@ -222,9 +222,9 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    messenger.show("Удалено песен: $removedCount")
+                    messenger.show("Удалено треков: $removedCount")
                 } else {
-                    messenger.show("Не удалось удалить песни")
+                    messenger.show("Не удалось удалить треки")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing songs from playlist: ${e.message}", e)

@@ -44,7 +44,7 @@
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/whisper"
-        android:text="Количество песен и общее время"
+        android:text="Количество треков и общее время"
         android:textAppearance="@style/TextAppearance.AppCompat.Caption"
         app:layout_constraintEnd_toStartOf="@id/playlist_dragHandle"
         app:layout_constraintStart_toEndOf="@id/playlistArtwork"

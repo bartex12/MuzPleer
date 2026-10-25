@@ -11,7 +11,7 @@
     <TextView
         android:id="@+id/itemAddSongToPlaylist"
         style="@style/PopupMenuItem"
-        android:text="Добавить песни в плейлист"
+        android:text="Добавить треки в плейлист"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_playlist_add_24"
         app:drawableTint="@color/white"/>
@@ -21,7 +21,7 @@
     <TextView
         android:id="@+id/itemRemoveFromPlaylist"
         style="@style/PopupMenuItem"
-        android:text="Удалить песни из плейлиста"
+        android:text="Удалить треки из плейлиста"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_playlist_remove_24"
         app:drawableTint="@color/white"/>

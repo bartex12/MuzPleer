@@ -33,7 +33,7 @@
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
                 android:textColorHint="@color/white"
-                android:hint="Название песни"/>
+                android:hint="Название трека"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

@@ -63,7 +63,7 @@ class SongsSelectionFragment : Fragment() {
         when (selectionType) {
             SelectionType.ALL_SONGS -> {
                 viewModel.loadAllSongsForAdding()
-                title = "Все песни"
+                title = "Все треки"
             }
             SelectionType.FAVORITES ->{
                 favoritesViewModel.loadFavoritesSongsForAdding()
@@ -130,7 +130,7 @@ class SongsSelectionFragment : Fragment() {
             }
             SelectionType.ALBUM ->{
                 albumsViewModel.listAlbumSong.observe(viewLifecycleOwner) { songs ->
-                    title = "Выберите песни"
+                    title = "Выберите треки"
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs
@@ -140,7 +140,7 @@ class SongsSelectionFragment : Fragment() {
             }
             SelectionType.ARTIST ->{
                 artistsViewModel.listArtistSong.observe(viewLifecycleOwner) { songs ->
-                    title = "Выберите песни"
+                    title = "Выберите треки"
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(songs)
                     adapter.data = songs
@@ -150,7 +150,7 @@ class SongsSelectionFragment : Fragment() {
             }
             SelectionType.FOLDER ->{
                 foldersViewModel.listFolderSong.observe(viewLifecycleOwner) { folderSongs ->
-                    title = "Выберите песни"
+                    title = "Выберите треки"
                     viewModel.setAppBarTitle(title)
                     viewModel.setListSelectedSong(folderSongs)
                     adapter.data = folderSongs
@@ -161,7 +161,7 @@ class SongsSelectionFragment : Fragment() {
 
             SelectionType.PLAYLISTS -> {
                playlistsViewModel.currentPlaylistSongs.observe(viewLifecycleOwner) {playlistSong->
-                   title = "Выберите песни"
+                   title = "Выберите треки"
                    viewModel.setAppBarTitle(title)
                    viewModel.setListSelectedSong(playlistSong)
                    if (playlistSong != null) {
@@ -325,7 +325,7 @@ class SongsSelectionFragment : Fragment() {
                 findNavController().navigateUp()
             }
         }else {
-            Toast.makeText(requireContext(), "Выберите песни для добавления", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Выберите треки для добавления", Toast.LENGTH_SHORT).show()
         }
     }
 

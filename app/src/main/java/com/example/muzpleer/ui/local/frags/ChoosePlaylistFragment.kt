@@ -88,7 +88,7 @@ class ChoosePlaylistFragment :Fragment()  {
             playlistsViewModel.addSongToPlaylist(songId, playlist.id) { added ->
                 Toast.makeText(
                     ctx,
-                    if (added) "Песня \"$title\" добавлена в \"${playlist.playlistName}\""
+                    if (added) "Трек \"$title\" добавлен в \"${playlist.playlistName}\""
                     else ctx.getString(R.string.song_already_in_playlist),
                     Toast.LENGTH_SHORT
                 ).show()
