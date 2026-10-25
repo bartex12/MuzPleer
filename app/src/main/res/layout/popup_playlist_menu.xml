@@ -19,6 +19,16 @@
     <View style="@style/PopupMenuDivider" />
 
     <TextView
+        android:id="@+id/itemAddSongsByTime"
+        style="@style/PopupMenuItem"
+        android:text="Добавить треки по времени"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_playlist_add_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
         android:id="@+id/itemRemoveFromPlaylist"
         style="@style/PopupMenuItem"
         android:text="Удалить треки из плейлиста"

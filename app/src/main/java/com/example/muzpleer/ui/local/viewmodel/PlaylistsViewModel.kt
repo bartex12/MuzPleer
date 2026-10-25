@@ -155,11 +155,15 @@ class PlaylistsViewModel(
         }
     }
 
-    fun addSongsToPlaylistWhithSongs(playlistId: Long, songs: List<Song>) {
+    //Заданная длительность плейлиста (мс) для режима «Добавить треки по времени»; null - обычное добавление
+    var addByTimeLimitMs: Long? = null
+
+    fun addSongsToPlaylistWhithSongs(playlistId: Long, songs: List<Song>, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
             playlistRepository.addSongsToPlaylistWithSongs(playlistId, songs)
             //перезагружаем плейлисты для обновления количества песен в каждом плейлисте
             loadPlaylists()
+            onDone?.invoke()
         }
     }
 
