@@ -173,17 +173,11 @@ class PlaylistAdapter(
         popup.isOutsideTouchable = true
         popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
 
-        // Скрываем или показываем пункт в зависимости от содержимого
-        val deleteSongsItem = popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist)
-        if (playlist.playlistSongs.isEmpty()) {
-            // Если пусто - меняем текст и отключаем
-            deleteSongsItem?.text = "Плейлист пуст"
-            deleteSongsItem?.isEnabled = false
-        } else {
-            // Если есть песни - показываем нормальный текст
-            deleteSongsItem?.text = "Удалить треки из плейлиста"
-            deleteSongsItem?.isEnabled = true
-        }
+        // Пункт удаления треков показываем только если в плейлисте есть треки
+        val hasSongs = playlist.playlistSongs.isNotEmpty()
+        val visibility = if (hasSongs) View.VISIBLE else View.GONE
+        popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist).visibility = visibility
+        popupView.findViewById<View>(R.id.dividerRemoveFromPlaylist).visibility = visibility
 
         popupView.findViewById<TextView>(R.id.itemAddSongToPlaylist).setOnClickListener {
             playlistsViewModel.addByTimeLimitMs = null
