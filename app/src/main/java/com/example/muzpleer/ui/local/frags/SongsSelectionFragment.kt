@@ -1,6 +1,12 @@
 package com.example.muzpleer.ui.local.frags
 
 import android.content.Context
+import android.graphics.Color
+import android.widget.TextView
+import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.drawable.toDrawable
+import androidx.core.os.bundleOf
+import com.example.muzpleer.util.formatDuration
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -44,6 +50,8 @@ class SongsSelectionFragment : Fragment() {
     private var playlistId: Long = -1
     private var selectionType: SelectionType = SelectionType.ALL_SONGS
     private var title = ""
+    private var timeToast: Toast? = null
+    private var limitWarned = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -103,6 +111,7 @@ class SongsSelectionFragment : Fragment() {
             sharedViewModel = viewModel,
         onSelectionChanged =  { selectedSongs ->
             updateAddButton(selectedSongs)
+            checkTimeLimit(selectedSongs)
             }
         )
         binding.songsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -315,9 +324,76 @@ class SongsSelectionFragment : Fragment() {
         }
     }
 
+    //Режим «Добавить треки по времени»: показываем суммарное время и предупреждаем о превышении
+    private fun checkTimeLimit(selectedSongs: List<Song>) {
+        val limitMs = playlistsViewModel.addByTimeLimitMs ?: return
+        val playlist = playlistsViewModel.playlists.value?.firstOrNull { it.id == playlistId }
+        val existingIds = playlist?.playlistSongs?.map { it.id }?.toSet() ?: emptySet()
+        val existingMs = playlist?.playlistSongs?.sumOf { it.duration.coerceAtLeast(0L) } ?: 0L
+        //треки, которые уже есть в плейлисте, второй раз не добавятся и время не увеличивают
+        val newMs = selectedSongs.filter { it.id !in existingIds }
+            .sumOf { it.duration.coerceAtLeast(0L) }
+        val totalMs = existingMs + newMs
+
+        timeToast?.cancel()
+        timeToast = Toast.makeText(
+            requireContext().applicationContext,
+            "Суммарное время ${totalMs.formatDuration()}",
+            Toast.LENGTH_SHORT
+        ).also { it.show() }
+
+        if (totalMs <= limitMs) {
+            limitWarned = false
+        } else if (!limitWarned) {
+            limitWarned = true
+            showLimitExceededDialog(limitMs, totalMs)
+        }
+    }
+
+    private fun showLimitExceededDialog(limitMs: Long, totalMs: Long) {
+        val dialogView = LayoutInflater.from(requireContext())
+            .inflate(R.layout.dialog_delete_playlist, null)
+        dialogView.findViewById<TextView>(R.id.tvDeleteTitle).text =
+            "Суммарное время треков превышает заданное"
+        dialogView.findViewById<TextView>(R.id.tvDeleteMessage).text =
+            "Заданное: ${limitMs.formatDuration()}, сейчас: ${totalMs.formatDuration()}"
+        val btnStop = dialogView.findViewById<MaterialButton>(R.id.btnDeleteYes)
+        val btnContinue = dialogView.findViewById<MaterialButton>(R.id.btnDeleteNo)
+        btnStop.text = "Закончить"
+        btnContinue.text = "Продолжить"
+
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        btnContinue.setOnClickListener { dialog.dismiss() }
+        btnStop.setOnClickListener {
+            dialog.dismiss()
+            stopAndOpenPlaylist()
+        }
+        dialog.show()
+    }
+
+    //Закончить: добавляем выбранные треки и переходим в плейлист
+    private fun stopAndOpenPlaylist() {
+        val selectedSongs = adapter.getSelectedSongs()
+        val navController = findNavController()
+        val name = playlistsViewModel.playlists.value
+            ?.firstOrNull { it.id == playlistId }?.playlistName ?: ""
+        val id = playlistId
+        playlistsViewModel.addByTimeLimitMs = null
+        playlistsViewModel.addSongsToPlaylistWhithSongs(id, selectedSongs) {
+            if (navController.popBackStack(R.id.tabLocalFragment, false)) {
+                navController.navigate(
+                    R.id.songPlaylistFragment,
+                    bundleOf("playlistId" to id, "playlistName" to name)
+                )
+            }
+        }
+    }
+
     private fun addSelectedSongsToPlaylist() {
         val selectedSongs = adapter.getSelectedSongs()
         if (selectedSongs.isNotEmpty()) {
+            //заданное время не сбрасываем: пользователь может продолжить выбор из другого источника
             playlistsViewModel.addSongsToPlaylistWhithSongs(playlistId, selectedSongs)
             findNavController().navigateUp() // Вернуться к выбору источника, если песни или избранное
             if(selectionType == SelectionType.ALBUM || selectionType == SelectionType.ARTIST ||
