@@ -4,17 +4,17 @@
 
     <item
         android:id="@+id/action_add_to_favorites_playlist"
-        android:title="Добавить песню в избранное"
+        android:title="Добавить трек в избранное"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_remove_from_favorites_playlist"
-        android:title="Удалить песню из избранного"
+        android:title="Удалить трек из избранного"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/action_delete_from_playlist"
-        android:title="Удалить песню из плейлиста"
+        android:title="Удалить трек из плейлиста"
         app:showAsAction="never"/>
 
     <item
@@ -24,7 +24,7 @@
 
     <item
         android:id="@+id/edit_song_info_playlist"
-        android:title="Изменить информацию о песне"
+        android:title="Изменить информацию о треке"
         android:icon="@drawable/baseline_change_circle_24"
         app:showAsAction="never"/>
 
@@ -36,7 +36,7 @@
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_song_info_playlist"
-        android:title="О песне"
+        android:title="О треке"
         android:icon="@drawable/baseline_info_outline_24"
         app:showAsAction="never"/>
     <!-- Другие пункты меню -->

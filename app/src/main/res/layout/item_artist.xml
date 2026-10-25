@@ -47,7 +47,7 @@
         app:layout_constraintStart_toEndOf="@id/ivArtistArtwork"
         app:layout_constraintTop_toBottomOf="@id/tvArtistName"
         app:layout_constraintEnd_toStartOf="@id/artist_dragHandle"
-        tools:text="12 песен"/>
+        tools:text="12 треков"/>
     <ImageView
         android:id="@+id/artist_menu_button"
         android:layout_width="wrap_content"

@@ -131,7 +131,7 @@ class FavoritesFragment: Fragment() {
             if (showEmptyState && !songCountLessZero) {
                 binding.favoriteEmpty.text = "По вашему запросу ничего не найдено"
             } else if (songCountLessZero) {
-                binding.favoriteEmpty.text = "Здесь пока нет ни одной песни"
+                binding.favoriteEmpty.text = "Здесь пока нет ни одного трека"
             }
 
             // обновляем меню при загрузке данных
@@ -440,7 +440,7 @@ class FavoritesFragment: Fragment() {
     }
 
     private fun showEditModeHint() {
-        Snackbar.make(binding.root, "Перетаскивайте песни для изменения порядка",
+        Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",
             Snackbar.LENGTH_LONG)
             .setAction("OK") {toggleEditMode() }
             .show()

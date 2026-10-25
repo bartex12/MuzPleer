@@ -57,7 +57,7 @@
                 android:id="@+id/tvTracksCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="12 песен"
+                android:text="12 треков"
                 android:textColor="@color/whisper"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
 

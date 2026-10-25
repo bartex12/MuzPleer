@@ -154,7 +154,7 @@ class SongPlaylistFragment:Fragment() {
             if (showEmptyState && !songCountLessZero) {
                 binding.tvEmptyPlaylistSong.text = "По вашему запросу ничего не найдено"
             } else if (songCountLessZero) {
-                binding.tvEmptyPlaylistSong.text = "Здесь пока нет ни одной песни"
+                binding.tvEmptyPlaylistSong.text = "Здесь пока нет ни одного трека"
             }
 
             // обновляем меню при загрузке данных
@@ -471,7 +471,7 @@ class SongPlaylistFragment:Fragment() {
         Log.d(TAG, "Режим редактирования: $newEditMode")
     }
     private fun showEditModeHint() {
-        Snackbar.make(binding.root, "Перетаскивайте песни для изменения порядка",
+        Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",
             Snackbar.LENGTH_LONG)
             .setAction("OK") {toggleEditMode() }
             .show()

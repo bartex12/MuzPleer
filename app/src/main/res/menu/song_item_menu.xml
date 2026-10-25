@@ -24,7 +24,7 @@
 
     <item
         android:id="@+id/edit_song_info"
-        android:title="Изменить информацию о песне"
+        android:title="Изменить информацию о треке"
         android:icon="@drawable/baseline_change_circle_24"
         app:showAsAction="never"/>
 
@@ -36,7 +36,7 @@
         app:showAsAction="never"/>
     <item
         android:id="@+id/action_song_info"
-        android:title="О песне"
+        android:title="О треке"
         android:icon="@drawable/baseline_info_outline_24"
         app:showAsAction="never"/>
     <!-- Другие пункты меню -->

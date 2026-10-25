@@ -3,12 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/add_song_to_playlist"
-        android:title="Добавить песни в плейлист"
+        android:title="Добавить треки в плейлист"
         app:showAsAction="never" />
 
     <item
         android:id="@+id/delete_song_from_playlist"
-        android:title="Удалить песни из плейлиста"
+        android:title="Удалить треки из плейлиста"
         app:showAsAction="never" />
 
     <item

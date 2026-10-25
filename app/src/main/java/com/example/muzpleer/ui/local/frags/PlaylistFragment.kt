@@ -279,7 +279,7 @@ class PlaylistFragment():Fragment() {
     }
 
     private fun showEditModeHint() {
-        Snackbar.make(binding.root, "Перетаскивайте песни для изменения порядка",
+        Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",
             Snackbar.LENGTH_LONG)
             .setAction("OK") {toggleEditMode() }
             .show()

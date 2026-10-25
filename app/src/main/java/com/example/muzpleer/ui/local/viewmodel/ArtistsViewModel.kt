@@ -18,7 +18,7 @@ import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
 
 /**
- * Всё, что относится к вкладке "Исполнители" и списку песен исполнителя.
+ * Всё, что относится к вкладке "Исполнители" и списку треков исполнителя.
  * Раньше это жило в SharedViewModel.
  */
 class ArtistsViewModel(

@@ -180,7 +180,7 @@ class PlaylistAdapter(
             deleteSongsItem?.isEnabled = false
         } else {
             // Если есть песни - показываем нормальный текст
-            deleteSongsItem?.text = "Удалить песни из плейлиста"
+            deleteSongsItem?.text = "Удалить треки из плейлиста"
             deleteSongsItem?.isEnabled = true
         }
 

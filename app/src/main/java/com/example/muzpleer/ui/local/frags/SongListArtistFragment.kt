@@ -133,7 +133,7 @@ class SongListArtistFragment:Fragment() {
                 if (showEmptyState && !songCountLessZero) {
                     binding.favoriteEmpty.text = "По вашему запросу ничего не найдено"
                 } else if (songCountLessZero) {
-                    binding.favoriteEmpty.text = "Здесь пока нет ни одной песни"
+                    binding.favoriteEmpty.text = "Здесь пока нет ни одного трека"
                 }
 
                 // обновляем меню при загрузке данных

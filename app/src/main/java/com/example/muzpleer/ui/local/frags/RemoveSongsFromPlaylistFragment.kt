@@ -54,7 +54,7 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
         playlistId = args.playlistId
         playlistName = args.playlistName
 
-        viewModel.setAppBarTitle("Удалить песни из плейлиста: $playlistName") //заголовок тулбара
+        viewModel.setAppBarTitle("Удалить треки из плейлиста: $playlistName") //заголовок тулбара
 
         setupRecyclerView()
         loadPlaylistSongs()
@@ -99,7 +99,7 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
             if (selectedSongs.isNotEmpty()) {
                 showDeleteConfirmationDialog(selectedSongs)
             } else {
-                toast("Выберите песни для удаления")
+                toast("Выберите треки для удаления")
             }
         }
 
