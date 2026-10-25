@@ -137,4 +137,5 @@
     <string name="download_done">Трек «%1$s» скачан</string>
     <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>
     <string name="song_already_in_playlist">Эта песня уже есть в плейлисте</string>
+    <string name="playlist_tracks_and_time">%1$s, суммарное время %2$s</string>
 </resources>
