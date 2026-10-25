@@ -359,7 +359,7 @@ class SongsSelectionFragment : Fragment() {
             "Заданное: ${limitMs.formatDuration()}, сейчас: ${totalMs.formatDuration()}"
         val btnStop = dialogView.findViewById<MaterialButton>(R.id.btnDeleteYes)
         val btnContinue = dialogView.findViewById<MaterialButton>(R.id.btnDeleteNo)
-        btnStop.text = "Остановиться"
+        btnStop.text = "Закончить"
         btnContinue.text = "Продолжить"
 
         val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
@@ -372,7 +372,7 @@ class SongsSelectionFragment : Fragment() {
         dialog.show()
     }
 
-    //Остановиться: добавляем выбранные треки и переходим в плейлист
+    //Закончить: добавляем выбранные треки и переходим в плейлист
     private fun stopAndOpenPlaylist() {
         val selectedSongs = adapter.getSelectedSongs()
         val navController = findNavController()

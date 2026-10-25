@@ -442,6 +442,9 @@ class PlaylistAdapter(
         val etHours = dialogView.findViewById<EditText>(R.id.etHours)
         val etMinutes = dialogView.findViewById<EditText>(R.id.etMinutes)
         val etSeconds = dialogView.findViewById<EditText>(R.id.etSeconds)
+        val currentMs = playlist.playlistSongs.sumOf { it.duration.coerceAtLeast(0L) }
+        dialogView.findViewById<TextView>(R.id.tvTimeCurrent).text =
+            "Сейчас в плейлисте: ${currentMs.formatDuration()}"
         val dialog = AlertDialog.Builder(context).setView(dialogView).create()
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
 
@@ -450,8 +453,12 @@ class PlaylistAdapter(
             val m = etMinutes.text.toString().toLongOrNull() ?: 0L
             val s = etSeconds.text.toString().toLongOrNull() ?: 0L
             val totalMs = (h * 3600 + m * 60 + s) * 1000
-            if (totalMs <= 0L) {
-                Toast.makeText(context, "Задайте время больше нуля", Toast.LENGTH_SHORT).show()
+            if (totalMs <= currentMs) {
+                Toast.makeText(
+                    context,
+                    "Задайте время больше текущего (${currentMs.formatDuration()})",
+                    Toast.LENGTH_SHORT
+                ).show()
             } else {
                 playlistsViewModel.addByTimeLimitMs = totalMs
                 dialog.dismiss()
