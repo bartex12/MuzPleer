@@ -36,6 +36,7 @@ import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.util.formatDuration
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -89,8 +90,12 @@ class PlaylistAdapter(
         @SuppressLint("ClickableViewAccessibility")
         fun bind(playlist: Playlist) {
             binding.playlistTitle.text=playlist.playlistName
-            //todo время треков
-            binding.playlistSubtitle.text=getTracksCountString(playlist.playlistSongs.size)
+            val totalMs = playlist.playlistSongs.sumOf { it.duration.coerceAtLeast(0L) }
+            binding.playlistSubtitle.text = binding.root.context.getString(
+                R.string.playlist_tracks_and_time,
+                getTracksCountString(playlist.playlistSongs.size),
+                totalMs.formatDuration()
+            )
 
             playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
