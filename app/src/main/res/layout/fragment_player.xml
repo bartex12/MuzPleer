@@ -18,6 +18,14 @@
         android:paddingEnd="4dp"
         app:layout_constraintTop_toTopOf="parent">
 
+        <ImageButton
+            android:id="@+id/btnPlayerBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Назад"
+            android:src="@drawable/ic_pl_down" />
+
         <LinearLayout
             android:id="@+id/tabQueue"
             android:layout_width="0dp"
