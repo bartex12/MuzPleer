@@ -7,13 +7,11 @@
         </shape>
     </item>
 
-    <!-- Картинка с центрированием и обрезанием -->
+    <!-- Та же картинка и тот же способ масштабирования (fill), что и в ImageView
+         на activity_splash.xml: иначе при замене фона окна на layout картинка "прыгает" -->
     <item>
         <bitmap
-            android:src="@drawable/muz_player_800_1400"
-            android:gravity="fill" />
-        <clip
-            android:drawable="@drawable/muz_player_800_1400"
+            android:src="@drawable/muz_player_800_1600"
             android:gravity="fill" />
     </item>
 </layer-list>
