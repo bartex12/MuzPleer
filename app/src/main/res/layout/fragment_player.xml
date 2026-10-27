@@ -128,7 +128,7 @@
             android:layout_height="match_parent">
 
     <!-- Album Artwork управление жестами-->
-    <com.github.chrisbanes.photoview.PhotoView
+    <com.example.muzpleer.ui.player.RoundPhotoView
         android:id="@+id/artworkImageView"
         android:layout_width="0dp"
         android:layout_height="0dp"

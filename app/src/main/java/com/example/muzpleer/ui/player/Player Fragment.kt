@@ -60,7 +60,6 @@ class PlayerFragment : Fragment() {
     private var previousTitle: String = "" // Сохраняем предыдущий заголовок
     private var showLyrics = false          // true - открыта страница «Текст песни»
     private var lyricsJob: kotlinx.coroutines.Job? = null
-    private var artworkLayoutListener: View.OnLayoutChangeListener? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -188,27 +187,12 @@ class PlayerFragment : Fragment() {
     }
 
     //Форма обложки: квадратная (как была) или круглая. В развёрнутом виде (на всю страницу) форма не применяется.
-    //Для круглой обложка обрезается овалом по размеру view и заполняет круг (centerCrop); зум по щипку остаётся.
+    //Круглая: обложка обрезается кругом и заполняет его (centerCrop); зум по щипку остаётся.
     private fun applyArtworkShape() {
         val art = binding.artworkImageView
         val round = isRoundArtwork() && !isExpanded
-        if (round) {
-            art.outlineProvider = object : android.view.ViewOutlineProvider() {
-                override fun getOutline(v: View, outline: android.graphics.Outline) {
-                    outline.setOval(0, 0, v.width, v.height)
-                }
-            }
-            art.clipToOutline = true
-            art.scaleType = ImageView.ScaleType.CENTER_CROP
-            if (artworkLayoutListener == null) {
-                artworkLayoutListener = View.OnLayoutChangeListener { v, _, _, _, _, _, _, _, _ -> v.invalidateOutline() }
-                art.addOnLayoutChangeListener(artworkLayoutListener)
-            }
-        } else {
-            art.outlineProvider = android.view.ViewOutlineProvider.BACKGROUND
-            art.clipToOutline = false
-            art.scaleType = ImageView.ScaleType.FIT_CENTER
-        }
+        art.round = round
+        art.scaleType = if (round) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER
         //круг чуть крупнее квадрата, чтобы выглядел не мельче
         if (!isExpanded) {
             val params = art.layoutParams as ConstraintLayout.LayoutParams
@@ -474,7 +458,6 @@ class PlayerFragment : Fragment() {
         restorePreviousTitle()
         // Показать нижний плеер при закрытии фрагмента
         showActivityPlayer()
-        artworkLayoutListener = null
         _binding = null
         super.onDestroyView()
     }
