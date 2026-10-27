@@ -64,6 +64,14 @@ class PlayerViewModel(
         playerHandler.stopAndClear()
     }
 
+    /** Очередь воспроизведения и номер играющей песни в ней. */
+    fun queue(): List<Song> = playerHandler.queue()
+    fun currentQueueIndex(): Int = playerHandler.currentIndex()
+    fun moveQueueTrack(from: Int, to: Int) = playerHandler.moveTrack(from, to)
+    fun playQueueTrack(index: Int) = playerHandler.playTrack(index)
+    /** Привести очередь к списку [tracks] (например, после правки плейлиста), не прерывая играющую песню. */
+    fun syncQueue(tracks: List<Song>) = playerHandler.replaceQueue(tracks)
+
     fun togglePlayPause() {
         playerHandler.togglePlayPause()
     }

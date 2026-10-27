@@ -15,6 +15,13 @@ import android.view.Gravity
 import androidx.navigation.fragment.findNavController
 import com.example.muzpleer.util.shareSong
 import android.widget.Toast
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.muzpleer.model.SourceType
+import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
+import com.example.muzpleer.ui.local.helper.PreferenceHelperImpl
+import com.example.muzpleer.ui.local.helper.showTimeLimitDialog
+import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import android.graphics.Color
 import androidx.appcompat.app.AlertDialog
 import androidx.core.graphics.drawable.toDrawable
@@ -58,7 +65,11 @@ class PlayerFragment : Fragment() {
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var isExpanded = false
     private var previousTitle: String = "" // Сохраняем предыдущий заголовок
-    private var showLyrics = false          // true - открыта страница «Текст песни»
+    private var page = PAGE_SONG            // открытая страница: очередь / песня / текст песни
+    private lateinit var queueAdapter: QueueAdapter
+    private lateinit var queueTouchHelper: ItemTouchHelper
+    private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
+    private val appPrefs by lazy { PreferenceHelperImpl(requireActivity().application) }
     private var lyricsJob: kotlinx.coroutines.Job? = null
 
     override fun onCreateView(
@@ -77,7 +88,8 @@ class PlayerFragment : Fragment() {
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
         Log.d(TAG, "=== === PlayerFragment onViewCreated previousTitle = $previousTitle")
 
-        showLyrics = savedInstanceState?.getBoolean(STATE_LYRICS) ?: false
+        page = savedInstanceState?.getInt(STATE_PAGE) ?: PAGE_SONG
+        setupQueue()
         setupTopBar()
         setupControls()
         observeViewModel()
@@ -90,6 +102,7 @@ class PlayerFragment : Fragment() {
         super.onResume()
         // Устанавливаем заголовок
         updateToolbarTitle("Аудиоплеер")
+        syncQueueWithPlaylist()
     }
 
     private fun updateToolbarTitle(title: String) {
@@ -98,19 +111,19 @@ class PlayerFragment : Fragment() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putBoolean(STATE_LYRICS, showLyrics)
+        outState.putInt(STATE_PAGE, page)
     }
 
-    //Верхняя панель: очередь (заглушка) | Песня | Текст песни | меню (заглушка)
+    //Верхняя панель: очередь | Песня | Текст песни | меню (своё на каждой странице)
     private fun setupTopBar() {
-        binding.tabQueue.setOnClickListener { stub("Очередь воспроизведения") }
-        binding.tabSong.setOnClickListener { showPage(lyrics = false) }
-        binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
+        binding.tabQueue.setOnClickListener { showPage(PAGE_QUEUE) }
+        binding.tabSong.setOnClickListener { showPage(PAGE_SONG) }
+        binding.tabLyrics.setOnClickListener { showPage(PAGE_LYRICS) }
         binding.btnLyricsFont.setOnClickListener { showFontSizeDialog() }
         binding.tvLyrics.textSize = FONT_SIZES_SP[fontSizeIndex()]
         binding.btnPlayerMenu.setOnClickListener { showPlayerMenu() }
         applyArtworkShape()
-        showPage(showLyrics)
+        showPage(page)
     }
 
     private fun fontSizeIndex(): Int =
@@ -137,6 +150,7 @@ class PlayerFragment : Fragment() {
 
     //Меню за тремя точками (одно и то же для страниц «Песня» и «Текст песни»)
     private fun showPlayerMenu() {
+        if (page == PAGE_QUEUE) { showQueueMenu(); return }
         val context = requireContext()
         val popupView = LayoutInflater.from(context).inflate(R.layout.popup_player_menu, null)
         val popup = PopupWindow(
@@ -176,6 +190,52 @@ class PlayerFragment : Fragment() {
         popup.showAsDropDown(binding.btnPlayerMenu, 0, 0, Gravity.END)
     }
 
+    //Меню очереди (для плейлиста): те же действия, что в меню строки списка плейлистов
+    private fun showQueueMenu() {
+        val context = requireContext()
+        val source = appPrefs.getPlaybackSource()
+        val playlist = playlistsViewModel.playlists.value?.firstOrNull { it.id == source?.id }
+        if (source?.type != SourceType.PLAYLIST || playlist == null) return
+        val popupView = LayoutInflater.from(context).inflate(R.layout.popup_queue_menu, null)
+        val popup = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        val toSource = {
+            findNavController().navigate(R.id.addSongsSourceFragment, bundleOf("playlistId" to playlist.id))
+        }
+        popupView.findViewById<TextView>(R.id.itemQueueAdd).setOnClickListener {
+            popup.dismiss()
+            playlistsViewModel.addByTimeLimitMs = null
+            toSource()
+        }
+        popupView.findViewById<TextView>(R.id.itemQueueAddByTime).setOnClickListener {
+            popup.dismiss()
+            showTimeLimitDialog(context, playlist) { totalMs ->
+                playlistsViewModel.addByTimeLimitMs = totalMs
+                toSource()
+            }
+        }
+        //удалять нечего, если в плейлисте нет треков
+        val hasSongs = playlist.playlistSongs.isNotEmpty()
+        popupView.findViewById<TextView>(R.id.itemQueueRemove).visibility = if (hasSongs) View.VISIBLE else View.GONE
+        popupView.findViewById<View>(R.id.dividerQueueRemove).visibility = if (hasSongs) View.VISIBLE else View.GONE
+        popupView.findViewById<TextView>(R.id.itemQueueRemove).setOnClickListener {
+            popup.dismiss()
+            findNavController().navigate(
+                R.id.removeSongsFromPlaylistFragment,
+                bundleOf("playlistId" to playlist.id, "playlistName" to playlist.playlistName)
+            )
+        }
+        popup.showAsDropDown(binding.btnPlayerMenu, 0, 0, Gravity.END)
+    }
+
     private fun isRoundArtwork(): Boolean =
         PreferenceManager.getDefaultSharedPreferences(requireContext())
             .getBoolean(PREF_ARTWORK_ROUND, false)
@@ -201,25 +261,75 @@ class PlayerFragment : Fragment() {
         }
     }
 
-    private fun stub(name: String) {
-        Toast.makeText(requireContext(), "$name — пока в разработке", Toast.LENGTH_SHORT).show()
+    //Очередь воспроизведения: список песен плеера, строки перетаскиваются
+    private fun setupQueue() {
+        queueAdapter = QueueAdapter(
+            onClick = { index -> playerViewModel.playQueueTrack(index) },
+            onMoved = { from, to -> playerViewModel.moveQueueTrack(from, to) },
+            onDropped = { songs -> saveQueueOrder(songs) }
+        )
+        queueTouchHelper = ItemTouchHelper(ItemTouchHelperCallback(queueAdapter))
+        queueAdapter.touchHelper = queueTouchHelper
+        binding.rvQueue.layoutManager = LinearLayoutManager(requireContext())
+        binding.rvQueue.adapter = queueAdapter
+        queueTouchHelper.attachToRecyclerView(binding.rvQueue)
     }
 
-    //Переключение страниц «Песня» / «Текст песни» и подсветка выбранной вкладки
-    private fun showPage(lyrics: Boolean) {
-        showLyrics = lyrics
-        binding.pageSong.visibility = if (lyrics) View.GONE else View.VISIBLE
-        binding.pageLyrics.visibility = if (lyrics) View.VISIBLE else View.GONE
+    private fun refreshQueue() {
+        queueAdapter.submit(playerViewModel.queue(), playerViewModel.currentQueueIndex())
+        refreshQueueLabel()
+    }
+
+    //подпись вкладки «очередь»: номер играющей песни из общего числа
+    private fun refreshQueueLabel() {
+        val queue = playerViewModel.queue()
+        binding.tvQueueLabel.text = "#${playerViewModel.currentQueueIndex() + 1}/${queue.size}"
+    }
+
+    //Новый порядок очереди: если играет плейлист, запоминаем порядок и в самом плейлисте
+    private fun saveQueueOrder(songs: List<Song>) {
+        val source = appPrefs.getPlaybackSource()
+        if (source?.type == SourceType.PLAYLIST) {
+            playlistsViewModel.setCurrentPlaylistByPlaylistId(source.id) {
+                playlistsViewModel.updatePlaylistSongsOrder(songs) { }
+            }
+        }
+    }
+
+    //Плейлист могли изменить на других экранах (добавили, удалили треки): очередь плеера приводим к нему
+    private fun syncQueueWithPlaylist() {
+        val source = appPrefs.getPlaybackSource() ?: return
+        if (source.type != SourceType.PLAYLIST) return
+        playlistsViewModel.setCurrentPlaylistByPlaylistId(source.id) { playlist ->
+            if (_binding == null || playlist == null) return@setCurrentPlaylistByPlaylistId
+            if (playlist.playlistSongs.isNotEmpty()) playerViewModel.syncQueue(playlist.playlistSongs)
+            if (page == PAGE_QUEUE) refreshQueue() else refreshQueueLabel()
+        }
+    }
+
+    private fun isPlaylistSource() = appPrefs.getPlaybackSource()?.type == SourceType.PLAYLIST
+
+    //Переключение страниц «Очередь» / «Песня» / «Текст песни» и подсветка выбранной вкладки
+    private fun showPage(newPage: Int) {
+        page = newPage
+        binding.rvQueue.visibility = if (page == PAGE_QUEUE) View.VISIBLE else View.GONE
+        binding.pageSong.visibility = if (page == PAGE_SONG) View.VISIBLE else View.GONE
+        binding.pageLyrics.visibility = if (page == PAGE_LYRICS) View.VISIBLE else View.GONE
+        styleTab(binding.tvQueueLabel, binding.tabQueueIcon, page == PAGE_QUEUE)
+        styleTab(binding.tvSongLabel, binding.tabSongIcon, page == PAGE_SONG)
+        styleTab(binding.tvLyricsLabel, binding.tabLyricsIcon, page == PAGE_LYRICS)
+        if (page == PAGE_QUEUE) refreshQueue()
+        //у очереди меню есть только для плейлиста
+        binding.btnPlayerMenu.visibility =
+            if (page == PAGE_QUEUE && !isPlaylistSource()) View.INVISIBLE else View.VISIBLE
+    }
+
+    private fun styleTab(label: TextView, icon: ImageView, active: Boolean) {
         val selected = ContextCompat.getColor(requireContext(), R.color.white)
         val normal = (selected and 0x00FFFFFF) or (0x99 shl 24)
-        binding.tvSongLabel.setTextColor(if (lyrics) normal else selected)
-        binding.tvSongLabel.setTypeface(null, if (lyrics) android.graphics.Typeface.NORMAL else android.graphics.Typeface.BOLD)
-        binding.tabSongIcon.alpha = if (lyrics) 0.6f else 1f
-        binding.tvLyricsLabel.setTextColor(if (lyrics) selected else normal)
-        binding.tvLyricsLabel.setTypeface(null, if (lyrics) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
-        binding.tabLyricsIcon.alpha = if (lyrics) 1f else 0.6f
-        binding.tvQueueLabel.setTextColor(normal)
-        binding.tabQueueIcon.alpha = 0.6f
+        label.setTextColor(if (active) selected else normal)
+        label.setTypeface(null, if (active) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        icon.alpha = if (active) 1f else 0.6f
     }
 
     //Читаем текст песни из тега файла и показываем на странице «Текст песни»
@@ -348,9 +458,7 @@ class PlayerFragment : Fragment() {
 
             binding.tvTitle.text = currentSong?.title
             binding.tvArtist.text =currentSong?.artist
-            //подпись вкладки «очередь»: номер трека из общего числа
-            val position = songAndPlaylist.playlist.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
-            binding.tvQueueLabel.text = "#${position + 1}/${songAndPlaylist.playlist.size}"
+            refreshQueueLabel()
 
             //находим индекс трека в плейлисте
             val indexOfTrack =
@@ -422,6 +530,9 @@ class PlayerFragment : Fragment() {
 
     private fun updateUI(song: Song) {
         loadLyrics(song)
+        //играющая песня сменилась: подсветка в очереди и подпись вкладки
+        queueAdapter.currentIndex = playerViewModel.currentQueueIndex()
+        refreshQueueLabel()
         binding.tvTitle.text = song.title
         binding.tvArtist.text = song.artist
 
@@ -470,7 +581,10 @@ class PlayerFragment : Fragment() {
 
     companion object {
         const val TAG = "33333"
-        private const val STATE_LYRICS = "state_lyrics"
+        private const val STATE_PAGE = "state_page"
+        private const val PAGE_QUEUE = 0
+        private const val PAGE_SONG = 1
+        private const val PAGE_LYRICS = 2
         private const val PREF_ARTWORK_ROUND = "player_artwork_round"
         private const val PREF_LYRICS_FONT = "lyrics_font_index"
         private const val DEFAULT_FONT_INDEX = 2
