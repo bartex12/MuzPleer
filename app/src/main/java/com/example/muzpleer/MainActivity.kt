@@ -180,6 +180,17 @@ class MainActivity : AppCompatActivity() {
                 R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
+        //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val titleRes = when (destination.id) {
+                R.id.favoritesFragment -> R.string.favorites
+                R.id.downloadFragment -> R.string.download_track
+                R.id.settingsFragment -> R.string.settings
+                R.id.helpFragment -> R.string.help
+                else -> null
+            }
+            titleRes?.let { viewModel.setAppBarTitle(getString(it)) }
+        }
         //автоматически связывает пункты меню с destinations в NavGraph
         navView.setupWithNavController(navController)
         //слушатель меню шторки - нужен для дополнительной кастомной логики
@@ -192,26 +203,22 @@ class MainActivity : AppCompatActivity() {
                 return when (item.itemId) {
                     R.id.nav_favorites -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_favorites")
-                        viewModel.setAppBarTitle(getString(R.string.favorites)) //заголовок тулбара нового экрана
                         navController.navigate(R.id.favoritesFragment)
                         //viewPager?.setCurrentItem(4)
                         true
                     }
                     R.id.nav_download -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_download")
-                        viewModel.setAppBarTitle(getString(R.string.download_track)) //заголовок тулбара нового экрана
                         navController.navigate(R.id.downloadFragment)
                         true
                     }
                     R.id.nav_setting -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_setting")
-                        viewModel.setAppBarTitle(getString(R.string.settings)) //заголовок тулбара нового экрана
                         navController.navigate(R.id.settingsFragment)
                         true
                     }
                     R.id.nav_help ->{
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_help")
-                        viewModel.setAppBarTitle(getString(R.string.help)) //заголовок тулбара нового экрана
                         navController.navigate(R.id.helpFragment)
                         true
                     }
