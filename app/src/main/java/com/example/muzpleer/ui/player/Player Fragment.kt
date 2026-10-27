@@ -466,8 +466,13 @@ class PlayerFragment : Fragment() {
                     song.mediaUri == currentSong?.mediaUri
                 }
             //перед передачей в Handler меняем в передаваемом плейлисте artUri для текущего трека
-            songAndPlaylist.playlist[indexOfTrack].artUri =currentSong?.artUri
-            val trackArtUri =  songAndPlaylist.playlist[indexOfTrack].artUri
+            //песни может не быть в сохранённом списке (очередь изменили: добавили/убрали треки) - берём обложку у самой песни
+            val trackArtUri = if (indexOfTrack >= 0) {
+                songAndPlaylist.playlist[indexOfTrack].artUri = currentSong?.artUri
+                songAndPlaylist.playlist[indexOfTrack].artUri
+            } else {
+                currentSong?.artUri
+            }
             Log.d(TAG, "3*** PlayerFragment onViewCreated indexOfTrack = $indexOfTrack " +
                     "songAndPlaylist.playlist.size = ${songAndPlaylist.playlist.size} artUri = $trackArtUri")
 
