@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.example.muzpleer.util.LyricsReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,9 +91,8 @@ class PlayerFragment : Fragment() {
         outState.putBoolean(STATE_LYRICS, showLyrics)
     }
 
-    //Верхняя панель: назад | очередь (заглушка) | Песня | Текст песни | меню (заглушка); тулбар на этом экране скрыт
+    //Верхняя панель: очередь (заглушка) | Песня | Текст песни | меню (заглушка)
     private fun setupTopBar() {
-        binding.btnPlayerBack.setOnClickListener { findNavController().popBackStack() }
         binding.tabQueue.setOnClickListener { stub("Очередь воспроизведения") }
         binding.tabSong.setOnClickListener { showPage(lyrics = false) }
         binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
