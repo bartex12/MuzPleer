@@ -180,6 +180,17 @@ class MainActivity : AppCompatActivity() {
                 R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
+        //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            val titleRes = when (destination.id) {
+                R.id.favoritesFragment -> R.string.favorites
+                R.id.downloadFragment -> R.string.download_track
+                R.id.settingsFragment -> R.string.settings
+                R.id.helpFragment -> R.string.help
+                else -> null
+            }
+            titleRes?.let { viewModel.setAppBarTitle(getString(it)) }
+        }
         //автоматически связывает пункты меню с destinations в NavGraph
         navView.setupWithNavController(navController)
         //слушатель меню шторки - нужен для дополнительной кастомной логики
