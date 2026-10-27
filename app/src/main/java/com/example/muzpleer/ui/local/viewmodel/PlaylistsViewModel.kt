@@ -212,7 +212,7 @@ class PlaylistsViewModel(
     }
 
     // Удаление нескольких песен из плейлиста
-    fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>) {
+    fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 val removedCount = playlistRepository.removeSongsFromPlaylist(playlistId, songIds)
@@ -233,6 +233,9 @@ class PlaylistsViewModel(
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing songs from playlist: ${e.message}", e)
                 messenger.show("Ошибка: ${e.message}")
+            } finally {
+                //удаление закончено: экраны, которые ждут результат (очередь плеера), читают уже новый список
+                onDone?.invoke()
             }
         }
     }

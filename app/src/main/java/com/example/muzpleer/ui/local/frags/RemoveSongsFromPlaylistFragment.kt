@@ -133,9 +133,12 @@ class RemoveSongsFromPlaylistFragment : Fragment() {
 
         btnConfirm.setOnClickListener {
             val songIds = selectedSongs.map { it.id }
-            playlistsViewModel.removeSongsFromPlaylist(playlistId, songIds)
             dialog.dismiss()
-            findNavController().navigateUp()
+            //уходим с экрана только после удаления: иначе экран, куда вернулись, прочитает список посреди удаления
+            val navController = findNavController()
+            playlistsViewModel.removeSongsFromPlaylist(playlistId, songIds) {
+                if (isAdded) navController.navigateUp()
+            }
         }
 
         btnCancel.setOnClickListener {
