@@ -8,7 +8,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioGroup
 import android.widget.Toast
+import android.graphics.Color
+import androidx.appcompat.app.AlertDialog
+import androidx.core.graphics.drawable.toDrawable
+import androidx.preference.PreferenceManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.example.muzpleer.util.LyricsReader
@@ -96,10 +101,34 @@ class PlayerFragment : Fragment() {
         binding.tabQueue.setOnClickListener { stub("Очередь воспроизведения") }
         binding.tabSong.setOnClickListener { showPage(lyrics = false) }
         binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
+        binding.btnLyricsFont.setOnClickListener { showFontSizeDialog() }
+        binding.tvLyrics.textSize = FONT_SIZES_SP[fontSizeIndex()]
         binding.btnPlayerMenu.setOnClickListener {
             stub(if (showLyrics) "Меню текста песни" else "Меню песни")
         }
         showPage(showLyrics)
+    }
+
+    private fun fontSizeIndex(): Int =
+        PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getInt(PREF_LYRICS_FONT, DEFAULT_FONT_INDEX).coerceIn(0, FONT_SIZES_SP.lastIndex)
+
+    //Окно выбора размера шрифта текста: два размера меньше обычного и два больше
+    private fun showFontSizeDialog() {
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_font_size, null)
+        val group = dialogView.findViewById<RadioGroup>(R.id.rgFontSize)
+        val ids = intArrayOf(R.id.rbFont0, R.id.rbFont1, R.id.rbFont2, R.id.rbFont3, R.id.rbFont4)
+        group.check(ids[fontSizeIndex()])
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        group.setOnCheckedChangeListener { _, checkedId ->
+            val index = ids.indexOf(checkedId).takeIf { it >= 0 } ?: return@setOnCheckedChangeListener
+            PreferenceManager.getDefaultSharedPreferences(requireContext())
+                .edit().putInt(PREF_LYRICS_FONT, index).apply()
+            _binding?.tvLyrics?.textSize = FONT_SIZES_SP[index]
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun stub(name: String) {
@@ -133,6 +162,7 @@ class PlayerFragment : Fragment() {
                 LyricsReader.read(appContext, song.id, song.getContentUri())
             }
             _binding ?: return@launch
+            binding.btnLyricsFont.visibility = if (text != null) View.VISIBLE else View.INVISIBLE
             if (text != null) {
                 binding.tvLyrics.text = text
                 binding.tvLyrics.gravity = android.view.Gravity.START
@@ -369,6 +399,10 @@ class PlayerFragment : Fragment() {
     companion object {
         const val TAG = "33333"
         private const val STATE_LYRICS = "state_lyrics"
+        private const val PREF_LYRICS_FONT = "lyrics_font_index"
+        private const val DEFAULT_FONT_INDEX = 2
+        //размеры шрифта текста песни, sp: два меньше обычного (20) и два больше
+        private val FONT_SIZES_SP = floatArrayOf(14f, 17f, 20f, 24f, 28f)
         private const val ARG_TRACK = "track"
         private const val ARG_PLAYLIST = "playlist"
 

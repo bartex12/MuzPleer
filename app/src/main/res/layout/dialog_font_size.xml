@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/item_list_effects_revers">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="Размер шрифта текста"
+        android:textAlignment="center"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+        android:textColor="@color/white" />
+
+    <RadioGroup
+        android:id="@+id/rgFontSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/rbFont0"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:minHeight="48dp"
+            android:text="Очень мелкий"
+            android:textColor="@color/white"
+            android:textSize="14sp" />
+
+        <RadioButton
+            android:id="@+id/rbFont1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:minHeight="48dp"
+            android:text="Мелкий"
+            android:textColor="@color/white"
+            android:textSize="17sp" />
+
+        <RadioButton
+            android:id="@+id/rbFont2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:minHeight="48dp"
+            android:text="Обычный"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+
+        <RadioButton
+            android:id="@+id/rbFont3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:minHeight="48dp"
+            android:text="Крупный"
+            android:textColor="@color/white"
+            android:textSize="24sp" />
+
+        <RadioButton
+            android:id="@+id/rbFont4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/white"
+            android:minHeight="48dp"
+            android:text="Очень крупный"
+            android:textColor="@color/white"
+            android:textSize="28sp" />
+    </RadioGroup>
+</LinearLayout>
