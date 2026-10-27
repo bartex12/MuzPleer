@@ -145,6 +145,42 @@ class MusicServiceHandler(
         callback.onTrackChanged(tracks[startIndex])
     }
 
+    /** Песни очереди плеера в порядке очереди. */
+    fun queue(): List<Song> = playlist
+
+    /** Номер текущей песни в очереди (-1, если плеер пуст). */
+    fun currentIndex(): Int = if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex
+
+    /** Переставляет песню очереди [from] на место [to]; играющая песня не прерывается. */
+    fun moveTrack(from: Int, to: Int) {
+        if (from !in playlist.indices || to !in playlist.indices || from == to) return
+        player.moveMediaItem(from, to)
+        playlist = playlist.toMutableList().apply { add(to, removeAt(from)) }
+        preferences.saveQueueIds(playlist.map { it.id })
+    }
+
+    /**
+     * Заменяет очередь новым списком (песни добавили, удалили или переставили в плейлисте).
+     * Если играющая песня осталась в списке, она продолжает играть с той же позиции.
+     */
+    fun replaceQueue(tracks: List<Song>) {
+        if (tracks.isEmpty()) { stopAndClear(); return }
+        if (tracks.map { it.id } == playlist.map { it.id }) return
+        val current = currentTrack()
+        val index = current?.let { c -> tracks.indexOfFirst { it.id == c.id } } ?: -1
+        val keep = index >= 0
+        val position = if (keep) player.currentPosition else 0L
+        playlist = tracks
+        player.setMediaItems(tracks.map { buildMediaItem(it) }, if (keep) index else 0, position)
+        if (player.shuffleModeEnabled) applyNewShuffleOrder()
+        preferences.saveQueueIds(tracks.map { it.id })
+        if (!keep) {
+            //играющую песню убрали из плейлиста - переходим к первой
+            preferences.saveCurrentSongId(tracks[0].id)
+            callback.onTrackChanged(tracks[0])
+        }
+    }
+
     /** Переключает на песню с номером [index] в текущем списке. */
     fun playTrack(index: Int) {
         if (index !in playlist.indices) return

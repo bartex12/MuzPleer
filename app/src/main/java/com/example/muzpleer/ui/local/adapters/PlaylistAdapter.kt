@@ -431,38 +431,10 @@ class PlaylistAdapter(
 
     //Окно ввода желаемой длительности плейлиста (часы, минуты, секунды)
     private fun showTimeLimitDialog(view: View, playlist: Playlist) {
-        val context = view.context
-        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_time_limit, null)
-        val etHours = dialogView.findViewById<EditText>(R.id.etHours)
-        val etMinutes = dialogView.findViewById<EditText>(R.id.etMinutes)
-        val etSeconds = dialogView.findViewById<EditText>(R.id.etSeconds)
-        val currentMs = playlist.playlistSongs.sumOf { it.duration.coerceAtLeast(0L) }
-        dialogView.findViewById<TextView>(R.id.tvTimeCurrent).text =
-            "Сейчас в плейлисте: ${currentMs.formatDuration()}"
-        val dialog = AlertDialog.Builder(context).setView(dialogView).create()
-        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
-
-        dialogView.findViewById<MaterialButton>(R.id.btnTimeOk).setOnClickListener {
-            val h = etHours.text.toString().toLongOrNull() ?: 0L
-            val m = etMinutes.text.toString().toLongOrNull() ?: 0L
-            val s = etSeconds.text.toString().toLongOrNull() ?: 0L
-            val totalMs = (h * 3600 + m * 60 + s) * 1000
-            if (totalMs <= currentMs) {
-                Toast.makeText(
-                    context,
-                    "Задайте время больше текущего (${currentMs.formatDuration()})",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                playlistsViewModel.addByTimeLimitMs = totalMs
-                dialog.dismiss()
-                navigateToAddSongsSource(view, playlist)
-            }
+        com.example.muzpleer.ui.local.helper.showTimeLimitDialog(view.context, playlist) { totalMs ->
+            playlistsViewModel.addByTimeLimitMs = totalMs
+            navigateToAddSongsSource(view, playlist)
         }
-        dialogView.findViewById<MaterialButton>(R.id.btnTimeCancel).setOnClickListener {
-            dialog.dismiss()
-        }
-        dialog.show()
     }
 
     private fun navigateToAddSongsSource(view: View,  playlist: Playlist) {
