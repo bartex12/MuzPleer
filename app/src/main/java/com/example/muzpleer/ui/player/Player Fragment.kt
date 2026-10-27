@@ -9,6 +9,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.RadioGroup
+import android.widget.PopupWindow
+import android.widget.TextView
+import android.view.Gravity
+import androidx.navigation.fragment.findNavController
+import com.example.muzpleer.util.shareSong
 import android.widget.Toast
 import android.graphics.Color
 import androidx.appcompat.app.AlertDialog
@@ -103,9 +108,8 @@ class PlayerFragment : Fragment() {
         binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
         binding.btnLyricsFont.setOnClickListener { showFontSizeDialog() }
         binding.tvLyrics.textSize = FONT_SIZES_SP[fontSizeIndex()]
-        binding.btnPlayerMenu.setOnClickListener {
-            stub(if (showLyrics) "Меню текста песни" else "Меню песни")
-        }
+        binding.btnPlayerMenu.setOnClickListener { showPlayerMenu() }
+        applyArtworkShape()
         showPage(showLyrics)
     }
 
@@ -129,6 +133,72 @@ class PlayerFragment : Fragment() {
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    //Меню за тремя точками (одно и то же для страниц «Песня» и «Текст песни»)
+    private fun showPlayerMenu() {
+        val context = requireContext()
+        val popupView = LayoutInflater.from(context).inflate(R.layout.popup_player_menu, null)
+        val popup = PopupWindow(
+            popupView,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        )
+        popup.elevation = 8f
+        popup.isOutsideTouchable = true
+        popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+
+        //галочка справа у текущей формы изображения
+        val round = isRoundArtwork()
+        val itemRound = popupView.findViewById<TextView>(R.id.itemShapeRound)
+        val itemSquare = popupView.findViewById<TextView>(R.id.itemShapeSquare)
+        val check = ContextCompat.getDrawable(context, R.drawable.ic_pl_check)
+        (if (round) itemRound else itemSquare).setCompoundDrawablesRelativeWithIntrinsicBounds(
+            ContextCompat.getDrawable(context, if (round) R.drawable.ic_shape_circle else R.drawable.ic_shape_square),
+            null, check, null
+        )
+
+        popupView.findViewById<TextView>(R.id.itemPlayerChangeCover).setOnClickListener {
+            popup.dismiss()
+            viewModel.getCurrentSong()?.let { song ->
+                viewModel.setSelectedSong(song)
+                findNavController().navigate(R.id.coverChangeFragment)
+            }
+        }
+        popupView.findViewById<TextView>(R.id.itemPlayerShare).setOnClickListener {
+            popup.dismiss()
+            viewModel.getCurrentSong()?.let { shareSong(context, it) }
+        }
+        itemRound.setOnClickListener { setArtworkRound(true); popup.dismiss() }
+        itemSquare.setOnClickListener { setArtworkRound(false); popup.dismiss() }
+
+        popup.showAsDropDown(binding.btnPlayerMenu, 0, 0, Gravity.END)
+    }
+
+    private fun isRoundArtwork(): Boolean =
+        PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .getBoolean(PREF_ARTWORK_ROUND, false)
+
+    private fun setArtworkRound(round: Boolean) {
+        PreferenceManager.getDefaultSharedPreferences(requireContext())
+            .edit().putBoolean(PREF_ARTWORK_ROUND, round).apply()
+        applyArtworkShape()
+    }
+
+    //Форма обложки: квадратная (как была) или круглая. В развёрнутом виде (на всю страницу) форма не применяется.
+    //Круглая: обложка обрезается кругом и заполняет его (centerCrop); зум по щипку остаётся.
+    private fun applyArtworkShape() {
+        val art = binding.artworkImageView
+        val round = isRoundArtwork() && !isExpanded
+        art.round = round
+        art.scaleType = if (round) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER
+        //круг чуть крупнее квадрата, чтобы выглядел не мельче
+        if (!isExpanded) {
+            val params = art.layoutParams as ConstraintLayout.LayoutParams
+            params.matchConstraintPercentWidth = if (isRoundArtwork()) 0.66f else 0.6f
+            art.layoutParams = params
+        }
     }
 
     private fun stub(name: String) {
@@ -241,6 +311,7 @@ class PlayerFragment : Fragment() {
                     .addTransition(ChangeImageTransform())
             )
             val params = binding.artworkImageView.layoutParams as ConstraintLayout.LayoutParams
+            applyArtworkShape()
             if (isExpanded) {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
@@ -254,8 +325,9 @@ class PlayerFragment : Fragment() {
                 params.width = 0
                 params.height = 0
                 params.dimensionRatio = "1:1"
-                params.matchConstraintPercentWidth = 0.6f
-                binding.artworkImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+                params.matchConstraintPercentWidth = if (isRoundArtwork()) 0.66f else 0.6f
+                binding.artworkImageView.scaleType =
+                    if (isRoundArtwork()) ImageView.ScaleType.CENTER_CROP else ImageView.ScaleType.FIT_CENTER
             }
 
             binding.artworkImageView.layoutParams = params
@@ -399,6 +471,7 @@ class PlayerFragment : Fragment() {
     companion object {
         const val TAG = "33333"
         private const val STATE_LYRICS = "state_lyrics"
+        private const val PREF_ARTWORK_ROUND = "player_artwork_round"
         private const val PREF_LYRICS_FONT = "lyrics_font_index"
         private const val DEFAULT_FONT_INDEX = 2
         //размеры шрифта текста песни, sp: два меньше обычного (20) и два больше

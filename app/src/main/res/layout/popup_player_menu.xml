@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingVertical="8dp"
+    android:background="@drawable/popup_menu_bg"
+    android:elevation="8dp">
+
+    <TextView
+        android:id="@+id/itemPlayerChangeCover"
+        style="@style/PopupMenuItem"
+        android:text="Изменить обложку"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_edit_square_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        android:id="@+id/itemPlayerShare"
+        style="@style/PopupMenuItem"
+        android:text="Поделиться"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/outline_share_24"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
+        style="@style/PopupMenuItem"
+        android:clickable="false"
+        android:text="Форма изображения"
+        android:textStyle="bold"
+        android:background="@null" />
+
+    <TextView
+        android:id="@+id/itemShapeRound"
+        style="@style/PopupMenuItem"
+        android:text="Круглая"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/ic_shape_circle"
+        app:drawableTint="@color/white"/>
+
+    <TextView
+        android:id="@+id/itemShapeSquare"
+        style="@style/PopupMenuItem"
+        android:text="Квадратная"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/ic_shape_square"
+        app:drawableTint="@color/white"/>
+</LinearLayout>
