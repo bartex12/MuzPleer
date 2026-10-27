@@ -11,7 +11,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.fragment.findNavController
 import com.example.muzpleer.util.LyricsReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -92,9 +91,8 @@ class PlayerFragment : Fragment() {
         outState.putBoolean(STATE_LYRICS, showLyrics)
     }
 
-    //Верхняя панель: назад | очередь (заглушка) | Песня | Текст песни | меню (заглушка)
+    //Верхняя панель: очередь (заглушка) | Песня | Текст песни | меню (заглушка); «назад» - стрелка в тулбаре
     private fun setupTopBar() {
-        binding.btnPlayerBack.setOnClickListener { findNavController().popBackStack() }
         binding.tabQueue.setOnClickListener { stub("Очередь воспроизведения") }
         binding.tabSong.setOnClickListener { showPage(lyrics = false) }
         binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
@@ -137,11 +135,13 @@ class PlayerFragment : Fragment() {
             _binding ?: return@launch
             if (text != null) {
                 binding.tvLyrics.text = text
-                binding.tvLyrics.gravity = android.view.Gravity.CENTER_HORIZONTAL
+                binding.tvLyrics.gravity = android.view.Gravity.START
+                binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
                 binding.tvLyrics.alpha = 1f
             } else {
                 binding.tvLyrics.text = "Текста песни в файле нет"
                 binding.tvLyrics.gravity = android.view.Gravity.CENTER
+                binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_CENTER
                 binding.tvLyrics.alpha = 0.6f
             }
             binding.lyricsScroll.scrollTo(0, 0)
