@@ -8,6 +8,14 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import com.example.muzpleer.util.LyricsReader
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -41,6 +49,8 @@ class PlayerFragment : Fragment() {
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var isExpanded = false
     private var previousTitle: String = "" // Сохраняем предыдущий заголовок
+    private var showLyrics = false          // true - открыта страница «Текст песни»
+    private var lyricsJob: kotlinx.coroutines.Job? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,6 +68,8 @@ class PlayerFragment : Fragment() {
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
         Log.d(TAG, "=== === PlayerFragment onViewCreated previousTitle = $previousTitle")
 
+        showLyrics = savedInstanceState?.getBoolean(STATE_LYRICS) ?: false
+        setupTopBar()
         setupControls()
         observeViewModel()
 
@@ -73,6 +85,67 @@ class PlayerFragment : Fragment() {
 
     private fun updateToolbarTitle(title: String) {
         (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_LYRICS, showLyrics)
+    }
+
+    //Верхняя панель: назад | очередь (заглушка) | Песня | Текст песни | меню (заглушка)
+    private fun setupTopBar() {
+        binding.btnPlayerBack.setOnClickListener { findNavController().popBackStack() }
+        binding.tabQueue.setOnClickListener { stub("Очередь воспроизведения") }
+        binding.tabSong.setOnClickListener { showPage(lyrics = false) }
+        binding.tabLyrics.setOnClickListener { showPage(lyrics = true) }
+        binding.btnPlayerMenu.setOnClickListener {
+            stub(if (showLyrics) "Меню текста песни" else "Меню песни")
+        }
+        showPage(showLyrics)
+    }
+
+    private fun stub(name: String) {
+        Toast.makeText(requireContext(), "$name — пока в разработке", Toast.LENGTH_SHORT).show()
+    }
+
+    //Переключение страниц «Песня» / «Текст песни» и подсветка выбранной вкладки
+    private fun showPage(lyrics: Boolean) {
+        showLyrics = lyrics
+        binding.pageSong.visibility = if (lyrics) View.GONE else View.VISIBLE
+        binding.pageLyrics.visibility = if (lyrics) View.VISIBLE else View.GONE
+        val selected = ContextCompat.getColor(requireContext(), R.color.white)
+        val normal = (selected and 0x00FFFFFF) or (0x99 shl 24)
+        binding.tvSongLabel.setTextColor(if (lyrics) normal else selected)
+        binding.tvSongLabel.setTypeface(null, if (lyrics) android.graphics.Typeface.NORMAL else android.graphics.Typeface.BOLD)
+        binding.tabSongIcon.alpha = if (lyrics) 0.6f else 1f
+        binding.tvLyricsLabel.setTextColor(if (lyrics) selected else normal)
+        binding.tvLyricsLabel.setTypeface(null, if (lyrics) android.graphics.Typeface.BOLD else android.graphics.Typeface.NORMAL)
+        binding.tabLyricsIcon.alpha = if (lyrics) 1f else 0.6f
+        binding.tvQueueLabel.setTextColor(normal)
+        binding.tabQueueIcon.alpha = 0.6f
+    }
+
+    //Читаем текст песни из тега файла и показываем на странице «Текст песни»
+    private fun loadLyrics(song: Song) {
+        binding.tvLyricsTitle.text = song.title
+        lyricsJob?.cancel()
+        lyricsJob = viewLifecycleOwner.lifecycleScope.launch {
+            val appContext = requireContext().applicationContext
+            val text = withContext(Dispatchers.IO) {
+                LyricsReader.read(appContext, song.id, song.getContentUri())
+            }
+            _binding ?: return@launch
+            if (text != null) {
+                binding.tvLyrics.text = text
+                binding.tvLyrics.gravity = android.view.Gravity.CENTER_HORIZONTAL
+                binding.tvLyrics.alpha = 1f
+            } else {
+                binding.tvLyrics.text = "Текста песни в файле нет"
+                binding.tvLyrics.gravity = android.view.Gravity.CENTER
+                binding.tvLyrics.alpha = 0.6f
+            }
+            binding.lyricsScroll.scrollTo(0, 0)
+        }
     }
 
     private fun setupControls() {
@@ -133,7 +206,7 @@ class PlayerFragment : Fragment() {
             isExpanded = !isExpanded
             //
             TransitionManager.beginDelayedTransition(
-                binding.playerContainer, TransitionSet()
+                binding.pageSong, TransitionSet()
                     .addTransition(ChangeBounds())
                     .addTransition(ChangeImageTransform())
             )
@@ -173,6 +246,9 @@ class PlayerFragment : Fragment() {
 
             binding.tvTitle.text = currentSong?.title
             binding.tvArtist.text =currentSong?.artist
+            //подпись вкладки «очередь»: номер трека из общего числа
+            val position = songAndPlaylist.playlist.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
+            binding.tvQueueLabel.text = "#${position + 1}/${songAndPlaylist.playlist.size}"
 
             //находим индекс трека в плейлисте
             val indexOfTrack =
@@ -243,6 +319,7 @@ class PlayerFragment : Fragment() {
     }
 
     private fun updateUI(song: Song) {
+        loadLyrics(song)
         binding.tvTitle.text = song.title
         binding.tvArtist.text = song.artist
 
@@ -291,6 +368,7 @@ class PlayerFragment : Fragment() {
 
     companion object {
         const val TAG = "33333"
+        private const val STATE_LYRICS = "state_lyrics"
         private const val ARG_TRACK = "track"
         private const val ARG_PLAYLIST = "playlist"
 
