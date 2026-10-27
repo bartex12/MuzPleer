@@ -3,9 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <PreferenceCategory
+        android:layout="@layout/preference_category_white"
         android:title="@string/splash">
         <CheckBoxPreference
             android:key="cbScreen"
+            android:layout="@layout/preference_item_white"
             android:title="@string/show_hide"
             app:defaultValue="false"
             android:summaryOn="@string/show_screen"
