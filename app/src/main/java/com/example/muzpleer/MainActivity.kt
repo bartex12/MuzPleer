@@ -183,7 +183,9 @@ class MainActivity : AppCompatActivity() {
         //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
         navController.addOnDestinationChangedListener { _, destination, _ ->
             //на экране плеера тулбар скрыт: там своя верхняя панель с кнопкой возврата
-            binding.appBarMain.appBarLayout.visibility =
+            //скрываем сам Toolbar, а не AppBarLayout: у скрытого AppBarLayout CoordinatorLayout помнит старую
+            //высоту и оставляет над содержимым пустую полосу
+            binding.appBarMain.toolbar.visibility =
                 if (destination.id == R.id.playerFragment) View.GONE else View.VISIBLE
             val titleRes = when (destination.id) {
                 R.id.favoritesFragment -> R.string.favorites
