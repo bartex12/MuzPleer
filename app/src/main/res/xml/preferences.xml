@@ -8,6 +8,7 @@
         <CheckBoxPreference
             android:key="cbScreen"
             android:layout="@layout/preference_item_white"
+            android:widgetLayout="@layout/preference_widget_checkbox_white"
             android:title="@string/show_hide"
             app:defaultValue="false"
             android:summaryOn="@string/show_screen"
