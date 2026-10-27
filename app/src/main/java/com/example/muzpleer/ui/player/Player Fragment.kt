@@ -65,6 +65,12 @@ class PlayerFragment : Fragment() {
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var isExpanded = false
     private var previousTitle: String = "" // Сохраняем предыдущий заголовок
+    //кнопка «Назад» на страницах «Очередь» и «Текст песни» сначала возвращает на страницу «Песня»
+    private val backToSongCallback = object : androidx.activity.OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            showPage(PAGE_SONG)
+        }
+    }
     private var page = PAGE_SONG            // открытая страница: очередь / песня / текст песни
     private lateinit var queueAdapter: QueueAdapter
     private lateinit var queueTouchHelper: ItemTouchHelper
@@ -89,6 +95,7 @@ class PlayerFragment : Fragment() {
         Log.d(TAG, "=== === PlayerFragment onViewCreated previousTitle = $previousTitle")
 
         page = savedInstanceState?.getInt(STATE_PAGE) ?: PAGE_SONG
+        requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, backToSongCallback)
         setupQueue()
         setupTopBar()
         setupControls()
@@ -312,6 +319,7 @@ class PlayerFragment : Fragment() {
     //Переключение страниц «Очередь» / «Песня» / «Текст песни» и подсветка выбранной вкладки
     private fun showPage(newPage: Int) {
         page = newPage
+        backToSongCallback.isEnabled = page != PAGE_SONG
         binding.rvQueue.visibility = if (page == PAGE_QUEUE) View.VISIBLE else View.GONE
         binding.pageSong.visibility = if (page == PAGE_SONG) View.VISIBLE else View.GONE
         binding.pageLyrics.visibility = if (page == PAGE_LYRICS) View.VISIBLE else View.GONE
