@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment, R.id.favoritesFragment), drawerLayout
+                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
@@ -215,12 +215,6 @@ class MainActivity : AppCompatActivity() {
                             currentSong?.let { viewModel.reloadCurrentSong(it.id) }
                             toast(getString(R.string.data_updated))
                         }
-                        true
-                    }
-                    R.id.nav_favorites -> {
-                        Log.d(TAG, "MainActivity onNavigationItemSelected nav_favorites")
-                        navController.navigate(R.id.favoritesFragment, null, drawerNavOptions)
-                        //viewPager?.setCurrentItem(4)
                         true
                     }
                     R.id.nav_download -> {
