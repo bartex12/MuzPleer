@@ -6,7 +6,7 @@ import android.util.TypedValue
 import androidx.core.content.ContextCompat
 import com.example.muzpleer.R
 
-/** Выбор цвета акцента: хранится номером в настройках, применяется накладкой темы ThemeOverlay.AccentN. */
+/** Выбор цвета акцента: хранится номером в настройках, применяется накладкой темы AccentOverlayN. */
 object ThemeManager {
     private const val PREFS = "theme_prefs"
     private const val KEY_ACCENT = "accent_index"
@@ -18,10 +18,10 @@ object ThemeManager {
     )
 
     val accentOverlays = intArrayOf(
-        R.style.ThemeOverlay_Accent1, R.style.ThemeOverlay_Accent2, R.style.ThemeOverlay_Accent3,
-        R.style.ThemeOverlay_Accent4, R.style.ThemeOverlay_Accent5, R.style.ThemeOverlay_Accent6,
-        R.style.ThemeOverlay_Accent7, R.style.ThemeOverlay_Accent8, R.style.ThemeOverlay_Accent9,
-        R.style.ThemeOverlay_Accent10, R.style.ThemeOverlay_Accent11, R.style.ThemeOverlay_Accent12
+        R.style.AccentOverlay1, R.style.AccentOverlay2, R.style.AccentOverlay3,
+        R.style.AccentOverlay4, R.style.AccentOverlay5, R.style.AccentOverlay6,
+        R.style.AccentOverlay7, R.style.AccentOverlay8, R.style.AccentOverlay9,
+        R.style.AccentOverlay10, R.style.AccentOverlay11, R.style.AccentOverlay12
     )
 
     fun getAccentIndex(context: Context): Int {

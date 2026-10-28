@@ -1,40 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Накладки темы: каждая задаёт цвет акцента appAccent -->
-    <style name="ThemeOverlay.Accent1">
+    <style name="AccentOverlay1">
         <item name="appAccent">@color/accent_1</item>
     </style>
-    <style name="ThemeOverlay.Accent2">
+    <style name="AccentOverlay2">
         <item name="appAccent">@color/accent_2</item>
     </style>
-    <style name="ThemeOverlay.Accent3">
+    <style name="AccentOverlay3">
         <item name="appAccent">@color/accent_3</item>
     </style>
-    <style name="ThemeOverlay.Accent4">
+    <style name="AccentOverlay4">
         <item name="appAccent">@color/accent_4</item>
     </style>
-    <style name="ThemeOverlay.Accent5">
+    <style name="AccentOverlay5">
         <item name="appAccent">@color/accent_5</item>
     </style>
-    <style name="ThemeOverlay.Accent6">
+    <style name="AccentOverlay6">
         <item name="appAccent">@color/accent_6</item>
     </style>
-    <style name="ThemeOverlay.Accent7">
+    <style name="AccentOverlay7">
         <item name="appAccent">@color/accent_7</item>
     </style>
-    <style name="ThemeOverlay.Accent8">
+    <style name="AccentOverlay8">
         <item name="appAccent">@color/accent_8</item>
     </style>
-    <style name="ThemeOverlay.Accent9">
+    <style name="AccentOverlay9">
         <item name="appAccent">@color/accent_9</item>
     </style>
-    <style name="ThemeOverlay.Accent10">
+    <style name="AccentOverlay10">
         <item name="appAccent">@color/accent_10</item>
     </style>
-    <style name="ThemeOverlay.Accent11">
+    <style name="AccentOverlay11">
         <item name="appAccent">@color/accent_11</item>
     </style>
-    <style name="ThemeOverlay.Accent12">
+    <style name="AccentOverlay12">
         <item name="appAccent">@color/accent_12</item>
     </style>
 </resources>
