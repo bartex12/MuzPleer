@@ -4,8 +4,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/item_list_effects">
+    android:layout_height="match_parent">
 
     <!-- Строка поиска -->
     <com.google.android.material.textfield.TextInputLayout
@@ -86,7 +85,6 @@
         android:orientation="horizontal"
         android:padding="8dp"
         android:gravity="center"
-        android:background="@drawable/item_list_effects"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">

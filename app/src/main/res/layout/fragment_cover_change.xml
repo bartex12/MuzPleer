@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:id="@+id/coverContainer"
-    android:background="@drawable/item_list_effects">
+    android:id="@+id/coverContainer">
 
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/coverImageView"
