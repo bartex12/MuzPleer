@@ -50,7 +50,8 @@ class ThemeFragment : Fragment() {
         row.removeAllViews()
         val size = (40 * resources.displayMetrics.density).toInt()
         val margin = (6 * resources.displayMetrics.density).toInt()
-        val stroke = (3 * resources.displayMetrics.density).toInt()
+        val stroke = (3 * resources.displayMetrics.density).toInt() //толстое кольцо у выбранного
+        val thin = (1 * resources.displayMetrics.density).toInt().coerceAtLeast(1) //тонкое у остальных, чтобы цвет не терялся на фоне
         for (i in ThemeManager.accentColorRes.indices) {
             val dot = View(requireContext())
             dot.layoutParams = LinearLayout.LayoutParams(size, size).apply {
@@ -59,7 +60,7 @@ class ThemeFragment : Fragment() {
             dot.background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
                 setColor(ThemeManager.colorOf(requireContext(), i))
-                if (i == selected) setStroke(stroke, Color.WHITE)
+                setStroke(if (i == selected) stroke else thin, Color.WHITE)
             }
             dot.setOnClickListener {
                 selected = i
