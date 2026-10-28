@@ -194,6 +194,12 @@ class MainActivity : AppCompatActivity() {
         //автоматически связывает пункты меню с destinations в NavGraph
         navView.setupWithNavController(navController)
         //слушатель меню шторки - нужен для дополнительной кастомной логики
+        //разделы шторки не складываются в цепочку: повторный выбор не плодит копии экрана,
+        //а «Назад» с любого раздела ведёт на вкладки
+        val drawerNavOptions = androidx.navigation.navOptions {
+            launchSingleTop = true
+            popUpTo(R.id.tabLocalFragment) { inclusive = false }
+        }
         navView.setNavigationItemSelectedListener(object : NavigationView.OnNavigationItemSelectedListener{
             override fun onNavigationItemSelected(item: MenuItem): Boolean {
                 // Выделяем выбранный пункт меню в шторке
@@ -211,25 +217,19 @@ class MainActivity : AppCompatActivity() {
                         }
                         true
                     }
-                    R.id.nav_favorites -> {
-                        Log.d(TAG, "MainActivity onNavigationItemSelected nav_favorites")
-                        navController.navigate(R.id.favoritesFragment)
-                        //viewPager?.setCurrentItem(4)
-                        true
-                    }
                     R.id.nav_download -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_download")
-                        navController.navigate(R.id.downloadFragment)
+                        navController.navigate(R.id.downloadFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_setting -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_setting")
-                        navController.navigate(R.id.settingsFragment)
+                        navController.navigate(R.id.settingsFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_help ->{
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_help")
-                        navController.navigate(R.id.helpFragment)
+                        navController.navigate(R.id.helpFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_share -> {

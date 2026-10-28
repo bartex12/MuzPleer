@@ -10,10 +10,6 @@
             android:icon="@drawable/outline_sync_24"
             android:title="@string/update_data" />
         <item
-            android:id="@+id/nav_favorites"
-            android:icon="@drawable/ic_baseline_favorite_24"
-            android:title="@string/favorites" />
-        <item
             android:id="@+id/nav_download"
             android:icon="@drawable/ic_download_24"
             android:title="@string/download_track" />
