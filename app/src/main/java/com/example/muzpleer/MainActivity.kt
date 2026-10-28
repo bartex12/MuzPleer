@@ -177,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
+                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment, R.id.favoritesFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
@@ -194,6 +194,12 @@ class MainActivity : AppCompatActivity() {
         //автоматически связывает пункты меню с destinations в NavGraph
         navView.setupWithNavController(navController)
         //слушатель меню шторки - нужен для дополнительной кастомной логики
+        //разделы шторки не складываются в цепочку: повторный выбор не плодит копии экрана,
+        //а «Назад» с любого раздела ведёт на вкладки
+        val drawerNavOptions = androidx.navigation.navOptions {
+            launchSingleTop = true
+            popUpTo(R.id.tabLocalFragment) { inclusive = false }
+        }
         navView.setNavigationItemSelectedListener(object : NavigationView.OnNavigationItemSelectedListener{
             override fun onNavigationItemSelected(item: MenuItem): Boolean {
                 // Выделяем выбранный пункт меню в шторке
@@ -213,23 +219,23 @@ class MainActivity : AppCompatActivity() {
                     }
                     R.id.nav_favorites -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_favorites")
-                        navController.navigate(R.id.favoritesFragment)
+                        navController.navigate(R.id.favoritesFragment, null, drawerNavOptions)
                         //viewPager?.setCurrentItem(4)
                         true
                     }
                     R.id.nav_download -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_download")
-                        navController.navigate(R.id.downloadFragment)
+                        navController.navigate(R.id.downloadFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_setting -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_setting")
-                        navController.navigate(R.id.settingsFragment)
+                        navController.navigate(R.id.settingsFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_help ->{
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_help")
-                        navController.navigate(R.id.helpFragment)
+                        navController.navigate(R.id.helpFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_share -> {
