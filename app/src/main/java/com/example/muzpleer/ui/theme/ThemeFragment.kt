@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentThemeBinding
+import com.example.muzpleer.util.AppBackground
 import com.example.muzpleer.util.ThemeManager
 import com.example.muzpleer.util.accentColor
 import com.google.android.material.tabs.TabLayout
@@ -24,6 +25,12 @@ class ThemeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var selected = 0
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        //новый заход на экран: прежний невыбранный фон не тянем
+        if (savedInstanceState == null) AppBackground.pending = null
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -39,8 +46,14 @@ class ThemeFragment : Fragment() {
         buildColorRow()
         renderPreview()
 
+        binding.btnChangeBackground.setOnClickListener {
+            findNavController().navigate(R.id.backgroundFragment)
+        }
+
         binding.btnApplyTheme.setOnClickListener {
             ThemeManager.setAccentIndex(requireContext(), selected)
+            AppBackground.pending?.let { AppBackground.save(requireContext(), it) }
+            AppBackground.pending = null
             //сначала уходим на экран, откуда открыли шторку, потом пересоздаём Activity: после пересоздания открыт будет он
             val activity = requireActivity()
             ThemeManager.captureSnapshot(activity)
@@ -80,6 +93,10 @@ class ThemeFragment : Fragment() {
         val themed = ContextThemeWrapper(requireContext(), ThemeManager.accentOverlays[selected])
         val inflater = LayoutInflater.from(themed)
         val preview = inflater.inflate(R.layout.layout_theme_preview, binding.themePreviewContainer, false)
+
+        //фон миниатюры - выбранный (ещё не применённый) фон
+        val spec = AppBackground.pending ?: AppBackground.load(requireContext())
+        preview.background = AppBackground.drawable(requireContext(), spec)
 
         val list = preview.findViewById<LinearLayout>(R.id.previewList)
         val demo = listOf(
