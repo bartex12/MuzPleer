@@ -201,6 +201,16 @@ class MainActivity : AppCompatActivity() {
                 binding.drawerLayout.closeDrawer(GravityCompat.START)
 
                 return when (item.itemId) {
+                    R.id.nav_update -> {
+                        Log.d(TAG, "MainActivity onNavigationItemSelected nav_update")
+                        //заново сканируем телефон (раньше этот пункт был в меню вкладки «Все треки»)
+                        val currentSong = viewModel.getCurrentSong()
+                        viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
+                            currentSong?.let { viewModel.reloadCurrentSong(it.id) }
+                            toast(getString(R.string.data_updated))
+                        }
+                        true
+                    }
                     R.id.nav_favorites -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_favorites")
                         navController.navigate(R.id.favoritesFragment)
