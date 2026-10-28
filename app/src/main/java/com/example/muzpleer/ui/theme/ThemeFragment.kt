@@ -81,9 +81,27 @@ class ThemeFragment : Fragment() {
             Triple("Песня играет", "Исполнитель", "03:21"),
             Triple("Песня о настоящем индейце", "Ноль", "04:34"),
             Triple("Звёздочка моя ясная", "Цветы", "04:45"),
-            Triple("Hotel California", "Eagles", "06:31"),
+            Triple("Нет тебя прекрасней", "Юрий Антонов", "04:31"),
+            Triple("Есть глаза у цветов", "Цветы", "04:13"),
+            Triple("I Will Survive", "Gloria Gaynor", "04:47"),
+            Triple("Sunny", "Boney M.", "04:03"),
             Triple("Wind Of Change", "Scorpions", "05:12"),
-            Triple("Smoke on the Water", "Deep Purple", "05:40")
+            Triple("Smoke on the Water", "Deep Purple", "05:40"),
+            Triple("July Morning", "Uriah Heep", "10:29"),
+            Triple("Hotel California", "Eagles", "06:31"),
+            Triple("Show Must Go On", "Queen", "04:31"),
+            Triple("Stairway to Heaven", "Led Zeppelin", "08:02"),
+            Triple("Yesterday", "The Beatles", "02:05"),
+            Triple("Imagine", "John Lennon", "03:04"),
+            Triple("Nothing Else Matters", "Metallica", "06:29"),
+            Triple("Believer", "Imagine Dragons", "03:24"),
+            Triple("Billie Jean", "Michael Jackson", "04:54"),
+            Triple("Another Brick in the Wall", "Pink Floyd", "03:59"),
+            Triple("Bohemian Rhapsody", "Queen", "05:55"),
+            Triple("Come as You Are", "Nirvana", "03:39"),
+            Triple("Страна Лимония", "Сплин", "03:48"),
+            Triple("Группа крови", "Кино", "04:47"),
+            Triple("Дорога в облака", "Сплин", "04:12")
         )
         for ((index, item) in demo.withIndex()) {
             val row = inflater.inflate(R.layout.item_music, list, false)
@@ -102,21 +120,8 @@ class ThemeFragment : Fragment() {
         tabs.setTabTextColors(Color.WHITE, accent)
         tabs.setSelectedTabIndicatorColor(accent)
 
-        //предпросмотр только показывает, нажатия ему не нужны
-        preview.isEnabled = false
-        disableTouch(preview)
-
         binding.themePreviewContainer.removeAllViews()
         binding.themePreviewContainer.addView(preview)
-    }
-
-    private fun disableTouch(view: View) {
-        view.isClickable = false
-        view.isFocusable = false
-        if (view is ViewGroup) {
-            view.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-            view.setOnTouchListener { _, _ -> true }
-        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

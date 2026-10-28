@@ -7,12 +7,19 @@
     android:background="@drawable/item_list_effects_revers"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/previewList"
+    <!-- Список прокручивается, как настоящий -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical" />
+        android:overScrollMode="never">
+
+        <LinearLayout
+            android:id="@+id/previewList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.tabs.TabLayout
         android:id="@+id/previewTabs"

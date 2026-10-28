@@ -149,6 +149,8 @@
             android:id="@+id/seekBar_main"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:progressTint="?attr/appAccent"
+            android:thumbTint="?attr/appAccent"
             app:layout_constraintEnd_toStartOf="@id/tv_total_time_main"
             app:layout_constraintStart_toEndOf="@id/tv_current_time_main"
             app:layout_constraintTop_toBottomOf="@id/artist"/>
