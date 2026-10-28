@@ -39,6 +39,10 @@
     <string name="zoom_zoom">Сильное увеличение</string>
 
     <string name="favorites">Избранное</string>
+    <string name="change_theme">Сменить тему</string>
+    <string name="theme_hint">Выберите цвет акцента. Затем нажмите «Применить».</string>
+    <string name="theme_apply">Применить</string>
+    <string name="theme_preview_playing">Песня играет</string>
     <string name="help">Справка</string>
     <string name="share">Поделиться</string>
     <string name="send">Оценить</string>

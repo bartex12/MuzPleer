@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.accentColor
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -241,7 +242,7 @@ class FolderFragment : Fragment(){
 
         // Меняем цвет в зависимости от режима
         val color = if (isEditMode) {
-            ContextCompat.getColor(requireContext(), R.color.colorSecondaryBlue)
+            requireContext().accentColor()
         } else {
             ContextCompat.getColor(requireContext(), R.color.white)
         }

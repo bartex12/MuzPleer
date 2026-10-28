@@ -98,7 +98,7 @@
             app:strokeColor="@color/white"
             app:strokeWidth="1dp"
             android:textColor="@color/white"
-            app:backgroundTint="@color/colorSecondaryBlue"
+            app:backgroundTint="?attr/appAccent"
             app:cornerRadius="8dp"/>
 
         <com.google.android.material.button.MaterialButton
@@ -109,7 +109,7 @@
             android:enabled="false"
             app:strokeColor="@color/white"
             app:strokeWidth="1dp"
-            app:backgroundTint="@color/colorSecondaryBlue"
+            app:backgroundTint="?attr/appAccent"
             app:cornerRadius="8dp"/>
 
     </LinearLayout>

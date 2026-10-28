@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local
 
+import com.example.muzpleer.util.accentColor
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -91,7 +92,7 @@ class TabLocalFragment: Fragment()  {
         tabLayout.setupWithViewPager(viewPager)
 
         val normalColor = Color.WHITE
-        val selectedColor = ContextCompat.getColor(binding.root.context, R.color.colorSecondaryBlue)
+        val selectedColor = binding.root.context.accentColor()
         // val selectedColor =  Color.BLUE
         //устанавливаем цвет текста белый а при выделении - colorSecondaryBlue
         tabLayout.setTabTextColors(normalColor,  selectedColor)
