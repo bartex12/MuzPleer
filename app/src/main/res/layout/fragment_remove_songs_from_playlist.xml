@@ -7,77 +7,49 @@
     android:layout_height="match_parent"
     android:background="@drawable/item_list_effects">
 
-    <!-- Кнопки действий -->
-    <LinearLayout
-        android:id="@+id/buttonContainer"
-        android:layout_width="0dp"
+    <!-- Строка поиска -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/input_layout_search_selection"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="@drawable/item_list_effects"
+        android:layout_margin="8dp"
+        android:hint="@string/search_song"
+        android:theme="@style/WhiteTextInputLayoutOverlay"
+        app:boxCornerRadiusBottomEnd="20dp"
+        app:boxCornerRadiusTopStart="20dp"
+        app:counterEnabled="true"
+        app:counterMaxLength="30"
+        app:counterTextColor="@android:color/white"
+        app:endIconCheckable="true"
+        app:endIconDrawable="@drawable/baseline_search_24"
+        app:endIconMode="custom"
+        app:endIconTint="@android:color/white"
+        app:helperText="Найдите трек в списке треков"
+        app:helperTextTextColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/recyclerView"
-        >
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSelectAll"
-            android:layout_width="wrap_content"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/input_edit_text_search"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:text="Выбрать все"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"
-            android:textColor="@color/white"
-            app:backgroundTint="@color/colorSecondaryBlue"
-            app:cornerRadius="8dp"/>
-
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnDeleteSelected"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:text="Удалить"
-            android:enabled="false"
-            app:strokeColor="@color/white"
-            app:strokeWidth="1dp"
-            app:backgroundTint="@color/colorSecondaryBlue"
-            app:cornerRadius="8dp"/>
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/line"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonContainer"
-        >
-
-    <View
-        android:layout_width="wrap_content"
-        android:layout_height="1dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:background="@color/white"
-        />
-    </LinearLayout>
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:maxLength="30"
+            android:textColor="@android:color/white" />
+    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- RecyclerView для треков -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/line"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/line"
+        app:layout_constraintTop_toBottomOf="@id/input_layout_search_selection"
         tools:listitem="@layout/item_song_selection"/>
 
     <!-- Текст при пустом списке -->
@@ -93,5 +65,55 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Линия над кнопками -->
+    <View
+        android:id="@+id/line"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toTopOf="@id/buttonContainer"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Кнопки действий внизу экрана -->
+    <LinearLayout
+        android:id="@+id/buttonContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center"
+        android:background="@drawable/item_list_effects"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectAll"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="Выбрать все"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDeleteSelected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Удалить"
+            android:enabled="false"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"/>
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
