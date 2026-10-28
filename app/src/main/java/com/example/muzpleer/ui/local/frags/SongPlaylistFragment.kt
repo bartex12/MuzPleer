@@ -398,7 +398,7 @@ class SongPlaylistFragment:Fragment() {
 
                 // Меняем цвет в зависимости от режима
                 val color = if (isEditMode) {
-                    ContextCompat.getColor(requireContext(), R.color.green)
+                    ContextCompat.getColor(requireContext(), R.color.colorSecondaryBlue)
                 } else {
                     ContextCompat.getColor(requireContext(), R.color.white)
                 }

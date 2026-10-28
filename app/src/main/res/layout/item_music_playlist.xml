@@ -103,7 +103,7 @@
         android:layout_height="24dp"
         android:layout_marginEnd="8dp"
         android:visibility="gone"
-        android:src="@drawable/up_down7"
+        android:src="@drawable/up_down5"
         app:layout_constraintBottom_toBottomOf="@id/trackArtworkPlaylist"
         app:layout_constraintEnd_toStartOf="@id/menu_buttonPlaylist"
         app:layout_constraintTop_toTopOf="@id/trackArtworkPlaylist"
