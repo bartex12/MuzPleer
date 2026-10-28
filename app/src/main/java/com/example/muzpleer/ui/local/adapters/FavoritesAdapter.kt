@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.adapters
 
+import com.example.muzpleer.util.getNormalizedPath
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.Context
@@ -97,7 +98,11 @@ class FavoritesAdapter(
         viewModel.currentSong
             .observe(holder.itemView.context as LifecycleOwner) { currentSong ->
                 try{
-                    holder.itemView.isSelected = data[position].mediaUri == currentSong?.mediaUri
+                    //сравниваем по id или по нормализованному пути: из папок, альбомов и плейлистов запись может быть в другом виде
+                    val item = data[position]
+                    holder.itemView.isSelected = currentSong != null &&
+                            (item.id == currentSong.id ||
+                                    getNormalizedPath(item.mediaUri) == getNormalizedPath(currentSong.mediaUri))
                 }catch(e: Exception){
                     Log.d(TAG, "FavoritesAdapter Ошибка: ${e.message}")
                 }
