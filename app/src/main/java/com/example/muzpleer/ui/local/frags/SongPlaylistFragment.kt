@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.applyShuffleIcon
 import com.example.muzpleer.util.accentColor
 import android.content.Context
 import android.os.Bundle
@@ -385,7 +386,7 @@ class SongPlaylistFragment:Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_other_2, menu)
-                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
+                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order2)
@@ -393,7 +394,7 @@ class SongPlaylistFragment:Fragment() {
             }
 
             override fun onPrepareMenu(menu: Menu) {
-                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
+                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
                 //menu.findItem(R.id.action_edit_order2).isVisible =false
                 val editItem = menu.findItem(R.id.action_edit_order2)
 
@@ -440,10 +441,10 @@ class SongPlaylistFragment:Fragment() {
                         val newShuffleState = playerViewModel.setPlaybackMode()
                         // Меняем иконку в зависимости от состояния
                         if (newShuffleState) {
-                            menuItem.setIcon(R.drawable.baseline_shuffle_24) // подсвеченная иконка
+                            menuItem.applyShuffleIcon(requireContext(), true)
                             Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
                         } else {
-                            menuItem.setIcon(R.drawable.icons8_data_white_24) // обычная иконка
+                            menuItem.applyShuffleIcon(requireContext(), false)
                             Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
                         }
                         return   true

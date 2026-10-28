@@ -131,7 +131,6 @@ class ThemeFragment : Fragment() {
             row.findViewById<TextView>(R.id.trackArtist).text = item.second
             row.findViewById<TextView>(R.id.trackDuration).text = item.third
             row.isSelected = index == 0 //как у играющего трека
-            if (index == 0) row.findViewById<com.example.muzpleer.ui.view.EqualizerView>(R.id.nowPlayingEqualizer)?.demo = true
             list.addView(row)
         }
 

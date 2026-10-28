@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.applyShuffleIcon
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -213,7 +214,7 @@ class SongFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         menu.clear() // Очищаем меню
         inflater.inflate(R.menu.song_menu, menu)
-        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
+        menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
         searchMenuItem = searchItem
@@ -256,7 +257,7 @@ class SongFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
+        menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
 
     }
 
@@ -288,10 +289,10 @@ class SongFragment : Fragment() {
                 val newShuffleState = playerViewModel.setPlaybackMode()
                 // Меняем иконку в зависимости от состояния
                 if (newShuffleState) {
-                    item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии
+                    item.applyShuffleIcon(requireContext(), true)
                     Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
                 } else {
-                    item.setIcon(R.drawable.icons8_data_white_24) // обычная иконка
+                    item.applyShuffleIcon(requireContext(), false)
                     Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
                 }
                 return   true
