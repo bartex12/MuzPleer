@@ -289,6 +289,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         playerViewModel.isPlaying.observe(this) { isPlaying ->
+            com.example.muzpleer.util.NowPlaying.isPlaying.value = isPlaying //для эквалайзера в строках списков
             playPause.setImageResource(
                 if (isPlaying) R.drawable.ic_pause_white else R.drawable.ic_play_white
             )
