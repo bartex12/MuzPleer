@@ -3,8 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app1="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp"
-    android:background="@drawable/item_list_effects_revers">
+    android:padding="16dp">
 
     <!-- Карточка: Все треки -->
     <androidx.cardview.widget.CardView

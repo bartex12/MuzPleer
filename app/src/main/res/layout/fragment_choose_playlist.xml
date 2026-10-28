@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     android:clickable="true"
     android:focusable="true"
-    android:padding="16dp"
-    android:background="@drawable/item_list_effects_revers">
+    android:padding="16dp">
 
     <!-- Заголовок -->
     <TextView

@@ -5,8 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
-    android:background="@drawable/item_list_effects_revers">
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/buttonLine"
@@ -15,7 +14,6 @@
         android:orientation="horizontal"
         android:padding="8dp"
         android:gravity="center"
-        android:background="@drawable/item_list_effects_revers"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/songsRecyclerView"
