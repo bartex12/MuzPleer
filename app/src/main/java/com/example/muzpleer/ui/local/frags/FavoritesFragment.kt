@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.indexOfSong
 import com.example.muzpleer.util.applyShuffleIcon
 import com.example.muzpleer.util.accentColor
 import android.content.Context
@@ -393,7 +394,7 @@ class FavoritesFragment: Fragment() {
                     R.id.action_go_to_song_favorite->{
                         val favoriteSongs = favoritesViewModel.getFavoriteSongs() //список песен артиста
                         val currentSong = viewModel.getCurrentSong()
-                        val indexOfSong = favoriteSongs.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
+                        val indexOfSong = favoriteSongs.indexOfSong(currentSong)
                         Log.d(TAG, "$$$ FavoritesFragment onMenuItemSelected indexOfSong = $indexOfSong")
                         (binding.favoriteRecyclerView.layoutManager as LinearLayoutManager).let{
                             if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else it.scrollToPosition(0)
