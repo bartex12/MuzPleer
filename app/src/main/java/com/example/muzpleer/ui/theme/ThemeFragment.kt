@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentThemeBinding
 import com.example.muzpleer.util.ThemeManager
@@ -40,8 +41,10 @@ class ThemeFragment : Fragment() {
 
         binding.btnApplyTheme.setOnClickListener {
             ThemeManager.setAccentIndex(requireContext(), selected)
-            //пересоздаём экран, чтобы тема применилась везде
-            requireActivity().recreate()
+            //сначала уходим на экран, откуда открыли шторку, потом пересоздаём Activity: после пересоздания открыт будет он
+            val activity = requireActivity()
+            findNavController().popBackStack()
+            activity.recreate()
         }
     }
 
