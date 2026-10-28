@@ -27,6 +27,7 @@
         android:id="@+id/updateSongs"
         android:orderInCategory="300"
         android:title="Обновить данные"
+        android:visible="false"
         android:icon="@drawable/outline_sync_24"
         app:showAsAction="collapseActionView|ifRoom"/>
 

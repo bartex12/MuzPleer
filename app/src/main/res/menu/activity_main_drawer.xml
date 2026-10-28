@@ -5,6 +5,11 @@
 
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/nav_update"
+            android:checkable="false"
+            android:icon="@drawable/outline_sync_24"
+            android:title="@string/update_data" />
+        <item
             android:id="@+id/nav_favorites"
             android:icon="@drawable/ic_baseline_favorite_24"
             android:title="@string/favorites" />
