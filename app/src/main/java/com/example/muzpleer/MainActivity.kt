@@ -143,10 +143,12 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         // Установить основную тему (переключаемся на обычную тему после заставки)
         setTheme(R.style.Theme_MuzPleer_NoActionBar)
+        com.example.muzpleer.util.ThemeManager.apply(this) //цвет акцента из настроек
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        com.example.muzpleer.util.ThemeManager.playCrossfade(this) //плавный переход после смены темы
         navController = findNavController(R.id.nav_host_fragment_content_main)
 
         appPreferences =PreferenceHelperImpl(this.application)
@@ -177,7 +179,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
+                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment, R.id.themeFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
@@ -187,6 +189,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.downloadFragment -> R.string.download_track
                 R.id.settingsFragment -> R.string.settings
                 R.id.helpFragment -> R.string.help
+                R.id.themeFragment -> R.string.change_theme
                 else -> null
             }
             titleRes?.let { viewModel.setAppBarTitle(getString(it)) }
@@ -225,6 +228,10 @@ class MainActivity : AppCompatActivity() {
                     R.id.nav_setting -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_setting")
                         navController.navigate(R.id.settingsFragment, null, drawerNavOptions)
+                        true
+                    }
+                    R.id.nav_theme -> {
+                        navController.navigate(R.id.themeFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_help ->{

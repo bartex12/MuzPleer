@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.MuzPleer" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        <item name="appAccent">@color/colorSecondaryBlue</item>
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/purple_500</item>
         <item name="colorPrimaryVariant">@color/purple_700</item>
@@ -15,6 +16,8 @@
     </style>
 
     <style name="Theme.MuzPleer.NoActionBar">
+        <!-- фон окна как у приложения: при пересоздании экрана не мелькает белое/чёрное -->
+        <item name="android:windowBackground">@drawable/item_list_effects_revers</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>

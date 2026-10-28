@@ -18,6 +18,10 @@
             android:icon="@drawable/ic_settings_red_24dp"
             android:title="@string/settings"/>
         <item
+            android:id="@+id/nav_theme"
+            android:icon="@drawable/ic_palette_24"
+            android:title="@string/change_theme" />
+        <item
             android:id="@+id/nav_help"
             android:icon="@drawable/ic_help_outline_black_24dp"
             android:title="@string/help" />

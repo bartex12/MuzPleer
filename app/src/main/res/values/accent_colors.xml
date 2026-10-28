@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="accent_1">#17B8B1</color>
+    <color name="accent_2">#F6BE2C</color>
+    <color name="accent_3">#FF9800</color>
+    <color name="accent_4">#E53935</color>
+    <color name="accent_5">#D81B60</color>
+    <color name="accent_6">#A93AF0</color>
+    <color name="accent_7">#5C6BFF</color>
+    <color name="accent_8">#2196F3</color>
+    <color name="accent_9">#8BC34A</color>
+    <color name="accent_10">#43A047</color>
+    <color name="accent_11">#CDDC39</color>
+    <color name="accent_12">#E0E0E0</color>
+</resources>

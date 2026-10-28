@@ -22,6 +22,11 @@
         android:name="com.example.muzpleer.setting.SettingsFragment"
         android:label="Настройки" />
     <fragment
+        android:id="@+id/themeFragment"
+        android:name="com.example.muzpleer.ui.theme.ThemeFragment"
+        android:label="@string/change_theme"
+        tools:layout="@layout/fragment_theme" />
+    <fragment
         android:id="@+id/downloadFragment"
         android:name="com.example.muzpleer.ui.download.DownloadFragment"
         android:label="@string/download_track"

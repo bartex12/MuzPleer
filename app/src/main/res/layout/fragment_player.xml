@@ -278,8 +278,8 @@
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
-        android:progressTint="@color/colorSecondaryBlue"
-        android:thumbTint="@color/colorSecondaryBlue" />
+        android:progressTint="?attr/appAccent"
+        android:thumbTint="?attr/appAccent" />
 
 
         <FrameLayout

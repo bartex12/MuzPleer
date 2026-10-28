@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Цвет акцента: активная вкладка, кнопки, ползунок; меняется в «Сменить тему» -->
+    <attr name="appAccent" format="color"/>
     <attr name="favorite" format="reference"/>
     <attr name="favoriteRemove" format="reference"/>
 
