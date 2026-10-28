@@ -36,6 +36,18 @@
     </HorizontalScrollView>
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnChangeBackground"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/change_background"
+        android:textColor="@color/white"
+        app:backgroundTint="@color/colorSecondaryBlack"
+        app:cornerRadius="8dp"
+        app:strokeColor="@color/white"
+        app:strokeWidth="1dp" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnApplyTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

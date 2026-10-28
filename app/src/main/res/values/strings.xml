@@ -43,6 +43,13 @@
     <string name="theme_hint">Выберите цвет акцента. Затем нажмите «Применить».</string>
     <string name="theme_apply">Применить</string>
     <string name="theme_preview_playing">Песня играет</string>
+    <string name="change_background">Изменить фон</string>
+    <string name="bg_hint">Выберите фон и вернитесь назад кнопкой «Назад», затем нажмите «Применить».</string>
+    <string name="bg_section_solid">Однотонные</string>
+    <string name="bg_section_gradient">Градиенты из двух цветов</string>
+    <string name="bg_section_photo">Ваше фото</string>
+    <string name="bg_default">По умолчанию</string>
+    <string name="bg_photo_failed">Не удалось открыть фото</string>
     <string name="help">Справка</string>
     <string name="share">Поделиться</string>
     <string name="send">Оценить</string>

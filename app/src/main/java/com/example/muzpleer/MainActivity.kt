@@ -148,6 +148,8 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        //фон за экранами из настроек темы (окно, чтобы он был за всеми экранами и мини-плеером)
+        window.setBackgroundDrawable(com.example.muzpleer.util.AppBackground.drawable(this, com.example.muzpleer.util.AppBackground.load(this)))
         com.example.muzpleer.util.ThemeManager.playCrossfade(this) //плавный переход после смены темы
         navController = findNavController(R.id.nav_host_fragment_content_main)
 
@@ -190,6 +192,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.settingsFragment -> R.string.settings
                 R.id.helpFragment -> R.string.help
                 R.id.themeFragment -> R.string.change_theme
+                R.id.backgroundFragment -> R.string.change_background
                 else -> null
             }
             titleRes?.let { viewModel.setAppBarTitle(getString(it)) }

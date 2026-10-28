@@ -27,6 +27,11 @@
         android:label="@string/change_theme"
         tools:layout="@layout/fragment_theme" />
     <fragment
+        android:id="@+id/backgroundFragment"
+        android:name="com.example.muzpleer.ui.theme.BackgroundFragment"
+        android:label="@string/change_background"
+        tools:layout="@layout/fragment_background" />
+    <fragment
         android:id="@+id/downloadFragment"
         android:name="com.example.muzpleer.ui.download.DownloadFragment"
         android:label="@string/download_track"
