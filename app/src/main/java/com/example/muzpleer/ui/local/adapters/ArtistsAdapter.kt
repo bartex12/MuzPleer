@@ -72,10 +72,11 @@ class ArtistsAdapter(
     ) {
         holder.bind(artists[position])
 
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedArtistPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
+        //подсвечиваем исполителя, песни которого включают играющий трек
+        viewModel.currentSong
+            .observe(holder.itemView.context as LifecycleOwner) { song ->
+                holder.itemView.isSelected = song != null && position < artists.size &&
+                        artists[position].songs.any { it.id == song.id }
             }
     }
 
@@ -131,7 +132,6 @@ class ArtistsAdapter(
             }
 
             binding.root.setOnClickListener {
-                viewModel.setSelectedArtistPosition(absoluteAdapterPosition)
                 onItemClick(artist)
             }
 

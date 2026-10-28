@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.indexOfSong
 import com.example.muzpleer.util.applyShuffleIcon
 import com.example.muzpleer.util.accentColor
 import android.content.Context
@@ -425,7 +426,7 @@ class SongPlaylistFragment:Fragment() {
                         val currentSong = viewModel.getCurrentSong()
 
                         val currentSongMediaUri = getNormalizedPath(currentSong?.mediaUri ?: "")
-                        val indexOfSong = currentPlaylistSongs.indexOfFirst { getNormalizedPath(it.mediaUri) == currentSongMediaUri }
+                        val indexOfSong = currentPlaylistSongs.indexOfSong(currentSong)
                         Log.d(TAG, "4$$$ SongPlaylistFragment onMenuItemSelected indexOfSong = $indexOfSong currentSongMediaUri = $currentSongMediaUri")
 
                         (binding.alltracksPlaylistRecyclerView.layoutManager as LinearLayoutManager).let{

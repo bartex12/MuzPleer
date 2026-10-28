@@ -76,10 +76,10 @@ class PlaylistAdapter(
 
     override fun onBindViewHolder(holder: PlaylistViewHolder, position: Int) {
         holder.bind(playlist[position])
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedPlaylistPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
+        //подсвечиваем плейлисты, в которых лежит играющий трек
+        playlistsViewModel.playlistIdsWithSong
+            .observe(holder.itemView.context as LifecycleOwner) { ids ->
+                holder.itemView.isSelected = position < playlist.size && playlist[position].id in ids
             }
     }
 
@@ -132,7 +132,6 @@ class PlaylistAdapter(
             }
 
             itemView.setOnClickListener {
-                viewModel.setSelectedPlaylistPosition(absoluteAdapterPosition)
                 onPlaylistClick(playlist)
             }
 

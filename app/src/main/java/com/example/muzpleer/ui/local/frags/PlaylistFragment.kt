@@ -97,6 +97,14 @@ class PlaylistFragment():Fragment() {
             showCreatePlaylistDialog()
         }
 
+        //подсветка плейлистов, в которых лежит играющий трек: пересчитываем при смене трека и при изменении плейлистов
+        viewModel.currentSong.observe(viewLifecycleOwner) { song ->
+            playlistsViewModel.refreshPlaylistsWithSong(song?.id)
+        }
+        playlistsViewModel.playlists.observe(viewLifecycleOwner) {
+            playlistsViewModel.refreshPlaylistsWithSong(viewModel.currentSong.value?.id)
+        }
+
         playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { filteredPlaylists ->
             Log.d(TAG,"53 PlaylistFragment onViewCreated filteredPlaylists.observe: filteredPlaylists.size= ${filteredPlaylists.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок

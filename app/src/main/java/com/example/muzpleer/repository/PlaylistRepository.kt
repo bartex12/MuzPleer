@@ -198,6 +198,9 @@ class PlaylistRepository(
         playlistDao.updateSongsCount(playlistId, updatedCount)
     }
 
+    //в каких плейлистах лежит песня
+    suspend fun getPlaylistIdsForSong(songId: Long): List<Long> = playlistDao.getPlaylistIdsForSong(songId)
+
     suspend fun isSongInPlaylist(songId: Long, playlistId: Long): Boolean {
         return playlistDao.isSongInPlaylist(songId, playlistId) > 0
     }

@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.indexOfSong
 import com.example.muzpleer.util.applyShuffleIcon
 import android.content.Context
 import android.os.Bundle
@@ -348,7 +349,7 @@ class SongListArtistFragment:Fragment() {
                             val artistSongs = artistsViewModel.listArtistSong.value //список песен артиста
                             val currentSong = viewModel.getCurrentSong()
                             if (artistSongs!=null){
-                                val indexOfSong = artistSongs.indexOfFirst { it.mediaUri == currentSong?.mediaUri }
+                                val indexOfSong = artistSongs.indexOfSong(currentSong)
                                 Log.d(TAG, "2$$$ SongListArtistFragment onMenuItemSelected indexOfSong = $indexOfSong")
                                 (binding.alltracksRecyclerView.layoutManager as LinearLayoutManager).let{
                                     if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else it.scrollToPosition(0)

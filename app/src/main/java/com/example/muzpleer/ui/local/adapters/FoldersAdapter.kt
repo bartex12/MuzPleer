@@ -68,10 +68,11 @@ class FoldersAdapter(
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         holder.bind(folders[position])
 
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedFolderPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
+        //подсвечиваем папку, в которой лежит играющий трек
+        viewModel.currentSong
+            .observe(holder.itemView.context as LifecycleOwner) { song ->
+                holder.itemView.isSelected = song != null && position < folders.size &&
+                        folders[position].path.trimEnd('/') == song.folderPath.trimEnd('/')
             }
     }
 
@@ -124,7 +125,6 @@ class FoldersAdapter(
             }
 
             itemView.setOnClickListener {
-                viewModel.setSelectedFolderPosition(absoluteAdapterPosition)
                 onFolderClick(folder)
             }
             // Показываем/скрываем иконку перетаскивания в режиме редактирования

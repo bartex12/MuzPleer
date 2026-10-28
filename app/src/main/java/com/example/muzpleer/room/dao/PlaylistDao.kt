@@ -60,6 +60,9 @@ interface PlaylistDao {
     @Query("SELECT COUNT(*) FROM playlist_songs WHERE playlistId = :playlistId")
     suspend fun getSongsCountForPlaylist(playlistId: Long): Int
 
+    @Query("SELECT playlistId FROM playlist_songs WHERE songId = :songId")
+    suspend fun getPlaylistIdsForSong(songId: Long): List<Long>
+
     @Query("SELECT COUNT(*) FROM playlist_songs WHERE songId = :songId AND playlistId = :playlistId")
     suspend fun isSongInPlaylist(songId: Long, playlistId: Long): Int
 

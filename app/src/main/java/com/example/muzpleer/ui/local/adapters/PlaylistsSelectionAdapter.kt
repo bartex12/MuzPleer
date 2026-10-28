@@ -50,11 +50,6 @@ class PlaylistsSelectionAdapter (
     override fun onBindViewHolder(holder: PlaylistsViewHolder, position: Int) {
         holder.bind(playlists[position])
 
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedAlbumPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
-            }
     }
 
     override fun getItemCount() = playlists.size
@@ -90,7 +85,6 @@ class PlaylistsSelectionAdapter (
             }?: binding.playlistArtSelection.setImageResource(R.drawable.muz_player3)
 
             itemView.setOnClickListener {
-                viewModel.setSelectedAlbumPosition(absoluteAdapterPosition)
                 onPlaylistClick(playlist)
             }
         }

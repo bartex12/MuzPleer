@@ -67,10 +67,11 @@ class AlbumsAdapter(
 
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.bind(albums[position])
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedAlbumPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
+        //подсвечиваем альбом, в который входит играющий трек
+        viewModel.currentSong
+            .observe(holder.itemView.context as LifecycleOwner) { song ->
+                holder.itemView.isSelected = song != null && position < albums.size &&
+                        albums[position].albumId == song.albumId
             }
     }
 
@@ -119,7 +120,6 @@ class AlbumsAdapter(
             }
 
             itemView.setOnClickListener {
-                viewModel.setSelectedAlbumPosition(absoluteAdapterPosition)
                 onAlbumClick(album)
             }
 

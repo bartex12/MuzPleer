@@ -59,17 +59,9 @@ class SharedViewModel(
     private val _selectedSongPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
     val selectedSongPosition: LiveData<Int> = _selectedSongPosition
 
-    private val _selectedAlbumPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
-    val selectedAlbumPosition: LiveData<Int> = _selectedAlbumPosition
 
-    private val _selectedArtistPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
-    val selectedArtistPosition: LiveData<Int> = _selectedArtistPosition
 
-    private val _selectedFolderPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
-    val selectedFolderPosition: LiveData<Int> = _selectedFolderPosition
 
-    private val _selectedPlaylistPosition = MutableLiveData<Int>(RecyclerView.NO_POSITION)
-    val selectedPlaylistPosition: LiveData<Int> = _selectedPlaylistPosition
 
 
     //индекс выбранной песни в отсортированном(!) списке песен
@@ -218,10 +210,6 @@ class SharedViewModel(
 
     fun setSelectedPosition(position: Int) { _selectedSongPosition.value = position }
 
-    fun setSelectedAlbumPosition(position: Int) { _selectedAlbumPosition.value = position }
-    fun setSelectedArtistPosition(position: Int) { _selectedArtistPosition.value = position }
-    fun setSelectedFolderPosition(position: Int) { _selectedFolderPosition.value = position }
-    fun setSelectedPlaylistPosition(position: Int) { _selectedPlaylistPosition.value = position }
 
     /**
      * Восстановление последней песни при запуске: играть продолжает тот список, из которого она была выбрана

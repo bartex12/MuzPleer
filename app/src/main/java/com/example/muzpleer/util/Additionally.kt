@@ -135,3 +135,10 @@ fun getNormalizedPath(uriString: String): String {
         uriString
     }
 }
+
+/** Индекс песни в списке: по id или по нормализованному пути (в разных списках путь записан по-разному). */
+fun List<com.example.muzpleer.model.Song>.indexOfSong(song: com.example.muzpleer.model.Song?): Int {
+    if (song == null) return -1
+    val path = getNormalizedPath(song.mediaUri)
+    return indexOfFirst { it.id == song.id || getNormalizedPath(it.mediaUri) == path }
+}
