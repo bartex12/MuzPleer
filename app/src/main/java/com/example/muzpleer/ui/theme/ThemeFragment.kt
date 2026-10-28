@@ -43,6 +43,7 @@ class ThemeFragment : Fragment() {
             ThemeManager.setAccentIndex(requireContext(), selected)
             //сначала уходим на экран, откуда открыли шторку, потом пересоздаём Activity: после пересоздания открыт будет он
             val activity = requireActivity()
+            ThemeManager.captureSnapshot(activity)
             findNavController().popBackStack()
             activity.recreate()
         }

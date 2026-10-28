@@ -2,6 +2,10 @@ package com.example.muzpleer.util
 
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.view.ViewGroup
+import android.widget.ImageView
 import android.util.TypedValue
 import androidx.core.content.ContextCompat
 import com.example.muzpleer.R
@@ -38,6 +42,48 @@ object ThemeManager {
     /** Накладываем выбранный акцент на тему экрана; вызывать после setTheme и до super.onCreate. */
     fun apply(activity: Activity) {
         activity.theme.applyStyle(accentOverlays[getAccentIndex(activity)], true)
+    }
+
+    //снимок экрана перед пересозданием: показываем его поверх нового экрана и плавно убираем,
+    //тогда мигание при смене темы не заметно
+    private var snapshot: Bitmap? = null
+
+    fun captureSnapshot(activity: Activity) {
+        try {
+            val decor = activity.window.decorView
+            if (decor.width <= 0 || decor.height <= 0) return
+            val bitmap = Bitmap.createBitmap(decor.width, decor.height, Bitmap.Config.ARGB_8888)
+            decor.draw(Canvas(bitmap))
+            snapshot = bitmap
+        } catch (e: Exception) {
+            snapshot = null
+        }
+    }
+
+    /** Вызывать после setContentView нового экрана. */
+    fun playCrossfade(activity: Activity) {
+        val bitmap = snapshot ?: return
+        snapshot = null
+        val decor = activity.window.decorView as? ViewGroup
+        if (decor == null) {
+            bitmap.recycle()
+            return
+        }
+        val overlay = ImageView(activity).apply {
+            setImageBitmap(bitmap)
+            scaleType = ImageView.ScaleType.FIT_XY
+            isClickable = true //пока виден снимок, нажатия не проходят
+        }
+        decor.addView(overlay, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        overlay.animate()
+            .alpha(0f)
+            .setStartDelay(150)
+            .setDuration(450)
+            .withEndAction {
+                decor.removeView(overlay)
+                bitmap.recycle()
+            }
+            .start()
     }
 
     fun colorOf(context: Context, index: Int): Int =

@@ -148,6 +148,7 @@ class MainActivity : AppCompatActivity() {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        com.example.muzpleer.util.ThemeManager.playCrossfade(this) //плавный переход после смены темы
         navController = findNavController(R.id.nav_host_fragment_content_main)
 
         appPreferences =PreferenceHelperImpl(this.application)
