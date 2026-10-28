@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.adapters
 
+import com.example.muzpleer.model.SourceType
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
@@ -68,10 +69,10 @@ class FoldersAdapter(
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         holder.bind(folders[position])
 
-        // Следим за изменениями выбранной позиции
-        viewModel.selectedFolderPosition
-            .observe(holder.itemView.context as LifecycleOwner) { selectedPos ->
-                holder.itemView.isSelected = position == selectedPos
+        //подсвечиваем то, откуда сейчас играет музыка (по источнику воспроизведения, а не по последнему нажатию)
+        viewModel.playbackSource
+            .observe(holder.itemView.context as LifecycleOwner) { source ->
+                holder.itemView.isSelected = position < folders.size && (source?.type == SourceType.FOLDER && source?.key == folders[position].path)
             }
     }
 
@@ -124,7 +125,6 @@ class FoldersAdapter(
             }
 
             itemView.setOnClickListener {
-                viewModel.setSelectedFolderPosition(absoluteAdapterPosition)
                 onFolderClick(folder)
             }
             // Показываем/скрываем иконку перетаскивания в режиме редактирования
