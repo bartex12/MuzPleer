@@ -36,11 +36,20 @@ class PlayerViewModel(
 
     /** Вызывается при смене трека плеером. Без повторной доставки, в отличие от LiveData. */
     var onTrackChangedListener: ((Song) -> Unit)? = null
+        set(value) {
+            field = value
+            //приложение открыли заново, пока музыка играет в фоне: сразу сообщаем, какой трек сейчас в плеере
+            if (value != null) playerHandler.currentTrack()?.let(value)
+        }
 
     init {
         playerHandler.callback = this  //иначе не работает
+        playerHandler.syncState()      //приложение могли открыть заново, пока музыка играет
         Log.d(TAG, "PlayerViewModel init: playerHandler = $playerHandler")
     }
+
+    /** В плеере уже есть трек (музыка играла в фоне, пока приложение было закрыто). */
+    fun hasCurrentTrack(): Boolean = playerHandler.currentTrack() != null
 
     fun setPlayerVisibility(visible: Boolean) {
         _playerVisibility.value = visible
@@ -49,6 +58,19 @@ class PlayerViewModel(
     fun setPlaylistForHandler(playlist: List<Song>, initialIndex: Int = 0) {
         playerHandler.setPlaylist(playlist, initialIndex)
     }
+
+    /** Остановить музыку и очистить очередь (например, удалён плейлист, из которого играла песня). */
+    fun stopAndClear() {
+        playerHandler.stopAndClear()
+    }
+
+    /** Очередь воспроизведения и номер играющей песни в ней. */
+    fun queue(): List<Song> = playerHandler.queue()
+    fun currentQueueIndex(): Int = playerHandler.currentIndex()
+    fun moveQueueTrack(from: Int, to: Int) = playerHandler.moveTrack(from, to)
+    fun playQueueTrack(index: Int) = playerHandler.playTrack(index)
+    /** Привести очередь к списку [tracks] (например, после правки плейлиста), не прерывая играющую песню. */
+    fun syncQueue(tracks: List<Song>) = playerHandler.replaceQueue(tracks)
 
     fun togglePlayPause() {
         playerHandler.togglePlayPause()
@@ -73,6 +95,9 @@ class PlayerViewModel(
             playerHandler.seekTo(newPosition)
         }
     }
+
+    /** Включён ли случайный порядок на самом деле (состояние плеера, а не значка). */
+    fun isShuffleMode(): Boolean = playerHandler.isShuffleMode
 
     fun setPlaybackMode(): Boolean {
         // Меняем состояние на противоположное
@@ -105,7 +130,16 @@ class PlayerViewModel(
     override fun onCleared() {
         super.onCleared()
         onTrackChangedListener = null
-        playerHandler.release()
+        //обработчик общий и живёт дальше (музыка продолжает играть): только отвязываем себя от него
+        if (playerHandler.callback === this) playerHandler.callback = NoCallback
+    }
+
+    /** Заглушка на время, пока нет ни одного экрана. */
+    private object NoCallback : MusicServiceHandler.PlayerCallback {
+        override fun onTrackChanged(track: Song) {}
+        override fun onPlaybackStateChanged(isPlaying: Boolean) {}
+        override fun onPositionChanged(position: Long, duration: Long) {}
+        override fun onError(message: String) {}
     }
 
     companion object {

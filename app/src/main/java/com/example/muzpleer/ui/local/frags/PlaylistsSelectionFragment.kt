@@ -58,14 +58,14 @@ class PlaylistsSelectionFragment:Fragment()  {
         selectionType = arguments?.getSerializable("selectionType") as? SelectionType
             ?: SelectionType.PLAYLISTS
 
-        viewModel.setAppBarTitle("Выбрать песни из плейлистов")
+        viewModel.setAppBarTitle("Выбрать треки из плейлистов")
 
         adapter = PlaylistsSelectionAdapter (viewModel, playlistsViewModel){ playlist ->
 
             // Навигация через Bundle
             val bundle = Bundle().apply {
-                putLong("playlistId", playlistId)  // id  плейлиста, куда добавляем песни
-                putLong("selectedPlaylistId", playlist.id) // id  плейлиста, откуда добавляем песни
+                putLong("playlistId", playlistId)  // id  плейлиста, куда добавляем треки
+                putLong("selectedPlaylistId", playlist.id) // id  плейлиста, откуда добавляем треки
                 putSerializable("selectionType", selectionType)
                 Log.d(TAG,"PlaylistsSelectionFragment onViewCreated bundle: selectionType =$selectionType " +
                         "selectedPlaylistId = ${playlist.id}  playlistId = $playlistId ")

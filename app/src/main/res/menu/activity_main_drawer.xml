@@ -5,9 +5,14 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_favorites"
-            android:icon="@drawable/ic_baseline_favorite_24"
-            android:title="@string/favorites" />
+            android:id="@+id/nav_update"
+            android:checkable="false"
+            android:icon="@drawable/outline_sync_24"
+            android:title="@string/update_data" />
+        <item
+            android:id="@+id/nav_download"
+            android:icon="@drawable/ic_download_24"
+            android:title="@string/download_track" />
         <item
             android:id="@+id/nav_setting"
             android:icon="@drawable/ic_settings_red_24dp"

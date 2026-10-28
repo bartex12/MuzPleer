@@ -11,7 +11,7 @@
     <TextView
         android:id="@+id/itemAddSongToPlaylist"
         style="@style/PopupMenuItem"
-        android:text="Добавить песни в плейлист"
+        android:text="Добавить треки в плейлист"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_playlist_add_24"
         app:drawableTint="@color/white"/>
@@ -19,14 +19,26 @@
     <View style="@style/PopupMenuDivider" />
 
     <TextView
+        android:id="@+id/itemAddSongsByTime"
+        style="@style/PopupMenuItem"
+        android:text="Добавить треки по времени"
+        android:drawablePadding="12dp"
+        app:drawableStartCompat="@drawable/playlist_add_check_24px"
+        app:drawableTint="@color/white"/>
+
+    <View style="@style/PopupMenuDivider" />
+
+    <TextView
         android:id="@+id/itemRemoveFromPlaylist"
         style="@style/PopupMenuItem"
-        android:text="Удалить песни из плейлиста"
+        android:text="Удалить треки из плейлиста"
         android:drawablePadding="12dp"
         app:drawableStartCompat="@drawable/outline_playlist_remove_24"
         app:drawableTint="@color/white"/>
 
-    <View style="@style/PopupMenuDivider" />
+    <View
+        android:id="@+id/dividerRemoveFromPlaylist"
+        style="@style/PopupMenuDivider" />
 
     <TextView
         android:id="@+id/itemChangeCoverPlaylist"

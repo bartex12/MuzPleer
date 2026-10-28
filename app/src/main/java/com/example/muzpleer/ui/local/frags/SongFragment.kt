@@ -20,6 +20,8 @@ import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentSongsBinding
 import com.example.muzpleer.di.App
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
@@ -34,6 +36,7 @@ import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.getSortedDataSong
+import com.example.muzpleer.util.syncShuffleIcon
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SongFragment : Fragment() {
@@ -81,6 +84,7 @@ class SongFragment : Fragment() {
             //устанавливаем список песен как плейлист
             val playlist=getSortedDataSong(viewModel.getSongs())
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.SONGS))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,  //текущая песня
@@ -209,6 +213,7 @@ class SongFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         menu.clear() // Очищаем меню
         inflater.inflate(R.menu.song_menu, menu)
+        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
         searchMenuItem = searchItem
@@ -251,6 +256,7 @@ class SongFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
+        menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
     }
 
@@ -272,7 +278,7 @@ class SongFragment : Fragment() {
                 viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
                     // Восстанавливаем последнюю песню
                     currentSong?. let{
-                        viewModel.setCurrentSongById(currentSong.id)
+                        viewModel.reloadCurrentSong(currentSong.id)
                     }
                     Log.d(TAG, "###SongFragment onMenuItemSelected currentSong = ${currentSong?.title} ")
                 }
@@ -282,7 +288,8 @@ class SongFragment : Fragment() {
                 val newShuffleState = playerViewModel.setPlaybackMode()
                 // Меняем иконку в зависимости от состояния
                 if (newShuffleState) {
-                    item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
+                    item.setIcon(R.drawable.baseline_shuffle_24) // перекрещенные линии
+                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
                 } else {
                     item.setIcon(R.drawable.icons8_data_white_24) // обычная иконка
                     Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()

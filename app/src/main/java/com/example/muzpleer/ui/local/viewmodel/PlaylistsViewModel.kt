@@ -140,22 +140,30 @@ class PlaylistsViewModel(
         }
     }
 
+    /** Вызывается после удаления плейлиста: MainActivity по нему останавливает музыку из удалённого плейлиста. */
+    var onPlaylistDeleted: ((Long) -> Unit)? = null
+
     fun deletePlaylist(playlistId: Long) {
         viewModelScope.launch {
             try {
                 playlistRepository.deletePlaylist(playlistId)
                 loadPlaylists()
+                onPlaylistDeleted?.invoke(playlistId)
             } catch (e: Exception) {
                 Log.d(TAG,"PlaylistsViewModel deletePlaylist Error deleting playlist error = ${e.message}")
             }
         }
     }
 
-    fun addSongsToPlaylistWhithSongs(playlistId: Long, songs: List<Song>) {
+    //Заданная длительность плейлиста (мс) для режима «Добавить треки по времени»; null - обычное добавление
+    var addByTimeLimitMs: Long? = null
+
+    fun addSongsToPlaylistWhithSongs(playlistId: Long, songs: List<Song>, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
             playlistRepository.addSongsToPlaylistWithSongs(playlistId, songs)
             //перезагружаем плейлисты для обновления количества песен в каждом плейлисте
             loadPlaylists()
+            onDone?.invoke()
         }
     }
 
@@ -192,9 +200,9 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    messenger.show("Песня удалена из плейлиста")
+                    messenger.show("Трек удалён из плейлиста")
                 } else {
-                    messenger.show("Ошибка удаления песни")
+                    messenger.show("Ошибка удаления трека")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing song from playlist: ${e.message}", e)
@@ -204,7 +212,7 @@ class PlaylistsViewModel(
     }
 
     // Удаление нескольких песен из плейлиста
-    fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>) {
+    fun removeSongsFromPlaylist(playlistId: Long, songIds: List<Long>, onDone: (() -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 val removedCount = playlistRepository.removeSongsFromPlaylist(playlistId, songIds)
@@ -218,13 +226,16 @@ class PlaylistsViewModel(
                     loadPlaylists()
 
                     // Показываем уведомление
-                    messenger.show("Удалено песен: $removedCount")
+                    messenger.show("Удалено треков: $removedCount")
                 } else {
-                    messenger.show("Не удалось удалить песни")
+                    messenger.show("Не удалось удалить треки")
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error removing songs from playlist: ${e.message}", e)
                 messenger.show("Ошибка: ${e.message}")
+            } finally {
+                //удаление закончено: экраны, которые ждут результат (очередь плеера), читают уже новый список
+                onDone?.invoke()
             }
         }
     }
@@ -277,20 +288,21 @@ class PlaylistsViewModel(
         }
     }
 
-    fun addSongToPlaylist(songId: Long, playlistId: Long) {
+    fun addSongToPlaylist(songId: Long, playlistId: Long, onResult: ((added: Boolean) -> Unit)? = null) {
         viewModelScope.launch {
             try {
                 // Проверяем, нет ли уже этой песни в плейлисте
                 val isAlreadyInPlaylist = playlistRepository.isSongInPlaylist(songId, playlistId)
 
                 if (isAlreadyInPlaylist) {
-                    // Можно показать сообщение, что песня уже есть
                     Log.d(TAG, "Песня уже есть в плейлисте")
+                    onResult?.invoke(false)
                     return@launch
                 }
 
                 // Добавляем песню в плейлист
                 playlistRepository.addSongToPlaylist(songId, playlistId)
+                onResult?.invoke(true)
 
                 // Обновляем список плейлистов
                 refreshPlaylists()

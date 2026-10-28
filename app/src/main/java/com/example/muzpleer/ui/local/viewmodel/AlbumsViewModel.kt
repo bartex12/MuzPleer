@@ -17,7 +17,7 @@ import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
 
 /**
- * Всё, что относится к вкладке "Альбомы" и списку песен альбома.
+ * Всё, что относится к вкладке "Альбомы" и списку треков альбома.
  * Раньше это жило в SharedViewModel.
  */
 class AlbumsViewModel(

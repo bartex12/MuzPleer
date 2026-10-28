@@ -5,7 +5,7 @@
     <item
         android:id="@+id/action_go_to_song_favorite"
         android:orderInCategory="100"
-        android:title="К песне"
+        android:title="К треку"
         android:icon="@drawable/outline_flag_24"
         app:showAsAction="ifRoom" />
     <item

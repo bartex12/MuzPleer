@@ -12,7 +12,7 @@
     <item
         android:id="@+id/action_to"
         android:orderInCategory="200"
-        android:title="К песне"
+        android:title="К треку"
         android:icon="@drawable/outline_flag_24"
         app:showAsAction="always" />
 
@@ -27,6 +27,7 @@
         android:id="@+id/updateSongs"
         android:orderInCategory="300"
         android:title="Обновить данные"
+        android:visible="false"
         android:icon="@drawable/outline_sync_24"
         app:showAsAction="collapseActionView|ifRoom"/>
 

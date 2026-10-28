@@ -65,6 +65,15 @@ class TabLocalFragment: Fragment()  {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        //при возврате с других экранов (удаление треков, выбор и т.п.) в тулбаре мог остаться чужой заголовок
+        val title = tabLayout.getTabAt(viewPager.currentItem)?.text?.toString()
+        if (!title.isNullOrEmpty()) {
+            (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         //запоминаем текущую вкладку

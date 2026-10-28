@@ -6,6 +6,8 @@ import android.content.SharedPreferences
 import android.util.Log
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 
 class PreferenceHelperImpl(private  val app: Application): IPreferenceHelper {
     companion object{
@@ -19,6 +21,11 @@ class PreferenceHelperImpl(private  val app: Application): IPreferenceHelper {
         const val FIRST_POSITION_PLAYLIST = "FIRST_POSITION_PLAYLIST"
         const val PAGER_LOCAL_POSITION ="PAGER_LOCAL_POSITION"
         const val CURRENT_SONG_KEY = "CURRENT_SONG_KEY"
+        const val QUEUE_IDS_KEY = "QUEUE_IDS_KEY"
+        const val SOURCE_TYPE_KEY = "SOURCE_TYPE_KEY"
+        const val SOURCE_ID_KEY = "SOURCE_ID_KEY"
+        const val SOURCE_KEY_KEY = "SOURCE_KEY_KEY"
+        const val SOURCE_NAME_KEY = "SOURCE_NAME_KEY"
         const val FIRST_POSITION_FAVORITE_SONG = "FIRST_POSITION_FAVORITE_SONG"
         const val INDEX_OF_CURRENT_SONG = "INDEX_OF_CURRENT_SONG"
         const val TOOLBAR_TITLE = "TOOLBAR_TITLE"
@@ -111,6 +118,33 @@ class PreferenceHelperImpl(private  val app: Application): IPreferenceHelper {
     override fun saveCurrentSongId(id: Long) {
         putValue(CURRENT_SONG_KEY to id)
     }
+
+    override fun saveQueueIds(ids: List<Long>) {
+        putValue(QUEUE_IDS_KEY to ids.joinToString(","))
+    }
+
+    override fun savePlaybackSource(source: PlaybackSource) {
+        prefs.edit {
+            putString(SOURCE_TYPE_KEY, source.type.name)
+            putLong(SOURCE_ID_KEY, source.id)
+            putString(SOURCE_KEY_KEY, source.key)
+            putString(SOURCE_NAME_KEY, source.name)
+        }
+    }
+
+    override fun getPlaybackSource(): PlaybackSource? {
+        val type = prefs.getString(SOURCE_TYPE_KEY, null)
+            ?.let { name -> SourceType.values().firstOrNull { it.name == name } } ?: return null
+        return PlaybackSource(
+            type = type,
+            id = prefs.getLong(SOURCE_ID_KEY, -1L),
+            key = prefs.getString(SOURCE_KEY_KEY, "").orEmpty(),
+            name = prefs.getString(SOURCE_NAME_KEY, "").orEmpty()
+        )
+    }
+
+    override fun getQueueIds(): List<Long> =
+        prefs.getString(QUEUE_IDS_KEY, null).orEmpty().split(',').mapNotNull { it.toLongOrNull() }
 
     override fun getCurrentSongId(): Long {
         return  prefs.getLong(CURRENT_SONG_KEY, -1L)

@@ -22,6 +22,11 @@
         android:name="com.example.muzpleer.setting.SettingsFragment"
         android:label="Настройки" />
     <fragment
+        android:id="@+id/downloadFragment"
+        android:name="com.example.muzpleer.ui.download.DownloadFragment"
+        android:label="@string/download_track"
+        tools:layout="@layout/fragment_download" />
+    <fragment
         android:id="@+id/helpFragment"
         android:name="com.example.muzpleer.ui.help.HelpFragment"
         android:label="Справка"
@@ -86,7 +91,7 @@
     <fragment
         android:id="@+id/editSongFragment"
         android:name="com.example.muzpleer.ui.local.frags.EditSongFragment"
-        android:label="Редактирование песни"
+        android:label="Редактирование трека"
         tools:layout="@layout/fragment_edit_song">
         <action
             android:id="@+id/action_editSongFragment_to_tabLocalFragment"
@@ -107,7 +112,7 @@
     <fragment
         android:id="@+id/addSongsSourceFragment"
         android:name="com.example.muzpleer.ui.local.frags.AddSongsSourceFragment"
-        android:label="Добавить песни"
+        android:label="Добавить треки"
         tools:layout="@layout/fragment_add_songs_source">
 
         <argument
@@ -188,7 +193,7 @@
     <fragment
         android:id="@+id/songsSelectionFragment"
         android:name="com.example.muzpleer.ui.local.frags.SongsSelectionFragment"
-        android:label="Выбор песен"
+        android:label="Выбор треков"
         tools:layout="@layout/fragment_songs_selection">
 
         <argument

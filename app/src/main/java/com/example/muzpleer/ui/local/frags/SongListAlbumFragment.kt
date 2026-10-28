@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlltracksBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
@@ -35,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
 import com.google.android.material.textfield.TextInputLayout
@@ -80,6 +83,7 @@ class SongListAlbumFragment:Fragment() {
         adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             val playlist=viewModel.getPlaylist()
 
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.ALBUM, id = arguments?.getLong("albumId") ?: -1L, name = albumName.orEmpty()))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,
@@ -130,7 +134,7 @@ class SongListAlbumFragment:Fragment() {
                 if (showEmptyState && !songCountLessZero) {
                     binding.favoriteEmpty.text = "По вашему запросу ничего не найдено"
                 } else if (songCountLessZero) {
-                    binding.favoriteEmpty.text = "Здесь пока нет ни одной песни"
+                    binding.favoriteEmpty.text = "Здесь пока нет ни одного трека"
                 }
 
                 // обновляем меню при загрузке данных
@@ -327,9 +331,11 @@ class SongListAlbumFragment:Fragment() {
 
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_other_2, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
             }
 
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 menu.findItem(R.id.action_edit_order2).isVisible = false
                 var songsCount = 0
                 songsCount =  albumsViewModel.filteredListAlbumSong.value?.size?:0

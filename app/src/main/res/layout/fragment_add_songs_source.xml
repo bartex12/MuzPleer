@@ -6,7 +6,7 @@
     android:padding="16dp"
     android:background="@drawable/item_list_effects_revers">
 
-    <!-- Карточка: Все песни -->
+    <!-- Карточка: Все треки -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardAllSongs"
         android:layout_width="0dp"
@@ -29,7 +29,7 @@
             android:drawableStart="@drawable/outline_music_note_2_24"
             android:drawablePadding="12dp"
             android:padding="18dp"
-            android:text="Посмотреть все песни"
+            android:text="Посмотреть все треки"
             android:textColor="@color/white"
             android:textSize="16sp"
             android:textStyle="bold" />

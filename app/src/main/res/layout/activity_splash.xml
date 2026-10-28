@@ -3,14 +3,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorPrimaryBlack"
-    android:fitsSystemWindows="true">
+    android:background="@color/colorPrimaryBlack">
 
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/image_view_splash"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="fill"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
         app:srcCompat="@drawable/muz_player_800_1600" />
 
 <!--    &lt;!&ndash; Можно добавить прогресс-бар снизу, если нужно &ndash;&gt;-->

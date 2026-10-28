@@ -18,7 +18,7 @@ import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
 
 /**
- * Всё, что относится к вкладке "Папки" и списку песен папки.
+ * Всё, что относится к вкладке "Папки" и списку треков папки.
  * Раньше это жило в SharedViewModel.
  */
 class FoldersViewModel(

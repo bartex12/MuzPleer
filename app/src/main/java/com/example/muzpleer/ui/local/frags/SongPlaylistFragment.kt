@@ -27,6 +27,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlltracksForPlaylistBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsPlaylistAdapter
@@ -35,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.getNormalizedPath
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
@@ -94,6 +97,9 @@ class SongPlaylistFragment:Fragment() {
                         "= ${playlistSongs.first().title} "
             )
 
+            viewModel.setPlaybackSource(
+                PlaybackSource(SourceType.PLAYLIST, id = playlistId, name = arguments?.getString("playlistName").orEmpty())
+            )
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,
@@ -148,7 +154,7 @@ class SongPlaylistFragment:Fragment() {
             if (showEmptyState && !songCountLessZero) {
                 binding.tvEmptyPlaylistSong.text = "По вашему запросу ничего не найдено"
             } else if (songCountLessZero) {
-                binding.tvEmptyPlaylistSong.text = "Здесь пока нет ни одной песни"
+                binding.tvEmptyPlaylistSong.text = "Здесь пока нет ни одного трека"
             }
 
             // обновляем меню при загрузке данных
@@ -378,6 +384,7 @@ class SongPlaylistFragment:Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_other_2, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order2)
@@ -385,6 +392,7 @@ class SongPlaylistFragment:Fragment() {
             }
 
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 //menu.findItem(R.id.action_edit_order2).isVisible =false
                 val editItem = menu.findItem(R.id.action_edit_order2)
 
@@ -463,7 +471,7 @@ class SongPlaylistFragment:Fragment() {
         Log.d(TAG, "Режим редактирования: $newEditMode")
     }
     private fun showEditModeHint() {
-        Snackbar.make(binding.root, "Перетаскивайте песни для изменения порядка",
+        Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",
             Snackbar.LENGTH_LONG)
             .setAction("OK") {toggleEditMode() }
             .show()

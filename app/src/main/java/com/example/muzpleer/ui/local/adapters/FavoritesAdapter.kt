@@ -332,14 +332,14 @@ class FavoritesAdapter(
         val recyclerView = dialog.findViewById<RecyclerView>(R.id.rvPlaylists)
         val adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel){ playlist ->
             // Добавляем песню в выбранный плейлист
-            playlistsViewModel.addSongToPlaylist(song.id, playlist.id)
-
-            // Показываем уведомление
-            Toast.makeText(
-                context,
-                "Песня добавлена в \"${playlist.playlistName}\"",
-                Toast.LENGTH_SHORT
-            ).show()
+            playlistsViewModel.addSongToPlaylist(song.id, playlist.id) { added ->
+                Toast.makeText(
+                    context,
+                    if (added) "Трек добавлен в \"${playlist.playlistName}\""
+                    else context.getString(R.string.song_already_in_playlist),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
 
             dialog.dismiss()
         }
@@ -349,7 +349,7 @@ class FavoritesAdapter(
 
         // Загружаем список плейлистов
         playlistsViewModel.filteredPlaylists.observe(context as LifecycleOwner) { playlists ->
-            adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все песни"
+            adapter.playlists = playlists.filter { it.id != -1L } // Исключаем "Все треки"
         }
 
         dialog.show()
@@ -407,12 +407,12 @@ class FavoritesAdapter(
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 // Добавляем дополнительную информацию о песне
                 putExtra(Intent.EXTRA_SUBJECT, song.title)
-                putExtra(Intent.EXTRA_TEXT, "Песня: ${song.title}")
+                putExtra(Intent.EXTRA_TEXT, "Трек: ${song.title}")
             }
             //такой вариант не поддерживается в телеге
             //context.startActivity(Intent.createChooser(shareIntent, "Поделиться песней"))
             // Создаем chooser с заголовком
-            val chooserIntent = Intent.createChooser(shareIntent, "Поделиться песней")
+            val chooserIntent = Intent.createChooser(shareIntent, "Поделиться треком")
 
             // Предоставляем временные права доступа
             val resInfoList = context.packageManager
@@ -432,7 +432,7 @@ class FavoritesAdapter(
 
         } catch (e: Exception) {
             Log.d(TAG, "FavoritesAdapter shareSong Ошибка при отправке песни: ${e.message}")
-            Toast.makeText(context, "Не удалось поделиться песней", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Не удалось поделиться треком", Toast.LENGTH_SHORT).show()
         }
     }
 

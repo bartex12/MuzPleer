@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.recyclerview.widget.RecyclerView
 import com.example.muzpleer.R
+import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.repository.MusicRepository
@@ -124,6 +125,8 @@ class SharedViewModel(
         _libraryLoaded.value = true //раньше списков: наблюдатели списка должны уже знать, что загрузка закончилась
         _songs.value = songs
         _filteredSongs.value  = _songs.value
+        //трек мог быть назван плеером раньше, чем загрузился список: теперь можно найти его индекс
+        _currentSong.value?.let { updateIndexOfCurrentSong(it) }
         Log.d(TAG, "SharedViewModel initParamsSong songs.size = ${songs.size}")
     }
 
@@ -154,6 +157,10 @@ class SharedViewModel(
     fun onTrackChanged(track: Song) {
         //так не меняется автоматом- остаётся старый artUri из плейлиста
         _currentSong.value = track
+        updateIndexOfCurrentSong(track)
+    }
+
+    private fun updateIndexOfCurrentSong(track: Song) {
         //считаем индекс выбранной песни в отсортированном списке песен,
         // чтобы при возврате на песни можно было перейти к этой песне по индексу
         val trackMediaUri = getNormalizedPath(track.mediaUri)
@@ -194,12 +201,13 @@ class SharedViewModel(
     }
 
 
+    //до загрузки библиотеки значения ещё нет (плеер может сообщить о треке раньше, при повторном открытии приложения)
     fun getSongs():List<Song> {
-       return songs.value
+       return songs.value ?: emptyList()
     }
 
     fun getPlaylist():List<Song> {
-        return playlist.value
+        return playlist.value ?: emptyList()
     }
 
     fun getPositionSong(): Int{  return helper.getPositionSong() }
@@ -214,6 +222,41 @@ class SharedViewModel(
     fun setSelectedArtistPosition(position: Int) { _selectedArtistPosition.value = position }
     fun setSelectedFolderPosition(position: Int) { _selectedFolderPosition.value = position }
     fun setSelectedPlaylistPosition(position: Int) { _selectedPlaylistPosition.value = position }
+
+    /**
+     * Восстановление последней песни при запуске: играть продолжает тот список, из которого она была выбрана
+     * ([queueIds] из настроек), а не общий список всех песен. Если сохранённого списка нет или в нём уже нет
+     * этой песни - общий список.
+     */
+    fun restoreLastSong(songId: Long, queueIds: List<Long>) {
+        val all = getSongs()
+        val song = all.find { it.id == songId } ?: return
+        val byId = all.associateBy { it.id }
+        val queue = queueIds.mapNotNull { byId[it] }
+        val playlist = if (queue.any { it.id == songId }) queue else getSortedSongs()
+        _currentSong.value = song
+        setSongAndPlaylist(SongAndPlaylist(song = song, playlist = playlist))
+    }
+
+    /** Нет текущей песни (музыка остановлена, очередь очищена). */
+    fun clearCurrentSong() {
+        _currentSong.value = null
+        _indexOfCurrentSong.value = -1
+    }
+
+    /** Запоминает, из какого списка (экрана) выбрана песня: при следующем запуске приложение откроет этот список. */
+    fun setPlaybackSource(source: PlaybackSource) = helper.savePlaybackSource(source)
+
+    /** Песни по сохранённым id в том же порядке (те, что пропали из библиотеки, пропускаются). */
+    fun songsFromIds(ids: List<Long>): List<Song> {
+        val byId = getSongs().associateBy { it.id }
+        return ids.mapNotNull { byId[it] }
+    }
+
+    /** После обновления библиотеки берём свежий объект текущей песни; воспроизведение и список не трогаем. */
+    fun reloadCurrentSong(songId: Long) {
+        songs.value?.find { it.id == songId }?.let { _currentSong.value = it }
+    }
 
     fun setCurrentSongById(songId: Long) {
         songs.value?.find { it.id == songId }?.let { song ->
@@ -348,6 +391,19 @@ class SharedViewModel(
         _filteredSongs.value = patch(_filteredSongs.value)
         _selectedSong.value?.let { if (it.id == songId) _selectedSong.value = transform(it) }
         _currentSong.value?.let { if (it.id == songId) _currentSong.value = transform(it) }
+    }
+
+    /** Обложка, скачанная вместе с треком: пишем в базу и обновляем песню во всех списках. */
+    fun setSongCover(songId: Long, coverPath: String, onDone: () -> Unit = {}) {
+        viewModelScope.launch {
+            try {
+                repository.updateCoverPath(songId, coverPath)
+                patchSong(songId) { it.copy(artUri = coverPath) }
+            } catch (e: Exception) {
+                Log.d(TAG, "SharedViewModel setSongCover error = ${e.message}")
+            }
+            onDone()
+        }
     }
 
     fun updateSongInfo(

@@ -13,7 +13,7 @@
         android:id="@+id/tvDeleteSongsTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Удаление песен"
+        android:text="Удаление треков"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"
         android:textAlignment="center"
         android:textColor="@color/white"
@@ -28,7 +28,7 @@
         android:textAlignment="center"
         android:textColor="@color/secondary_text"
         android:layout_marginBottom="24dp"
-        tools:text="Удалить 3 песен из плейлиста &quot;Мой плейлист&quot;?" />
+        tools:text="Удалить 3 трека из плейлиста &quot;Мой плейлист&quot;?" />
 
     <!-- Кнопки -->
     <LinearLayout

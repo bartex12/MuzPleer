@@ -76,9 +76,9 @@ class PlaylistRepository(
 
         if (newSongs.isEmpty()) {
             if(songs.size == 1){
-                messenger.show("Эта песня уже есть в плейлисте")
+                messenger.show("Этот трек уже есть в плейлисте")
             }else {
-                messenger.show("Эти песни уже есть в плейлисте")
+                messenger.show("Эти треки уже есть в плейлисте")
             }
             return
         }

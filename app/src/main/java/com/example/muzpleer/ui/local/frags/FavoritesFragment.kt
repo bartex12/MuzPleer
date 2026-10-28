@@ -28,6 +28,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentFavoriteBinding
+import com.example.muzpleer.model.PlaybackSource
+import com.example.muzpleer.model.SourceType
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
@@ -35,6 +37,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
+import com.example.muzpleer.util.syncShuffleIcon
 import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -73,6 +76,7 @@ class FavoritesFragment: Fragment() {
             //устанавливаем список песен как плейлист
             val playlist=favoritesViewModel.getFavoriteSongs()
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
+            viewModel.setPlaybackSource(PlaybackSource(SourceType.FAVORITES))
             viewModel.setSongAndPlaylist(
                 SongAndPlaylist(
                     song=song,  //текущая песня
@@ -127,7 +131,7 @@ class FavoritesFragment: Fragment() {
             if (showEmptyState && !songCountLessZero) {
                 binding.favoriteEmpty.text = "По вашему запросу ничего не найдено"
             } else if (songCountLessZero) {
-                binding.favoriteEmpty.text = "Здесь пока нет ни одной песни"
+                binding.favoriteEmpty.text = "Здесь пока нет ни одного трека"
             }
 
             // обновляем меню при загрузке данных
@@ -353,12 +357,14 @@ class FavoritesFragment: Fragment() {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_favorites, menu)
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
                 editItem.title = if (isEditMode) "Готово" else "Редактировать порядок"
             }
             override fun onPrepareMenu(menu: Menu) {
+                menu.syncShuffleIcon(playerViewModel.isShuffleMode())
                 super.onPrepareMenu(menu)
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
 
@@ -434,7 +440,7 @@ class FavoritesFragment: Fragment() {
     }
 
     private fun showEditModeHint() {
-        Snackbar.make(binding.root, "Перетаскивайте песни для изменения порядка",
+        Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",
             Snackbar.LENGTH_LONG)
             .setAction("OK") {toggleEditMode() }
             .show()

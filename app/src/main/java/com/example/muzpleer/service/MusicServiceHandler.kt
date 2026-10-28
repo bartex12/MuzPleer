@@ -1,12 +1,27 @@
 package com.example.muzpleer.service
 
+import android.content.ComponentName
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.util.Log
+import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.ShuffleOrder
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
+import com.example.muzpleer.R
 import com.example.muzpleer.model.Song
+import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import java.io.ByteArrayOutputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,24 +29,40 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
+/**
+ * Управляет воспроизведением. Плеер ([player]) общий на всё приложение и принадлежит не экрану, а процессу:
+ * его же использует [PlaybackService] (уведомление, управление с экрана блокировки и наушников),
+ * поэтому музыка не прерывается, когда приложение закрыто.
+ */
 class MusicServiceHandler(
     private val context: Context,
+    private val player: ExoPlayer,
+    private val preferences: IPreferenceHelper,
     internal var callback: PlayerCallback
 ) {
-    private var player: ExoPlayer? = null
+    //подключение к службе: пока оно есть, система не останавливает службу, а служба показывает уведомление
+    private var controllerFuture: ListenableFuture<MediaController>? = null
+    //список песен, которые лежат в плеере (порядок совпадает с очередью плеера)
     internal var playlist: List<Song> = emptyList()
-    private var currentIndex = 0
     private var positionUpdateJob: Job? = null
 
-    // 1. Новые переменные для управления Shuffle-режимом
-    var isShuffleMode: Boolean = false
+    /** Случайный порядок включает сам плеер: так "следующий" из уведомления и наушников тоже его учитывает. */
+    var isShuffleMode: Boolean
+        get() = player.shuffleModeEnabled
         set(value) {
-            field = value
-            if (value && playlist.isNotEmpty()) {
-                generateShuffledIndices()
-            }
+            //плеер запоминает порядок и при повторном включении использует тот же: перемешиваем заново при каждом включении
+            if (value) applyNewShuffleOrder()
+            player.shuffleModeEnabled = value
         }
-    private var shuffledIndices: List<Int> = emptyList()
+
+    /** Новый случайный порядок: текущая песня первая, остальные в случайном порядке. */
+    private fun applyNewShuffleOrder() {
+        val count = player.mediaItemCount
+        if (count == 0) return
+        val current = player.currentMediaItemIndex.coerceIn(0, count - 1)
+        val order = intArrayOf(current) + (0 until count).filter { it != current }.shuffled().toIntArray()
+        player.setShuffleOrder(ShuffleOrder.DefaultShuffleOrder(order, System.nanoTime()))
+    }
 
     interface PlayerCallback {
         fun onTrackChanged(track: Song)
@@ -40,12 +71,7 @@ class MusicServiceHandler(
         fun onError(message: String)
     }
 
-    init {  initializePlayer() }
-
-    private fun initializePlayer() {
-        player = ExoPlayer.Builder(context).build().apply {
-
-            addListener(object : Player.Listener {
+    private val playerListener = object : Player.Listener {
                 override fun onIsPlayingChanged(isPlaying: Boolean) {
                     callback.onPlaybackStateChanged(isPlaying)
                     //позицию опрашиваем только пока играет музыка
@@ -53,11 +79,13 @@ class MusicServiceHandler(
                 }
 
                 override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-                    // Убираем отсюда дублирующий вызов playNext(),
-                    // так как STATE_ENDED ниже уже обрабатывает окончание трека.
-//                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
-//                        playNext()
-//                    }
+                    //смена трека самим плеером (конец трека, "следующий" из уведомления или наушников);
+                    //при замене списка о треке сообщает setPlaylist
+                    if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) return
+                    currentTrack()?.let {
+                        preferences.saveCurrentSongId(it.id) //чтобы при следующем запуске приложения не вернуться к старому треку
+                        callback.onTrackChanged(it)
+                    }
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
@@ -65,125 +93,203 @@ class MusicServiceHandler(
                 }
 
                 override fun onPlaybackStateChanged(playbackState: Int) {
-                    when(playbackState){
-                        // Автопереключение при окончании трека
-                        Player.STATE_ENDED ->{
-                            playNext()
-                        }
-                        // трек готов: сообщаем длительность, в том числе когда стоит пауза
-                        Player.STATE_READY -> emitPosition()
-                    }
+                    //трек готов: сообщаем длительность, в том числе когда стоит пауза
+                    if (playbackState == Player.STATE_READY) emitPosition()
                 }
-            })
-        }
-        emitPosition() //начальное состояние; дальше позиция опрашивается только во время воспроизведения
     }
 
+    init {
+        //после последнего трека начинаем сначала (как и раньше); следующий трек плеер включает сам
+        player.repeatMode = Player.REPEAT_MODE_ALL
+        player.addListener(playerListener)
+        //начальное состояние; дальше позиция опрашивается только во время воспроизведения
+        emitPosition()
+    }
+
+    /**
+     * Сообщает экрану текущее состояние плеера. Нужно, когда приложение открыли заново, а музыка
+     * в это время уже играла (плеер жил в службе).
+     */
+    fun syncState() {
+        callback.onPlaybackStateChanged(player.isPlaying)
+        emitPosition()
+    }
+
+    /** Трек, который сейчас стоит в плеере (null, если плеер пуст). */
+    fun currentTrack(): Song? =
+        if (player.mediaItemCount == 0) null else playlist.getOrNull(player.currentMediaItemIndex)
+
+    /** Загружает список песен в плеер и начинает играть с [startIndex]. */
     fun setPlaylist(tracks: List<Song>, startIndex: Int = 0) {
+        if (startIndex !in tracks.indices) return
         // Проверяем, не тот ли это же плейлист и тот же трек
-        if (playlist == tracks && currentIndex == startIndex && player?.isPlaying == true) {
+        if (playlist == tracks && player.currentMediaItemIndex == startIndex && player.isPlaying) {
             // Уже играет этот же трек, ничего не делаем
             Log.d(TAG, "@@@MusicServiceHandler setPlaylist: тот же трек уже играет, пропускаем")
             return
         }
-        playlist = tracks
-        currentIndex = startIndex
-        // 2. Если включен Shuffle, генерируем новый порядок при установке плейлиста
-        if (isShuffleMode) {
-            generateShuffledIndices()
+        connectToService() //служба и уведомление нужны с первого запуска музыки
+        if (playlist == tracks && player.mediaItemCount == tracks.size) {
+            //тот же список - только переходим к нужному треку
+            player.seekTo(startIndex, 0L)
+        } else {
+            playlist = tracks
+            player.setMediaItems(tracks.map { buildMediaItem(it) }, startIndex, 0L)
+            if (player.shuffleModeEnabled) applyNewShuffleOrder() //выбранная песня первая, дальше случайно
+            //запоминаем список (плейлист, избранное, альбом...), чтобы после перезапуска приложения играл он же, а не общий
+            preferences.saveQueueIds(tracks.map { it.id })
         }
-        playTrack(startIndex)
+        player.prepare()
+        player.play()
+        preferences.saveCurrentSongId(tracks[startIndex].id)
+        callback.onTrackChanged(tracks[startIndex])
     }
 
-    // 3. Вспомогательный метод для генерации случайной последовательности
-    private fun generateShuffledIndices() {
-        if (playlist.isEmpty()) return
-        // Создаем список индексов [0, 1, 2...] и перемешиваем его
-        val indices = playlist.indices.toMutableList()
-        indices.remove(currentIndex) // Удаляем текущий трек, чтобы перемешать остальные
-        indices.shuffle()
-        indices.add(0, currentIndex) // Ставим текущий трек на первое место, чтобы он не прервался
-        shuffledIndices = indices
+    /** Песни очереди плеера в порядке очереди. */
+    fun queue(): List<Song> = playlist
+
+    /** Номер текущей песни в очереди (-1, если плеер пуст). */
+    fun currentIndex(): Int = if (player.mediaItemCount == 0) -1 else player.currentMediaItemIndex
+
+    /** Переставляет песню очереди [from] на место [to]; играющая песня не прерывается. */
+    fun moveTrack(from: Int, to: Int) {
+        if (from !in playlist.indices || to !in playlist.indices || from == to) return
+        player.moveMediaItem(from, to)
+        playlist = playlist.toMutableList().apply { add(to, removeAt(from)) }
+        preferences.saveQueueIds(playlist.map { it.id })
     }
 
+    /**
+     * Заменяет очередь новым списком (песни добавили, удалили или переставили в плейлисте).
+     * Если играющая песня осталась в списке, она продолжает играть с той же позиции.
+     */
+    fun replaceQueue(tracks: List<Song>) {
+        if (tracks.isEmpty()) { stopAndClear(); return }
+        if (tracks.map { it.id } == playlist.map { it.id }) return
+        val current = currentTrack()
+        val index = current?.let { c -> tracks.indexOfFirst { it.id == c.id } } ?: -1
+        val keep = index >= 0
+        val position = if (keep) player.currentPosition else 0L
+        playlist = tracks
+        player.setMediaItems(tracks.map { buildMediaItem(it) }, if (keep) index else 0, position)
+        if (player.shuffleModeEnabled) applyNewShuffleOrder()
+        preferences.saveQueueIds(tracks.map { it.id })
+        if (!keep) {
+            //играющую песню убрали из плейлиста - переходим к первой
+            preferences.saveCurrentSongId(tracks[0].id)
+            callback.onTrackChanged(tracks[0])
+        }
+    }
+
+    /** Переключает на песню с номером [index] в текущем списке. */
     fun playTrack(index: Int) {
         if (index !in playlist.indices) return
-        currentIndex = index
-        val track = playlist[index]
-        Log.d(TAG, "@@@MusicServiceHandler playTrack: index = $index  track = ${track.title}")
-        player?.let { p ->
-            val uri = track.getContentUri()
-            val mediaItem =MediaItem.fromUri(uri)
-            Log.d(TAG, "@@@MusicServiceHandler playTrack:mediaUri = ${track.mediaUri} uri = $uri artUri = ${track.artUri}")
-            p.setMediaItem(mediaItem)
-            p.prepare()
-            p.play()
-            callback.onTrackChanged(track)
-        }
+        player.seekTo(index, 0L)
+        player.prepare()
+        player.play()
+        preferences.saveCurrentSongId(playlist[index].id)
+        callback.onTrackChanged(playlist[index])
     }
 
     fun togglePlayPause() {
-        player?.let {
-            if (it.isPlaying) it.pause() else it.play()
+        if (player.isPlaying) player.pause() else player.play()
+    }
+
+    //картинка "по умолчанию" в виде байтов (JPEG), готовится один раз
+    private val defaultArtwork: ByteArray? by lazy {
+        try {
+            val bitmap = BitmapFactory.decodeResource(context.resources, R.drawable.muz_player3) ?: return@lazy null
+            val scaled = if (bitmap.width > ARTWORK_MAX_SIDE || bitmap.height > ARTWORK_MAX_SIDE) {
+                val k = ARTWORK_MAX_SIDE.toFloat() / maxOf(bitmap.width, bitmap.height)
+                Bitmap.createScaledBitmap(bitmap, (bitmap.width * k).toInt(), (bitmap.height * k).toInt(), true)
+            } else bitmap
+            ByteArrayOutputStream().also { scaled.compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
+        } catch (e: Exception) {
+            Log.d(TAG, "MusicServiceHandler defaultArtwork error = ${e.message}")
+            null
         }
     }
 
-    // 4. Обновленная логика «Вперед» с учетом Shuffle
+    /** Трек с названием, исполнителем и обложкой: их показывает уведомление и экран блокировки. */
+    private fun buildMediaItem(track: Song): MediaItem {
+        val uri = track.getContentUri()
+        val artwork = track.artUri?.takeIf { it.isNotBlank() }?.let {
+            if (it.startsWith("/")) Uri.fromFile(java.io.File(it)) else Uri.parse(it)
+        }
+        val metadata = MediaMetadata.Builder()
+            .setTitle(track.title)
+            .setArtist(track.artist)
+            .apply {
+                if (artwork != null) setArtworkUri(artwork)
+                //у трека нет обложки: без картинки виджет на экране блокировки (MIUI, Android 10) не рисует шкалу времени,
+                //поэтому отдаём обложку по умолчанию
+                else defaultArtwork?.let { setArtworkData(it, MediaMetadata.PICTURE_TYPE_FRONT_COVER) }
+            }
+            //длительность из базы: пока плеер не прочитал файл, уведомление и экран блокировки уже могут показать шкалу времени
+            .setDurationMs(track.duration.takeIf { it > 0 })
+            .build()
+        return MediaItem.Builder().setMediaId(track.id.toString()).setUri(uri).setMediaMetadata(metadata).build()
+    }
+
+    /**
+     * Подключается к [PlaybackService]: система создаёт службу и держит её, а при начале воспроизведения
+     * служба сама переходит в режим с уведомлением. Подключение делаем один раз.
+     */
+    private fun connectToService() {
+        if (controllerFuture != null) return
+        try {
+            val token = SessionToken(context, ComponentName(context, PlaybackService::class.java))
+            controllerFuture = MediaController.Builder(context, token).buildAsync()
+        } catch (e: Exception) {
+            Log.d(TAG, "MusicServiceHandler connectToService error = ${e.message}")
+        }
+    }
+
+    /** В списке одна песня: переключать некуда, сообщаем об этом. */
+    private fun isSingleSong(): Boolean {
+        if (player.mediaItemCount != 1) return false
+        Toast.makeText(context, R.string.single_song_in_list, Toast.LENGTH_SHORT).show()
+        return true
+    }
+
+    /**
+     * Останавливает музыку и очищает очередь. Нужно, когда список, из которого играла песня, удалён:
+     * его песни дальше играть не должны. Сохранённые песня и список тоже сбрасываются.
+     */
+    fun stopAndClear() {
+        player.stop()
+        player.clearMediaItems()
+        playlist = emptyList()
+        preferences.saveQueueIds(emptyList())
+        preferences.saveCurrentSongId(-1L)
+        emitPosition()
+    }
+
+    /** "Вперёд" с учётом случайного порядка; после последнего трека - первый. */
     fun playNext() {
-        if (playlist.isEmpty()) return
-
-        if (isShuffleMode) {
-            val currentShufflePosition = shuffledIndices.indexOf(currentIndex)
-            if (currentShufflePosition < shuffledIndices.size - 1) {
-                // Играем следующий случайный трек
-                playTrack(shuffledIndices[currentShufflePosition + 1])
-            } else {
-                // Плейлист закончился. Перемешиваем заново и включаем первый трек из нового списка
-                generateShuffledIndices()
-                playTrack(shuffledIndices[0])
-            }
-        } else {
-            // Обычный прямой порядок
-            if (currentIndex < playlist.size - 1) {
-                playTrack(currentIndex + 1)
-            } else {
-                playTrack(0)
-            }
-        }
+        if (player.mediaItemCount == 0) return
+        if (isSingleSong()) return
+        player.seekToNextMediaItem()
+        player.play()
     }
 
-    // 5. Обновленная логика «Назад» с учетом Shuffle
+    /** "Назад" с учётом случайного порядка; перед первым треком - последний. */
     fun playPrevious() {
-        if (playlist.isEmpty()) return
-
-        if (isShuffleMode) {
-            val currentShufflePosition = shuffledIndices.indexOf(currentIndex)
-            if (currentShufflePosition > 0) {
-                // Возвращаемся по истории случайного порядка назад
-                playTrack(shuffledIndices[currentShufflePosition - 1])
-            } else {
-                // Если мы в самом начале shuffle-списка, переходим в конец
-                playTrack(shuffledIndices.last())
-            }
-        } else {
-            // Обычный прямой порядок
-            if (currentIndex > 0) {
-                playTrack(currentIndex - 1)
-            } else {
-                playTrack(playlist.size - 1) // Опционально: переход к концу, если нажали назад на 1-м треке
-            }
-        }
+        if (player.mediaItemCount == 0) return
+        if (isSingleSong()) return
+        player.seekToPreviousMediaItem()
+        player.play()
     }
 
     fun seekTo(position: Long) {
-        player?.seekTo(position)
+        player.seekTo(position)
         emitPosition() //на паузе опроса нет, поэтому новую позицию сообщаем сразу
     }
 
-    fun getCurrentPosition(): Long = player?.currentPosition ?: 0
+    fun getCurrentPosition(): Long = player.currentPosition
 
     private fun emitPosition() {
-        player?.let { callback.onPositionChanged(it.currentPosition, it.duration) }
+        callback.onPositionChanged(player.currentPosition, player.duration.takeIf { it != C.TIME_UNSET } ?: 0L)
     }
 
     private fun startPositionUpdates() {
@@ -202,14 +308,15 @@ class MusicServiceHandler(
         emitPosition() //последнее значение на момент паузы
     }
 
+    /** Плеер здесь не освобождается: он общий и живёт, пока работает приложение или служба. */
     fun release() {
         positionUpdateJob?.cancel()
-        player?.release()
-        player = null
+        player.removeListener(playerListener)
     }
 
     companion object{
         const val TAG = "33333"
+        private const val ARTWORK_MAX_SIDE = 512
     }
 }
 

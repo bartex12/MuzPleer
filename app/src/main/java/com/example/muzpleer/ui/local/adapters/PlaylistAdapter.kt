@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
+import android.widget.Toast
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
@@ -36,6 +37,7 @@ import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperAdapter
 import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
+import com.example.muzpleer.util.formatDuration
 import com.example.muzpleer.util.getTracksCountString
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
@@ -89,8 +91,12 @@ class PlaylistAdapter(
         @SuppressLint("ClickableViewAccessibility")
         fun bind(playlist: Playlist) {
             binding.playlistTitle.text=playlist.playlistName
-            //todo время треков
-            binding.playlistSubtitle.text=getTracksCountString(playlist.playlistSongs.size)
+            val totalMs = playlist.playlistSongs.sumOf { it.duration.coerceAtLeast(0L) }
+            binding.playlistSubtitle.text = binding.root.context.getString(
+                R.string.playlist_tracks_and_time,
+                getTracksCountString(playlist.playlistSongs.size),
+                totalMs.formatDuration()
+            )
 
             playlist.playlistArtUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
@@ -167,21 +173,20 @@ class PlaylistAdapter(
         popup.isOutsideTouchable = true
         popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
 
-        // Скрываем или показываем пункт в зависимости от содержимого
-        val deleteSongsItem = popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist)
-        if (playlist.playlistSongs.isEmpty()) {
-            // Если пусто - меняем текст и отключаем
-            deleteSongsItem?.text = "Плейлист пуст"
-            deleteSongsItem?.isEnabled = false
-        } else {
-            // Если есть песни - показываем нормальный текст
-            deleteSongsItem?.text = "Удалить песни из плейлиста"
-            deleteSongsItem?.isEnabled = true
-        }
+        // Пункт удаления треков показываем только если в плейлисте есть треки
+        val hasSongs = playlist.playlistSongs.isNotEmpty()
+        val visibility = if (hasSongs) View.VISIBLE else View.GONE
+        popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist).visibility = visibility
+        popupView.findViewById<View>(R.id.dividerRemoveFromPlaylist).visibility = visibility
 
         popupView.findViewById<TextView>(R.id.itemAddSongToPlaylist).setOnClickListener {
+            playlistsViewModel.addByTimeLimitMs = null
             navigateToAddSongsSource(view, playlist)
             popup.dismiss() }
+        popupView.findViewById<TextView>(R.id.itemAddSongsByTime).setOnClickListener {
+            popup.dismiss()
+            showTimeLimitDialog(view, playlist)
+        }
         popupView.findViewById<TextView>(R.id.itemRemoveFromPlaylist).setOnClickListener {
             if (playlist.playlistSongs.isNotEmpty()) {
                 navigateToRemoveSongsFromPlaylist(view, playlist)
@@ -423,6 +428,14 @@ class PlaylistAdapter(
 //
 //        dialog.show()
 //    }
+
+    //Окно ввода желаемой длительности плейлиста (часы, минуты, секунды)
+    private fun showTimeLimitDialog(view: View, playlist: Playlist) {
+        com.example.muzpleer.ui.local.helper.showTimeLimitDialog(view.context, playlist) { totalMs ->
+            playlistsViewModel.addByTimeLimitMs = totalMs
+            navigateToAddSongsSource(view, playlist)
+        }
+    }
 
     private fun navigateToAddSongsSource(view: View,  playlist: Playlist) {
         val action =TabLocalFragmentDirections.actionTabLocalFragmentToAddSongsSourceFragment(
