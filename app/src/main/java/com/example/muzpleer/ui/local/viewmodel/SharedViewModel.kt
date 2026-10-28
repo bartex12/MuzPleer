@@ -233,14 +233,7 @@ class SharedViewModel(
     }
 
     /** Запоминает, из какого списка (экрана) выбрана песня: при следующем запуске приложение откроет этот список. */
-    //откуда сейчас играет музыка: по нему подсвечиваются альбом, исполитель, папка или плейлист в списках
-    private val _playbackSource = MutableLiveData<PlaybackSource?>(helper.getPlaybackSource())
-    val playbackSource: LiveData<PlaybackSource?> = _playbackSource
-
-    fun setPlaybackSource(source: PlaybackSource) {
-        helper.savePlaybackSource(source)
-        _playbackSource.value = source
-    }
+    fun setPlaybackSource(source: PlaybackSource) = helper.savePlaybackSource(source)
 
     /** Песни по сохранённым id в том же порядке (те, что пропали из библиотеки, пропускаются). */
     fun songsFromIds(ids: List<Long>): List<Song> {

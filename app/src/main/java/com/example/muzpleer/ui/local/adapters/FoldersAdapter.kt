@@ -1,6 +1,5 @@
 package com.example.muzpleer.ui.local.adapters
 
-import com.example.muzpleer.model.SourceType
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
@@ -69,10 +68,11 @@ class FoldersAdapter(
     override fun onBindViewHolder(holder: FolderViewHolder, position: Int) {
         holder.bind(folders[position])
 
-        //подсвечиваем то, откуда сейчас играет музыка (по источнику воспроизведения, а не по последнему нажатию)
-        viewModel.playbackSource
-            .observe(holder.itemView.context as LifecycleOwner) { source ->
-                holder.itemView.isSelected = position < folders.size && (source?.type == SourceType.FOLDER && source?.key == folders[position].path)
+        //подсвечиваем папку, в которой лежит играющий трек
+        viewModel.currentSong
+            .observe(holder.itemView.context as LifecycleOwner) { song ->
+                holder.itemView.isSelected = song != null && position < folders.size &&
+                        folders[position].path.trimEnd('/') == song.folderPath.trimEnd('/')
             }
     }
 

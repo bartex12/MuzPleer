@@ -45,6 +45,24 @@ class PlaylistsViewModel(
     private val _currentFilteredPlaylistSongs = MutableLiveData<List<Song>?>()  //отфильтрованный поиском список песен конкретного плейлиста
     val currentFilteredPlaylistSongs: LiveData<List<Song>?> = _currentFilteredPlaylistSongs
 
+    //идентификаторы плейлистов, в которых лежит играющий трек (для подсветки в списке плейлистов)
+    private val _playlistIdsWithSong = MutableLiveData<Set<Long>>(emptySet())
+    val playlistIdsWithSong: LiveData<Set<Long>> = _playlistIdsWithSong
+
+    fun refreshPlaylistsWithSong(songId: Long?) {
+        if (songId == null) {
+            _playlistIdsWithSong.value = emptySet()
+            return
+        }
+        viewModelScope.launch {
+            try {
+                _playlistIdsWithSong.value = playlistRepository.getPlaylistIdsForSong(songId).toSet()
+            } catch (e: Exception) {
+                Log.d(TAG, "PlaylistsViewModel refreshPlaylistsWithSong error = ${e.message}")
+            }
+        }
+    }
+
     internal fun filterPlaylists(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (playlists.value == null) return

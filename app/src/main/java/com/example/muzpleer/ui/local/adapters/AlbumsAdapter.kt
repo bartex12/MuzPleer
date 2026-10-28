@@ -1,6 +1,5 @@
 package com.example.muzpleer.ui.local.adapters
 
-import com.example.muzpleer.model.SourceType
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
@@ -68,10 +67,11 @@ class AlbumsAdapter(
 
     override fun onBindViewHolder(holder: AlbumViewHolder, position: Int) {
         holder.bind(albums[position])
-        //подсвечиваем то, откуда сейчас играет музыка (по источнику воспроизведения, а не по последнему нажатию)
-        viewModel.playbackSource
-            .observe(holder.itemView.context as LifecycleOwner) { source ->
-                holder.itemView.isSelected = position < albums.size && (source?.type == SourceType.ALBUM && source?.id == albums[position].albumId)
+        //подсвечиваем альбом, в который входит играющий трек
+        viewModel.currentSong
+            .observe(holder.itemView.context as LifecycleOwner) { song ->
+                holder.itemView.isSelected = song != null && position < albums.size &&
+                        albums[position].albumId == song.albumId
             }
     }
 
