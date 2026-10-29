@@ -246,6 +246,9 @@ class PlaylistFragment():Fragment() {
         when(item.itemId){
             R.id.action_go_to_song -> {
                 //к строке, где играющий трек (она подсвечена эквалайзером)
+                binding.playlistRecyclerView.scrollToPlayingRow(
+                    adapter.playlist.indexOfFirst { it.id in (playlistsViewModel.playlistIdsWithSong.value ?: emptySet()) }
+                )
                 return true
             }
             R.id.action_edit_order -> {
