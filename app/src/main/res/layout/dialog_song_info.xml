@@ -1,273 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp"
-    android:background="@drawable/item_list_effects_revers">
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
-        android:background="@drawable/item_list_effects_revers">
+        android:padding="20dp"
+        android:background="@drawable/dialog_card_bg">
 
-        <!-- Название трека -->
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:layout_marginBottom="12dp"
+            android:text="О треке"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Название трека"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Исполнитель -->
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:text="Название трека"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Имя исполнителя"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvArtist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Альбом -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Название альбома"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvAlbum"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Автор -->
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:text="Имя исполнителя"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Автор текста"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvAuthor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Расположение -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvArtist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Расположение"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Размер файла -->
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:text="Название альбома"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Размер файла"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvSize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Год выпуска -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvAlbum"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Год выпуска"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvYear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Дата добавления -->
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects">
+            android:text="Автор текста"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Дата добавления"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/tvDateAdded"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <!-- Дата изменения -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/tvAuthor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/item_list_effects">
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="Дата изменения"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/white"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Расположение"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/tvDateModified"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:textSize="14sp"
-                android:textColor="@color/white"
-                android:layout_marginTop="4dp"/>
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
 
-        <!-- Кнопка Понятно -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Размер файла"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Год выпуска"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvYear"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата добавления"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvDateAdded"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Дата изменения"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvDateModified"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnUnderstand"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:elevation="2dp"
-            android:text="Понятно"
             android:layout_gravity="end"
+            android:layout_marginTop="4dp"
             android:minWidth="120dp"
             android:background="@drawable/item_list_effects_stroke"
+            android:text="Понятно"
             android:textColor="@color/white"
-            app:backgroundTint="@null"/>
+            app:backgroundTint="@null" />
 
     </LinearLayout>
 </ScrollView>

@@ -1,188 +1,173 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:padding="16dp">
+    android:orientation="vertical">
 
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Название трека"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Исполнитель"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etArtist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Автор текста"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAuthor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Альбом"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAlbum"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Жанр"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etGenre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:hint="Год выпуска"
+                app:boxStrokeColor="@color/box_stroke_accent"
+                app:boxStrokeWidth="1dp"
+                app:boxStrokeWidthFocused="2dp"
+                app:hintTextColor="@color/box_stroke_accent"
+                android:textColorHint="@color/box_stroke_accent"
+                app:materialThemeOverlay="@style/ThemeOverlay.AccentTextInput">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etYear"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:textColor="@color/white" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Кнопки внизу экрана, как на других экранах -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:padding="16dp"
-        android:background="@drawable/item_list_effects_revers">
+        android:weightSum="2">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTitle"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:hint="Название трека"/>
-        </com.google.android.material.textfield.TextInputLayout>
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/item_list_effects_stroke"
+            android:text="Отмена"
+            android:textColor="@color/white"
+            app:backgroundTint="@null" />
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSave"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etArtist"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:hint="Исполнитель"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAuthor"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:hint="Автор текста"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAlbum"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:hint="Альбом"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etGenre"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"
-                android:hint="Жанр"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:background="@drawable/item_list_effects"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxStrokeColor="@color/box_stroke_white"
-            app:boxStrokeWidth="1dp"
-            app:boxStrokeWidthFocused="2dp"
-            app:hintTextColor="@color/white"
-            app:errorTextColor="@color/white"
-            app:counterTextColor="@color/white"
-            app:helperTextTextColor="@color/white"
-            app:materialThemeOverlay="@style/ThemeOverlay.WhiteTextInput">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etYear"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Год выпуска"
-                android:inputType="number"
-                app:endIconMode="clear_text"
-                android:textColor="@color/white"
-                android:textColorHint="@color/white"/>
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <LinearLayout
-            style="?android:attr/buttonBarStyle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:background="@drawable/item_list_effects_revers">
-
-            <Button
-                android:id="@+id/btnCancel"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                android:elevation="2dp"
-                android:text="Отмена"
-                android:background="@drawable/item_list_effects_button"
-                android:textColor="@color/white"
-                app:backgroundTint="@null"/>
-
-            <Button
-                android:id="@+id/btnSave"
-                style="?android:attr/buttonBarButtonStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:elevation="2dp"
-                android:text="Сохранить"
-                android:background="@drawable/item_list_effects_button"
-                android:textColor="@color/white"
-                app:backgroundTint="@null"/>
-
-        </LinearLayout>
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/item_list_effects_stroke"
+            android:text="Сохранить"
+            android:textColor="@color/white"
+            app:backgroundTint="@null" />
     </LinearLayout>
-</ScrollView>
+</LinearLayout>
