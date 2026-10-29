@@ -251,6 +251,37 @@ class TrackDownloader(private val context: Context) {
         }
     }
 
+    /**
+     * Ищет во всей медиатеке (не только в MuzPleer) файл того же размера с тем же именем или названием:
+     * тогда это тот же трек, и копия в MuzPleer только создала бы дубль.
+     */
+    private fun findInLibrary(fileName: String, title: String, size: Long): DownloadedTrack? {
+        if (size <= 0) return null
+        return try {
+            context.contentResolver.query(
+                MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
+                arrayOf(
+                    MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DISPLAY_NAME, MediaStore.Audio.Media.TITLE,
+                    MediaStore.Audio.Media.ARTIST, MediaStore.Audio.Media.DURATION
+                ),
+                "${MediaStore.Audio.Media.SIZE}=?", arrayOf(size.toString()), null
+            )?.use { c ->
+                var found: DownloadedTrack? = null
+                while (found == null && c.moveToNext()) {
+                    val sameName = c.getString(1).orEmpty().equals(fileName, ignoreCase = true)
+                    val sameTitle = c.getString(2).orEmpty().equals(title, ignoreCase = true)
+                    if (sameName || sameTitle) {
+                        found = DownloadedTrack(c.getLong(0), c.getString(2).orEmpty(), c.getString(3).orEmpty(), c.getLong(4), null)
+                    }
+                }
+                found
+            }
+        } catch (e: Exception) {
+            Log.d(TAG, "TrackDownloader findInLibrary error = ${e.message}")
+            null
+        }
+    }
+
     /** Название, исполнитель и встроенная обложка из тегов выбранного файла. */
     private class FileTags(val title: String?, val artist: String?, val picture: ByteArray?)
 
@@ -310,7 +341,9 @@ class TrackDownloader(private val context: Context) {
             val job = currentCoroutineContext()
             val info = StreamInfo(resolver.getType(uri).orEmpty())
 
-            findExisting(displayName, total)?.let { return@withContext it.copy(alreadyExisted = true) }
+            //такой файл уже есть в библиотеке (в MuzPleer или в любой другой папке): копию не создаём
+            (findExisting(displayName, total) ?: findInLibrary(name, title, total))
+                ?.let { return@withContext it.copy(alreadyExisted = true) }
             val saved = try {
                 saveToMusicFolder(displayName, title, artist, mime, info) { out ->
                     val input = resolver.openInputStream(uri) ?: throw DownloadException("Не удалось открыть выбранный файл")
