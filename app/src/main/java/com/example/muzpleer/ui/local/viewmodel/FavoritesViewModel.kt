@@ -28,6 +28,22 @@ class FavoritesViewModel(
     private var _filteredFavoriteSongs = MutableLiveData<List<Song>>()
     val filteredFavoriteSongs: LiveData<List<Song>> = _filteredFavoriteSongs
 
+    //id избранных треков - по ним в списках рисуется значок сердечка на обложке
+    private val _favoriteIds = MutableLiveData<Set<Long>>(emptySet())
+    val favoriteIds: LiveData<Set<Long>> = _favoriteIds
+
+    init { refreshFavoriteIds() }
+
+    fun refreshFavoriteIds() {
+        viewModelScope.launch {
+            try {
+                _favoriteIds.value = favoriteRepository.getAllFavoriteSongs().map { it.songId }.toSet()
+            } catch (e: Exception) {
+                Log.d(TAG, "***FavoritesViewModel refreshFavoriteIds error = ${e.message}")
+            }
+        }
+    }
+
     fun getFavoriteSongs():List<Song> {
         return favoriteSongs.value
     }
@@ -47,6 +63,7 @@ class FavoritesViewModel(
                 //val songs = favoriteRepository.getAllFavorites()
                 _favoriteSongs.value = songs
                 _filteredFavoriteSongs.value = songs
+                refreshFavoriteIds()
             } catch (e: Exception) {
                 Log.d(TAG, "***FavoritesViewModel loadFavoriteSongs error = ${e.message}")
             }
@@ -64,6 +81,7 @@ class FavoritesViewModel(
             val songs = favoriteRepository.getAllFavorites()
             _favoriteSongs.value = songs
             _filteredFavoriteSongs.value = songs
+            refreshFavoriteIds()
         }
     }
 
@@ -105,6 +123,7 @@ class FavoritesViewModel(
             val songs= favoriteRepository.getOrderedFavorites()
             _favoriteSongs.value=songs
             _filteredFavoriteSongs.value=songs
+            refreshFavoriteIds()
         }
     }
 

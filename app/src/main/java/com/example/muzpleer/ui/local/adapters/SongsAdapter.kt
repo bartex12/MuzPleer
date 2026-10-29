@@ -9,6 +9,7 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -59,6 +60,7 @@ class SongsAdapter(
 
     companion object{
         const val TAG = "33333"
+        private const val FAV_PAYLOAD = "fav"
     }
 
     var data:List<Song> = listOf()
@@ -102,6 +104,35 @@ class SongsAdapter(
             }
     }
 
+    //id избранных треков (для значка сердечка на обложке)
+    private var favoriteIds: Set<Long> = emptySet()
+    private var favObserver: Observer<Set<Long>>? = null
+
+    override fun onAttachedToRecyclerView(recyclerView: RecyclerView) {
+        super.onAttachedToRecyclerView(recyclerView)
+        val owner = recyclerView.findViewTreeLifecycleOwner() ?: return
+        val observer = Observer<Set<Long>> { ids ->
+            favoriteIds = ids
+            notifyItemRangeChanged(0, itemCount, FAV_PAYLOAD)
+        }
+        favObserver = observer
+        favoritesViewModel.favoriteIds.observe(owner, observer)
+    }
+
+    override fun onDetachedFromRecyclerView(recyclerView: RecyclerView) {
+        favObserver?.let { favoritesViewModel.favoriteIds.removeObserver(it) }
+        favObserver = null
+        super.onDetachedFromRecyclerView(recyclerView)
+    }
+
+    override fun onBindViewHolder(holder: MusicViewHolder, position: Int, payloads: MutableList<Any>) {
+        if (payloads.contains(FAV_PAYLOAD)) {
+            holder.updateFavBadge(data[position])
+        } else {
+            super.onBindViewHolder(holder, position, payloads)
+        }
+    }
+
     override fun getItemCount(): Int {
         return data.size
     }
@@ -109,7 +140,12 @@ class SongsAdapter(
     inner class MusicViewHolder(private val binding: ItemMusicBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
+        fun updateFavBadge(track: Song) {
+            binding.favBadge.visibility = if (track.id in favoriteIds) View.VISIBLE else View.GONE
+        }
+
         fun bind(track: Song) {
+            updateFavBadge(track)
             Log.d(TAG, "WWW-1 SongAdapter track.title = ${track.title}  ")
 
             binding.trackTitle.text = track.title
