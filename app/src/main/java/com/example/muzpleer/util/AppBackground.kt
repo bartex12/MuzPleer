@@ -22,7 +22,8 @@ data class BgSpec(
     val type: Int = AppBackground.TYPE_DEFAULT,
     val color1: Int = 0,
     val color2: Int = 0,
-    val photo: String? = null
+    val photo: String? = null,            //выбранное фото (для типа TYPE_PHOTO)
+    val photos: List<String> = emptyList() //загруженные фото, от старого к новому, не больше MAX_PHOTOS
 )
 
 /** Фон за всеми экранами: стандартный градиент, один цвет, градиент из двух цветов или своё фото. */
@@ -31,11 +32,15 @@ object AppBackground {
     const val TYPE_SOLID = 1
     const val TYPE_GRADIENT = 2
     const val TYPE_PHOTO = 3
+    const val MAX_PHOTOS = 3
 
     private const val PREFS = "theme_prefs"
     private const val PHOTO_PREFIX = "bg_photo_"
     //затемнение поверх фото, чтобы белый текст читался на светлых снимках
     private const val PHOTO_SCRIM_ALPHA = 110
+
+    //последнее раскодированное фото: при быстром переборе плиток не раскодируем файл заново
+    private val cache = HashMap<String, Bitmap>()
 
     /** Выбор, ещё не применённый: живёт, пока открыт экран «Сменить тему». */
     var pending: BgSpec? = null
@@ -63,24 +68,43 @@ object AppBackground {
 
     fun load(context: Context): BgSpec {
         val p = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val photos = (p.getString("bg_photos", null)?.split("|")?.filter { it.isNotEmpty() } ?: emptyList())
+            .toMutableList()
+        //раньше хранилось одно фото в ключе bg_photo
+        val old = p.getString("bg_photo", null)
+        if (old != null && old !in photos) photos.add(old)
+        val existing = photos.filter { File(it).exists() }.takeLast(MAX_PHOTOS)
         var photo = p.getString("bg_photo", null)
-        if (photo != null && !File(photo).exists()) photo = null
+        if (photo != null && photo !in existing) photo = null
         var type = p.getInt("bg_type", TYPE_DEFAULT)
         if (type == TYPE_PHOTO && photo == null) type = TYPE_DEFAULT
-        return BgSpec(type, p.getInt("bg_color1", 0), p.getInt("bg_color2", 0), photo)
+        return BgSpec(type, p.getInt("bg_color1", 0), p.getInt("bg_color2", 0), photo, existing)
     }
 
-    /** Сохраняем выбор и убираем лишние файлы фото. */
+    /** Сохраняем выбор и убираем файлы фото, которых больше нет в списке. */
     fun save(context: Context, spec: BgSpec) {
         context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putInt("bg_type", spec.type)
             .putInt("bg_color1", spec.color1)
             .putInt("bg_color2", spec.color2)
             .putString("bg_photo", spec.photo)
+            .putString("bg_photos", spec.photos.joinToString("|"))
             .apply()
         context.filesDir.listFiles()?.forEach {
-            if (it.name.startsWith(PHOTO_PREFIX) && it.absolutePath != spec.photo) it.delete()
+            if (it.name.startsWith(PHOTO_PREFIX) && it.absolutePath !in spec.photos) it.delete()
         }
+        cache.clear()
+    }
+
+    /** Добавляем новое фото: если их уже MAX_PHOTOS, самое старое вытесняется (файл удалится при сохранении). */
+    fun withNewPhoto(spec: BgSpec, path: String): BgSpec {
+        val list = (spec.photos + path).takeLast(MAX_PHOTOS)
+        return spec.copy(type = TYPE_PHOTO, photo = path, photos = list)
+    }
+
+    /** Показываем выбранный фон прямо сейчас в окне приложения (до подтверждения кнопкой «Применить»). */
+    fun applyToWindow(activity: android.app.Activity, spec: BgSpec) {
+        activity.window.setBackgroundDrawable(drawable(activity, spec))
     }
 
     /** Фон, как он выглядит для выбранного описания. */
@@ -90,7 +114,10 @@ object AppBackground {
             GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(spec.color1, spec.color2)
         )
         spec.type == TYPE_PHOTO && spec.photo != null -> {
-            val bitmap = BitmapFactory.decodeFile(spec.photo)
+            val bitmap = cache[spec.photo] ?: BitmapFactory.decodeFile(spec.photo)?.also {
+                cache.clear()
+                cache[spec.photo] = it
+            }
             if (bitmap != null) CoverPhotoDrawable(bitmap, PHOTO_SCRIM_ALPHA)
             else ContextCompat.getDrawable(context, R.drawable.item_list_effects_revers)!!
         }

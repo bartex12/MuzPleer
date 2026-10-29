@@ -43,6 +43,9 @@ class ThemeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         selected = savedInstanceState?.getInt(KEY_SELECTED) ?: ThemeManager.getAccentIndex(requireContext())
 
+        //выбранный (ещё не применённый) фон показываем и за самим экраном
+        AppBackground.applyToWindow(requireActivity(), AppBackground.pending ?: AppBackground.load(requireContext()))
+
         buildColorRow()
         renderPreview()
 
@@ -149,6 +152,15 @@ class ThemeFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_SELECTED, selected)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        //ушли с экрана без «Применить»: возвращаем сохранённый фон
+        activity?.takeIf { !it.isFinishing && !it.isDestroyed }?.let {
+            AppBackground.applyToWindow(it, AppBackground.load(it))
+        }
+        AppBackground.pending = null
     }
 
     override fun onDestroyView() {
