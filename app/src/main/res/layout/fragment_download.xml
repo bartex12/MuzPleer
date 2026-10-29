@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/download_hint"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/white"
             android:textSize="15sp" />
 
         <com.google.android.material.textfield.TextInputLayout
@@ -23,59 +23,74 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:hint="@string/download_url_hint">
+            android:hint="@string/download_url_hint"
+            android:theme="@style/WhiteTextInputLayoutOverlay">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etUrl"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textUri"
-                android:maxLines="3" />
+                android:maxLines="3"
+                android:textColor="@android:color/white" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPaste"
             style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:textColor="@color/white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_gravity="start"
             android:text="@string/download_paste" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDownload"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/download_start" />
+            android:text="@string/download_start"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/colorSecondaryBlue"
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/download_playlist_label"
-            android:textColor="?android:attr/textColorPrimary"
-            android:textSize="16sp" />
+            android:textColor="@color/white"
+            android:alpha="0.7"
+            android:textSize="13sp" />
 
         <Spinner
             android:id="@+id/spPlaylist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp" />
+            android:minHeight="48dp"
+            android:backgroundTint="?attr/appAccent"
+            android:popupBackground="@color/colorPrimaryBlack" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPickFile"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/download_pick_file" />
+            android:text="@string/download_pick_file"
+            android:textColor="@color/white"
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:text="@string/download_pick_hint"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/white"
             android:textSize="13sp" />
 
         <ProgressBar
@@ -85,6 +100,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:indeterminate="true"
+            android:indeterminateTint="?attr/appAccent"
             android:max="100"
             android:visibility="gone" />
 
@@ -93,15 +109,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="@color/white"
             android:textSize="15sp" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnOpenPlaylist"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:visibility="gone" />
+            android:textColor="@color/white"
+            android:visibility="gone"
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 </ScrollView>

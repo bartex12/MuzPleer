@@ -126,7 +126,9 @@ class DownloadFragment : Fragment() {
             playlists = list
             val names = listOf(getString(R.string.download_no_playlist)) + list.map { it.playlistName }
             val selected = binding.spPlaylist.selectedItemPosition.coerceAtLeast(0)
-            binding.spPlaylist.adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_dropdown_item, names)
+            binding.spPlaylist.adapter = ArrayAdapter(requireContext(), R.layout.spinner_item, names).apply {
+                setDropDownViewResource(R.layout.spinner_dropdown_item)
+            }
             binding.spPlaylist.setSelection(selected.coerceAtMost(names.size - 1))
         }
         playlistsViewModel.loadPlaylists()

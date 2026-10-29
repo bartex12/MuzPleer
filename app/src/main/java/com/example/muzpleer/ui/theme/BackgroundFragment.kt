@@ -42,9 +42,8 @@ class BackgroundFragment : Fragment() {
                 if (path == null) {
                     toast(getString(R.string.bg_photo_failed))
                 } else {
-                    spec = spec.copy(type = AppBackground.TYPE_PHOTO, photo = path)
-                    AppBackground.pending = spec
-                    render()
+                    //новое фото становится выбранным; если фото уже три, самое старое вытесняется
+                    select(AppBackground.withNewPhoto(spec, path))
                 }
             }
         }
@@ -65,6 +64,8 @@ class BackgroundFragment : Fragment() {
     private fun select(newSpec: BgSpec) {
         spec = newSpec
         AppBackground.pending = spec
+        //выбранный фон сразу виден на экране, ещё до «Применить»
+        activity?.let { AppBackground.applyToWindow(it, spec) }
         render()
     }
 
@@ -101,15 +102,14 @@ class BackgroundFragment : Fragment() {
                 pickPhoto.launch("image/*")
             }
         )
-        spec.photo?.let { path ->
-            val bitmap = BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = 8 })
-            if (bitmap != null) {
-                binding.rowPhoto.addView(
-                    tile(null, spec.type == AppBackground.TYPE_PHOTO, photo = bitmap) {
-                        select(spec.copy(type = AppBackground.TYPE_PHOTO))
-                    }
-                )
-            }
+        //загруженные фото идут справа от «+», от старого к новому
+        for (path in spec.photos) {
+            val bitmap = BitmapFactory.decodeFile(path, BitmapFactory.Options().apply { inSampleSize = 8 }) ?: continue
+            binding.rowPhoto.addView(
+                tile(null, spec.type == AppBackground.TYPE_PHOTO && spec.photo == path, photo = bitmap) {
+                    select(spec.copy(type = AppBackground.TYPE_PHOTO, photo = path))
+                }
+            )
         }
     }
 
