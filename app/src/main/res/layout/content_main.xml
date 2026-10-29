@@ -99,7 +99,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="playPause"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_play_white"
+            android:src="@drawable/ic_play_accent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/artwork"
