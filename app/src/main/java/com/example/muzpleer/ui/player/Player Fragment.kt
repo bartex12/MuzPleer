@@ -272,8 +272,15 @@ class PlayerFragment : Fragment() {
     private fun setupQueue() {
         queueAdapter = QueueAdapter(
             onClick = { index -> playerViewModel.playQueueTrack(index) },
-            onMoved = { from, to -> playerViewModel.moveQueueTrack(from, to) },
-            onDropped = { songs -> saveQueueOrder(songs) }
+            onMoved = { from, to ->
+                playerViewModel.moveQueueTrack(from, to)
+                //подпись под иконкой обновляем сразу: номер играющей песни уже сдвинут в списке
+                refreshQueueLabel(queueAdapter.currentIndex)
+            },
+            onDropped = { songs ->
+                saveQueueOrder(songs)
+                refreshQueueLabel(queueAdapter.currentIndex)
+            }
         )
         queueTouchHelper = ItemTouchHelper(ItemTouchHelperCallback(queueAdapter))
         queueAdapter.touchHelper = queueTouchHelper
@@ -288,9 +295,9 @@ class PlayerFragment : Fragment() {
     }
 
     //подпись вкладки «очередь»: номер играющей песни из общего числа
-    private fun refreshQueueLabel() {
+    private fun refreshQueueLabel(index: Int = playerViewModel.currentQueueIndex()) {
         val queue = playerViewModel.queue()
-        binding.tvQueueLabel.text = "#${playerViewModel.currentQueueIndex() + 1}/${queue.size}"
+        binding.tvQueueLabel.text = "#${index + 1}/${queue.size}"
     }
 
     //Новый порядок очереди: если играет плейлист, запоминаем порядок и в самом плейлисте
@@ -326,7 +333,7 @@ class PlayerFragment : Fragment() {
         styleTab(binding.tvQueueLabel, binding.tabQueueIcon, page == PAGE_QUEUE)
         styleTab(binding.tvSongLabel, binding.tabSongIcon, page == PAGE_SONG)
         styleTab(binding.tvLyricsLabel, binding.tabLyricsIcon, page == PAGE_LYRICS)
-        if (page == PAGE_QUEUE) refreshQueue()
+        if (page == PAGE_QUEUE) refreshQueue() else refreshQueueLabel()
         //у очереди меню есть только для плейлиста
         binding.btnPlayerMenu.visibility =
             if (page == PAGE_QUEUE && !isPlaylistSource()) View.INVISIBLE else View.VISIBLE
