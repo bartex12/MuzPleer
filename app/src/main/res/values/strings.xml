@@ -137,8 +137,8 @@
     <string name="download_track">Скачать трек</string>
     <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) и нажмите «Скачать». Либо выберите файл, уже сохранённый на устройстве.</string>
     <string name="download_pick_file">Выбрать файл с устройства</string>
-    <string name="download_pick_hint">(Если трек из Suno: сначала скачайте файл на сайте Suno кнопкой Download и выберите его здесь. Чтобы приложение взяло название, автора и обложку из Suno, вставьте в поле выше ссылку на страницу этого трека.)</string>
-    <string name="download_url_hint">Ссылка на трек (для Suno - необязательно)</string>
+    <string name="download_pick_hint">(Файл, скачанный в Suno, обычно уже содержит название, автора, обложку и текст, поэтому ссылку на страницу трека указывать не нужно. Она пригодится, только если в файле этих данных нет.)</string>
+    <string name="download_url_hint">Ссылка на трек</string>
     <string name="download_paste">Вставить из буфера</string>
     <string name="download_playlist_label">Добавить в плейлист</string>
     <string name="download_no_playlist">Не добавлять в плейлист</string>
@@ -149,7 +149,7 @@
     <string name="download_open_playlist">Открыть плейлист «%1$s»</string>
     <string name="playlist_deleted_playing">Плейлист удалён, воспроизведение остановлено. Выберите другой трек.</string>
     <string name="single_song_in_list">В списке всего один трек</string>
-    <string name="download_exists">Трек «%1$s» уже есть в папке Music/MuzPleer, повторно не копируем</string>
+    <string name="download_exists">Трек «%1$s» уже есть в вашей музыке, повторно не копируем</string>
     <string name="download_done">Трек «%1$s» скачан</string>
     <string name="download_need_permission">Для сохранения трека нужно разрешение на запись</string>
     <string name="song_already_in_playlist">Этот трек уже есть в плейлисте</string>
