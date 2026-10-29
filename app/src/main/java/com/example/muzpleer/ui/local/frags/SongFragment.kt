@@ -270,7 +270,7 @@ class SongFragment : Fragment() {
                 val pos = viewModel.getIndexOfCurrentSong()
                 Log.d(TAG, "$$$ SongFragment onMenuItemSelected pos = $pos")
                 (binding.localRecyclerView.layoutManager as LinearLayoutManager).let{
-                    if(pos >=0 ) it.scrollToPositionWithOffset(pos, 0) else it.scrollToPosition(0)
+                    if(pos >=0 ) it.scrollToPositionWithOffset(pos, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
                 }
                 return true
             }

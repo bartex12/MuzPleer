@@ -355,7 +355,7 @@ class SongListAlbumFragment:Fragment() {
                             val indexOfSong = albumSongs.indexOfSong(currentSong)
                             Log.d(TAG, "1$$$ SongListAlbumFragment onMenuItemSelected indexOfSong = $indexOfSong")
                             (binding.alltracksRecyclerView.layoutManager as LinearLayoutManager).let{
-                                if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else it.scrollToPosition(0)
+                                if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
                             }
                         }
                         return true

@@ -17,6 +17,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.muzpleer.util.scrollToPlayingRow
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentFoldersBinding
@@ -233,7 +234,7 @@ class FolderFragment : Fragment(){
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_go_to_song).isVisible =false
+        menu.findItem(R.id.action_go_to_song).isVisible = true
 
         // Настраиваем кнопку редактирования
         val editItem = menu.findItem(R.id.action_edit_order)
@@ -251,6 +252,12 @@ class FolderFragment : Fragment(){
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
+            R.id.action_go_to_song -> {
+                //к строке, где играющий трек (она подсвечена эквалайзером)
+                val song = viewModel.getCurrentSong()
+                binding.foldersRecyclerView.scrollToPlayingRow(adapter.folders.indexOfFirst { f -> song != null && f.path.trimEnd('/') == song.folderPath.trimEnd('/') })
+                return true
+            }
             R.id.action_edit_order -> {
                 toggleEditMode()
                 true

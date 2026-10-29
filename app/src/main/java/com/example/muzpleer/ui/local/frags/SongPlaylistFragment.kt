@@ -430,7 +430,7 @@ class SongPlaylistFragment:Fragment() {
                         Log.d(TAG, "4$$$ SongPlaylistFragment onMenuItemSelected indexOfSong = $indexOfSong currentSongMediaUri = $currentSongMediaUri")
 
                         (binding.alltracksPlaylistRecyclerView.layoutManager as LinearLayoutManager).let{
-                            if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else it.scrollToPosition(0)
+                            if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
                         }
                         return true
                     }
