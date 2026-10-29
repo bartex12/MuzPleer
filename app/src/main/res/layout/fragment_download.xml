@@ -41,7 +41,7 @@
             android:textColor="@color/white"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_gravity="start"
             android:text="@string/download_paste" />
 
         <com.google.android.material.button.MaterialButton
@@ -61,15 +61,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/download_playlist_label"
-            android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:textColor="@color/whisper"
+            android:textSize="13sp" />
 
         <Spinner
             android:id="@+id/spPlaylist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?attr/appAccent"
             android:popupBackground="@color/colorPrimaryBlack" />
 
         <com.google.android.material.button.MaterialButton

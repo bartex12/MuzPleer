@@ -6,5 +6,5 @@
     android:maxLines="1"
     android:minHeight="48dp"
     android:gravity="center_vertical"
-    android:textColor="@color/white"
+    android:textColor="?attr/appAccent"
     android:textSize="16sp" />
