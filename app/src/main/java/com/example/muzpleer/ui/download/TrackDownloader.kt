@@ -255,8 +255,12 @@ class TrackDownloader(private val context: Context) {
      * Ищет во всей медиатеке (не только в MuzPleer) файл того же размера с тем же именем или названием:
      * тогда это тот же трек, и копия в MuzPleer только создала бы дубль.
      */
-    private fun findInLibrary(fileName: String, title: String, size: Long): DownloadedTrack? {
+    private fun findInLibrary(fileName: String, title: String, size: Long, durationMs: Long): DownloadedTrack? {
+        Log.d(TAG, "TrackDownloader findInLibrary file=$fileName title=$title size=$size dur=$durationMs")
         if (size <= 0) return null
+        fun norm(s: String) = s.lowercase().filter { it.isLetterOrDigit() }
+        val nFile = norm(fileName.substringBeforeLast('.'))
+        val nTitle = norm(title)
         return try {
             context.contentResolver.query(
                 MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL),
@@ -268,10 +272,16 @@ class TrackDownloader(private val context: Context) {
             )?.use { c ->
                 var found: DownloadedTrack? = null
                 while (found == null && c.moveToNext()) {
-                    val sameName = c.getString(1).orEmpty().equals(fileName, ignoreCase = true)
-                    val sameTitle = c.getString(2).orEmpty().equals(title, ignoreCase = true)
-                    if (sameName || sameTitle) {
-                        found = DownloadedTrack(c.getLong(0), c.getString(2).orEmpty(), c.getString(3).orEmpty(), c.getLong(4), null)
+                    val dn = norm(c.getString(1).orEmpty().substringBeforeLast('.'))
+                    val tt = norm(c.getString(2).orEmpty())
+                    val dur = c.getLong(4)
+                    Log.d(TAG, "TrackDownloader findInLibrary candidate=${c.getString(1)} title=${c.getString(2)} dur=$dur")
+                    fun like(a: String, b: String) = a.isNotEmpty() && b.isNotEmpty() && (a.startsWith(b) || b.startsWith(a))
+                    val sameName = like(dn, nFile) || like(dn, nTitle) || like(tt, nTitle) || like(tt, nFile)
+                    val sameDuration = durationMs > 0 && dur > 0 && kotlin.math.abs(dur - durationMs) <= 1000
+                    //одинаковый размер и (то же имя или та же длительность) - это тот же файл
+                    if (sameName || sameDuration) {
+                        found = DownloadedTrack(c.getLong(0), c.getString(2).orEmpty(), c.getString(3).orEmpty(), dur, null)
                     }
                 }
                 found
@@ -342,7 +352,7 @@ class TrackDownloader(private val context: Context) {
             val info = StreamInfo(resolver.getType(uri).orEmpty())
 
             //такой файл уже есть в библиотеке (в MuzPleer или в любой другой папке): копию не создаём
-            (findExisting(displayName, total) ?: findInLibrary(name, title, total))
+            (findInLibrary(name, title, total, probeDuration(uri, null)) ?: findExisting(displayName, total))
                 ?.let { return@withContext it.copy(alreadyExisted = true) }
             val saved = try {
                 saveToMusicFolder(displayName, title, artist, mime, info) { out ->
