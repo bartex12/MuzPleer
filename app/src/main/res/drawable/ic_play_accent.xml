@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Play: кольцо цвета акцента, символ белый -->
+<!-- Play: кольцо и символ цвета акцента -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="72dp"
     android:height="72dp"
@@ -11,6 +11,6 @@
         android:strokeWidth="1.5"
         android:pathData="M12,2.5a9.5,9.5 0,1 0,0.001 0z" />
     <path
-        android:fillColor="@android:color/white"
+        android:fillColor="?attr/appAccent"
         android:pathData="M9.7,7.6L16.6,12L9.7,16.4z" />
 </vector>
