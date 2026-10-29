@@ -1,6 +1,9 @@
 package com.example.muzpleer.util
 
 import android.net.Uri
+import android.widget.Toast
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.muzpleer.model.Album
 import com.example.muzpleer.model.Artist
 import com.example.muzpleer.model.Folder
@@ -141,4 +144,17 @@ fun List<com.example.muzpleer.model.Song>.indexOfSong(song: com.example.muzpleer
     if (song == null) return -1
     val path = getNormalizedPath(song.mediaUri)
     return indexOfFirst { it.id == song.id || getNormalizedPath(it.mediaUri) == path }
+}
+
+
+/**
+ * Прокручивает список так, чтобы строка [index] оказалась в поле зрения (чуть ниже верхнего края).
+ * Если строки нет (index < 0) - сообщает, что играющий трек в этом списке не найден.
+ */
+fun RecyclerView.scrollToPlayingRow(index: Int) {
+    if (index < 0) {
+        Toast.makeText(context, "Играющий трек в этом списке не найден", Toast.LENGTH_SHORT).show()
+        return
+    }
+    (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(index, height / 4)
 }
