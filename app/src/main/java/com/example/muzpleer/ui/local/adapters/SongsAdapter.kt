@@ -295,7 +295,7 @@ class SongsAdapter(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.WRAP_CONTENT
         )
-        dialog.window?.setBackgroundDrawableResource(android.R.color.white)
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         // Заполняем данные
         dialog.findViewById<TextView>(R.id.tvTitle).text = song.title ?: "Неизвестно"
