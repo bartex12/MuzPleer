@@ -1,6 +1,7 @@
 package com.example.muzpleer.repository
 
 import android.content.Context
+import com.example.muzpleer.util.DuplicateFinder
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
@@ -63,6 +64,11 @@ class MusicRepository(
             MediaStore.Audio.Media.DATE_ADDED
         )
 
+        //призраки (файла уже нет) и лишние копии одного трека в приложении не показываем
+        val hiddenIds = withContext(Dispatchers.IO) {
+            DuplicateFinder.hiddenIds(context, songDao.getReferencedIds().toSet())
+        }
+
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
@@ -86,6 +92,7 @@ class MusicRepository(
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
+                if (id in hiddenIds) continue  //id остаётся в dbIds - запись уберётся из базы
                 val path = cursor.getString(pathColumn)
                 val lastModified = cursor.getLong(modifiedColumn) * 1000 // конвертируем в миллисекунды
                 val title = cursor.getString(titleColumn) ?: "Неизвестно"

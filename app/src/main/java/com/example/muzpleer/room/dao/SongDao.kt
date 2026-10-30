@@ -29,6 +29,10 @@ interface SongDao {
     @Query("SELECT * FROM media_files WHERE mediaStoreId = :id LIMIT 1")
     suspend fun getById(id: Long): SongFile?
 
+    /** id песен, которые входят в плейлисты или в избранное */
+    @Query("SELECT songId FROM playlist_songs UNION SELECT songId FROM favorite_songs")
+    suspend fun getReferencedIds(): List<Long>
+
     @Query("SELECT mediaStoreId FROM media_files")
     suspend fun getAllIds(): List<Long>
 
