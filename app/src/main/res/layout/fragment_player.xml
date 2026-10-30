@@ -252,6 +252,41 @@
                     android:visibility="invisible" />
             </LinearLayout>
 
+            <!-- Кнопки правки сверху, чтобы клавиатура их не закрывала -->
+            <LinearLayout
+                android:id="@+id/lyricsEditButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="8dp"
+                android:visibility="gone"
+                android:weightSum="2">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLyricsCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/item_list_effects_stroke"
+                    android:text="Отмена"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLyricsSave"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/item_list_effects_stroke"
+                    android:text="Сохранить"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@null" />
+            </LinearLayout>
+
             <ScrollView
                 android:id="@+id/lyricsScroll"
                 android:layout_width="match_parent"
@@ -291,35 +326,6 @@
                 android:textSize="18sp"
                 android:visibility="gone" />
 
-            <LinearLayout
-                android:id="@+id/lyricsEditButtons"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:visibility="gone"
-                android:weightSum="2">
-
-                <Button
-                    android:id="@+id/btnLyricsCancel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/item_list_effects_stroke"
-                    android:text="Отмена"
-                    android:textColor="@color/white" />
-
-                <Button
-                    android:id="@+id/btnLyricsSave"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/item_list_effects_stroke"
-                    android:text="Сохранить"
-                    android:textColor="@color/white" />
-            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 

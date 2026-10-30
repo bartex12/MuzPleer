@@ -385,7 +385,7 @@ class PlayerFragment : Fragment() {
             binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
             binding.tvLyrics.alpha = 1f
         } else {
-            binding.tvLyrics.text = "Текста песни нет. Нажмите значок справа вверху, чтобы добавить"
+            binding.tvLyrics.text = "Текст песни отсутствует. Нажмите на значок редактирования справа сверху, чтобы добавить."
             binding.tvLyrics.gravity = android.view.Gravity.CENTER
             binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_CENTER
             binding.tvLyrics.alpha = 0.6f
@@ -396,11 +396,12 @@ class PlayerFragment : Fragment() {
     private fun onLyricsEditClick() {
         if (lyricsSong == null) return
         if (!lyricsCustom) { setLyricsEditing(true); return }
-        AlertDialog.Builder(requireContext())
-            .setItems(arrayOf("Править текст", "Вернуть текст из файла")) { _, which ->
-                if (which == 0) setLyricsEditing(true) else resetLyrics()
-            }
-            .show()
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_lyrics_choice, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+        dialog.window?.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.let { android.graphics.drawable.ColorDrawable(it) })
+        view.findViewById<View>(R.id.btnLyricsChoiceEdit).setOnClickListener { dialog.dismiss(); setLyricsEditing(true) }
+        view.findViewById<View>(R.id.btnLyricsChoiceReset).setOnClickListener { dialog.dismiss(); resetLyrics() }
+        dialog.show()
     }
 
     private fun setLyricsEditing(on: Boolean) {
@@ -441,7 +442,7 @@ class PlayerFragment : Fragment() {
             withContext(Dispatchers.IO) { lyricsRepository.reset(song.id) }
             _binding ?: return@launch
             loadLyrics(song)
-            Toast.makeText(requireContext(), "Возвращён текст из файла", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Возвращён первоначальный текст", Toast.LENGTH_SHORT).show()
         }
     }
 
