@@ -343,7 +343,11 @@ class TrackDownloader(private val context: Context) {
             }
             val tags = readTags(uri)
             val baseName = name.substringBeforeLast('.', name)
-            val title = tags.title ?: meta?.title ?: baseName.ifBlank { "track" }
+            //безымянный трек из Telegram приходит под внутренним именем вида 2_5267202794934283522
+            val telegramName = Regex("^\\d+_\\d+(_\\d+)?$").matches(baseName)
+            val title = tags.title ?: meta?.title ?: if (telegramName) {
+                "Трек из Telegram, " + java.text.SimpleDateFormat("dd.MM.yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+            } else baseName.ifBlank { "track" }
             val artist = tags.artist ?: meta?.artist ?: UNKNOWN_ARTIST
             val ext = importExtension(name, resolver.getType(uri))
             val mime = mimeForExtension(ext)
