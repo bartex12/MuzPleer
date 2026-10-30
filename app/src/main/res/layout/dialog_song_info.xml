@@ -127,6 +127,23 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="Формат файла"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/tvFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textIsSelectable="true" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:text="Год выпуска"
             android:textColor="?attr/appAccent"
             android:textSize="13sp" />

@@ -83,7 +83,10 @@ class SongListAlbumFragment:Fragment() {
         initMenu()
 
         adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
-            val playlist=viewModel.getPlaylist()
+            //очередь собираем из списка, который показан на экране (иначе порядок воспроизведения не совпадёт с видимым);
+            //при поиске на экране не весь список, поэтому тогда берём полный список в том же порядке
+            val shown = this.adapter.data
+            val playlist = if (shown.size == totalSongsCount) shown else (albumsViewModel.listAlbumSong.value ?: viewModel.getPlaylist())
 
             viewModel.setPlaybackSource(PlaybackSource(SourceType.ALBUM, id = arguments?.getLong("albumId") ?: -1L, name = albumName.orEmpty()))
             viewModel.setSongAndPlaylist(

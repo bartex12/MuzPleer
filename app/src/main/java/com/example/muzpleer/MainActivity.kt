@@ -152,6 +152,7 @@ class MainActivity : AppCompatActivity() {
         window.setBackgroundDrawable(com.example.muzpleer.util.AppBackground.drawable(this, com.example.muzpleer.util.AppBackground.load(this)))
         com.example.muzpleer.util.ThemeManager.playCrossfade(this) //плавный переход после смены темы
         navController = findNavController(R.id.nav_host_fragment_content_main)
+        readImportIntent(intent)
 
         appPreferences =PreferenceHelperImpl(this.application)
         // Находим ViewPager через findViewById
@@ -476,6 +477,41 @@ class MainActivity : AppCompatActivity() {
 
     private var playbackSourceOpened = false
 
+    //трек, добавленный через «Поделиться» из другого приложения: после обновления данных открываем его папку
+    private var pendingImport: Pair<String, Long>? = null
+
+    private fun readImportIntent(i: Intent?) {
+        val folder = i?.getStringExtra(ImportActivity.EXTRA_FOLDER) ?: return
+        pendingImport = folder to i.getLongExtra(ImportActivity.EXTRA_SONG_ID, -1L)
+        i.removeExtra(ImportActivity.EXTRA_FOLDER)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        readImportIntent(intent)
+        if (pendingImport != null) {
+            viewModel.refreshLibrary(onScanned = { albumsViewModel.syncAlbums(); artistsViewModel.syncArtist(); foldersViewModel.syncFolders(); playlistsViewModel.loadPlaylists() }) {
+                openImported()
+            }
+        }
+    }
+
+    private fun openImported() {
+        val (path, songId) = pendingImport ?: return
+        pendingImport = null
+        playbackSourceOpened = true
+        navController.popBackStack(R.id.tabLocalFragment, false)
+        (supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main)
+            ?.childFragmentManager?.primaryNavigationFragment as? TabLocalFragment)
+            ?.takeIf { it.isAdded && it.view != null }
+            ?.viewPager?.currentItem = SourceType.FOLDER.tab
+        navController.navigate(
+            R.id.songListFolderFragment,
+            bundleOf("folderPath" to path, "folderName" to java.io.File(path).name, "scrollToSongId" to songId)
+        )
+    }
+
     /**
      * При запуске приложения открывает экран со списком песен (плейлист, альбом, исполнитель, папка) или вкладку
      * (песни, избранное), из которых была выбрана играющая песня. Один раз за запуск и только с главного экрана.
@@ -538,7 +574,8 @@ class MainActivity : AppCompatActivity() {
             //восстанавливаем заголовок тулбара
             resetToTabTitle()
             //песня играет или стоит на паузе: открываем список, из которого она выбрана
-            if (playerViewModel.hasCurrentTrack()) openPlaybackSource()
+            if (pendingImport != null) openImported()
+            else if (playerViewModel.hasCurrentTrack()) openPlaybackSource()
 
             Log.d(TAG, "###MainActivity startMediaScan savedSongId = $savedSongId CurrentSong =  ${ viewModel.getCurrentSong()?.title}")
         }
