@@ -54,14 +54,22 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        //Откат 10→9 (поставили сборку с более старой базой): убираем только таблицу текстов, плейлисты и избранное не трогаем
+        val MIGRATION_10_9 = object : Migration(10, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS `lyrics`")
+            }
+        }
+
         fun create(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 DATABASE_NAME
             )
-                .addMigrations(MIGRATION_8_9, MIGRATION_9_10)
-                .fallbackToDestructiveMigration() // Резервный вариант на случай сбоя
+                .addMigrations(MIGRATION_8_9, MIGRATION_9_10, MIGRATION_10_9)
+                //стирать базу можно только при совсем старых версиях; откаты и обновления сохраняют плейлисты и избранное
+                .fallbackToDestructiveMigrationFrom(1, 2, 3, 4, 5, 6, 7)
                 .build()
         }
     }
