@@ -212,10 +212,14 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- пустое место слева, чтобы название оставалось по центру -->
-                <View
+                <ImageButton
+                    android:id="@+id/btnLyricsShare"
                     android:layout_width="48dp"
-                    android:layout_height="48dp" />
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Поделиться текстом"
+                    android:src="@drawable/outline_share_24"
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/tvLyricsTitle"
@@ -228,6 +232,15 @@
                     android:textColor="@color/white"
                     android:textSize="18sp"
                     android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnLyricsEdit"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Править текст"
+                    android:src="@drawable/outline_edit_square_24"
+                    app:tint="@color/white" />
 
                 <ImageButton
                     android:id="@+id/btnLyricsFont"
@@ -259,6 +272,54 @@
                     android:textIsSelectable="true"
                     android:textSize="20sp" />
             </ScrollView>
+
+            <!-- Режим правки текста -->
+            <EditText
+                android:id="@+id/etLyrics"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:hint="Вставьте или введите текст песни"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences"
+                android:textColor="@color/white"
+                android:textColorHint="#99FFFFFF"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/lyricsEditButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:visibility="gone"
+                android:weightSum="2">
+
+                <Button
+                    android:id="@+id/btnLyricsCancel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/item_list_effects_stroke"
+                    android:text="Отмена"
+                    android:textColor="@color/white" />
+
+                <Button
+                    android:id="@+id/btnLyricsSave"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/item_list_effects_stroke"
+                    android:text="Сохранить"
+                    android:textColor="@color/white" />
+            </LinearLayout>
         </LinearLayout>
     </FrameLayout>
 
