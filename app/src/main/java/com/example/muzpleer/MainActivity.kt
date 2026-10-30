@@ -233,6 +233,10 @@ class MainActivity : AppCompatActivity() {
                         navController.navigate(R.id.settingsFragment, null, drawerNavOptions)
                         true
                     }
+                    R.id.nav_duplicates -> {
+                        navController.navigate(R.id.duplicatesFragment, null, drawerNavOptions)
+                        true
+                    }
                     R.id.nav_theme -> {
                         navController.navigate(R.id.themeFragment, null, drawerNavOptions)
                         true

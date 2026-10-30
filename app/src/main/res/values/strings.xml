@@ -134,6 +134,7 @@
 
 
     <!-- Скачивание трека -->
+    <string name="duplicates_title">Дубли треков</string>
     <string name="download_track">Скачать трек</string>
     <string name="download_hint">Вставьте ссылку на аудиофайл (mp3, m4a) и нажмите «Скачать». Либо выберите файл, уже сохранённый на устройстве.</string>
     <string name="download_pick_file">Выбрать файл с устройства</string>

@@ -14,6 +14,10 @@
             android:icon="@drawable/ic_download_24"
             android:title="@string/download_track" />
         <item
+            android:id="@+id/nav_duplicates"
+            android:icon="@drawable/ic_duplicates_24"
+            android:title="@string/duplicates_title" />
+        <item
             android:id="@+id/nav_setting"
             android:icon="@drawable/ic_settings_red_24dp"
             android:title="@string/settings"/>
