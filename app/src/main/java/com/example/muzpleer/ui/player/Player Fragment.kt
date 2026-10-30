@@ -407,11 +407,12 @@ class PlayerFragment : Fragment() {
     private fun setLyricsEditing(on: Boolean) {
         lyricsEditing = on
         binding.etLyrics.visibility = if (on) View.VISIBLE else View.GONE
-        binding.lyricsEditButtons.visibility = if (on) View.VISIBLE else View.GONE
+        binding.btnLyricsCancel.visibility = if (on) View.VISIBLE else View.GONE
+        binding.btnLyricsSave.visibility = if (on) View.VISIBLE else View.GONE
         binding.lyricsScroll.visibility = if (on) View.GONE else View.VISIBLE
-        binding.btnLyricsEdit.visibility = if (on) View.INVISIBLE else View.VISIBLE
+        binding.btnLyricsEdit.visibility = if (on) View.GONE else View.VISIBLE
         binding.btnLyricsFont.visibility = if (on || lyricsText == null) View.INVISIBLE else View.VISIBLE
-        binding.btnLyricsShare.visibility = if (on || lyricsText == null) View.INVISIBLE else View.VISIBLE
+        binding.btnLyricsShare.visibility = if (on) View.GONE else if (lyricsText == null) View.INVISIBLE else View.VISIBLE
         val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
                 as android.view.inputmethod.InputMethodManager
         if (on) {
