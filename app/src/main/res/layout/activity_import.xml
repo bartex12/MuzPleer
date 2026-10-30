@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/dialog_card_bg"
+        android:gravity="center_vertical"
+        android:minWidth="260dp"
+        android:orientation="horizontal"
+        android:padding="20dp">
+
+        <ProgressBar
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:indeterminate="true" />
+
+        <TextView
+            android:id="@+id/tvImportStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="Добавляем в MuzPleer…"
+            android:textColor="@android:color/white"
+            android:textSize="16sp" />
+    </LinearLayout>
+</FrameLayout>
