@@ -400,7 +400,7 @@ class PlayerFragment : Fragment() {
         val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
         dialog.window?.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.let { android.graphics.drawable.ColorDrawable(it) })
         view.findViewById<View>(R.id.btnLyricsChoiceEdit).setOnClickListener { dialog.dismiss(); setLyricsEditing(true) }
-        view.findViewById<View>(R.id.btnLyricsChoiceReset).setOnClickListener { dialog.dismiss(); resetLyrics() }
+        view.findViewById<View>(R.id.btnLyricsChoiceReset).setOnClickListener { dialog.dismiss(); confirmResetLyrics() }
         dialog.show()
     }
 
@@ -435,6 +435,16 @@ class PlayerFragment : Fragment() {
             loadLyrics(song)
             Toast.makeText(requireContext(), "Текст сохранён", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    //Перед возвратом к тексту из файла объясняем, что правки пропадут
+    private fun confirmResetLyrics() {
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_lyrics_reset, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        view.findViewById<View>(R.id.btnLyricsResetConfirm).setOnClickListener { dialog.dismiss(); resetLyrics() }
+        view.findViewById<View>(R.id.btnLyricsResetCancel).setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun resetLyrics() {
