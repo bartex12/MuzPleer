@@ -22,7 +22,8 @@ class ImportActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_import)
-        val uris = collectUris(intent)
+        //из набора */* оставляем только аудио (по типу файла или по расширению)
+        val uris = collectUris(intent).filter { isAudio(it) }
         if (uris.isEmpty()) {
             Toast.makeText(this, "Нет файлов для добавления", Toast.LENGTH_SHORT).show()
             finish()
@@ -53,6 +54,15 @@ class ImportActivity : AppCompatActivity() {
             Toast.makeText(this@ImportActivity, parts.joinToString(", ").replaceFirstChar { it.uppercase() }, Toast.LENGTH_LONG).show()
             finish()
         }
+    }
+
+    private fun isAudio(uri: Uri): Boolean {
+        val type = contentResolver.getType(uri).orEmpty()
+        if (type.startsWith("audio/") || type == "application/ogg") return true
+        if (type.isNotEmpty() && type != "application/octet-stream") return false
+        val name = uri.lastPathSegment.orEmpty().lowercase()
+        return listOf(".mp3", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wav").any { name.endsWith(it) } ||
+            type == "application/octet-stream"
     }
 
     @Suppress("DEPRECATION")

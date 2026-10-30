@@ -1,6 +1,8 @@
 package com.example.muzpleer.util
 
+import android.content.Context
 import android.net.Uri
+import android.provider.MediaStore
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -157,4 +159,26 @@ fun RecyclerView.scrollToPlayingRow(index: Int) {
         return
     }
     (layoutManager as? LinearLayoutManager)?.scrollToPositionWithOffset(index, height / 4)
+}
+
+
+/**
+ * Формат файла для экрана «О треке»: расширение и тип из MediaStore, например ".m4a (audio/mp4)".
+ * Если у файла нет расширения (так бывает у файлов из мессенджеров), показывает только тип.
+ */
+fun audioFormatText(context: Context, songId: Long, path: String?): String {
+    val ext = path?.substringAfterLast('/')?.substringAfterLast('.', "")?.lowercase().orEmpty()
+    var mime = ""
+    try {
+        val uri = android.content.ContentUris.withAppendedId(MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL), songId)
+        context.contentResolver.query(uri, arrayOf(MediaStore.Audio.Media.MIME_TYPE), null, null, null)?.use {
+            if (it.moveToFirst()) mime = it.getString(0).orEmpty()
+        }
+    } catch (e: Exception) { /* без типа */ }
+    return when {
+        ext.isNotEmpty() && mime.isNotEmpty() -> ".$ext ($mime)"
+        ext.isNotEmpty() -> ".$ext"
+        mime.isNotEmpty() -> "без расширения ($mime)"
+        else -> "Неизвестно"
+    }
 }

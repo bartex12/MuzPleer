@@ -11,6 +11,7 @@ import android.net.Uri
 import androidx.lifecycle.Observer
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import android.util.Log
+import com.example.muzpleer.util.audioFormatText
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -329,6 +330,8 @@ class SongsPlaylistAdapter(   private val viewModel: SharedViewModel,
         viewModel.getSongDetails(song.id) { songFile ->
             dialog.findViewById<TextView>(R.id.tvSize).text =
                 formatFileSize(songFile?.size ?: 0)
+            dialog.findViewById<TextView>(R.id.tvFormat).text =
+                audioFormatText(context, song.id, songFile?.path)
             dialog.findViewById<TextView>(R.id.tvYear).text =
                 songFile?.year?.toString() ?: "Неизвестно"
             dialog.findViewById<TextView>(R.id.tvDateAdded).text =
