@@ -25,6 +25,14 @@
     <style name="Theme.MuzPleer.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="Theme.MuzPleer.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
+    <!-- Прозрачный экран приёма треков из других приложений -->
+    <style name="Theme.MuzPleer.Import" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+    </style>
+
     <style name="Theme.Splash" parent="Theme.AppCompat.NoActionBar">
          <item name="android:windowBackground">@drawable/splash_background</item>
          <item name="android:windowFullscreen">true</item>
