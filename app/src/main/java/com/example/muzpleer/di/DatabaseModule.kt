@@ -11,6 +11,8 @@ import com.example.muzpleer.room.dao.AlbumDao
 import com.example.muzpleer.room.dao.ArtistDao
 import com.example.muzpleer.room.dao.FavoriteDao
 import com.example.muzpleer.room.dao.FolderDao
+import com.example.muzpleer.room.dao.LyricsDao
+import com.example.muzpleer.repository.LyricsRepository
 import com.example.muzpleer.room.dao.PlaylistDao
 import com.example.muzpleer.room.dao.SongDao
 import org.koin.dsl.module
@@ -28,6 +30,7 @@ val databaseModule = module {
     single<ArtistDao> { get<AppDatabase>().artistDao() }
     single<FavoriteDao> { get<AppDatabase>().favoriteDao() }
     single<PlaylistDao> { get<AppDatabase>().playlistDao() }
+    single<LyricsDao> { get<AppDatabase>().lyricsDao() }
 
     // Репозитории
     single { MusicRepository(get(), get()) }
@@ -35,6 +38,7 @@ val databaseModule = module {
     single<ArtistRepository> { ArtistRepository(get(), get(), get()) }
     single<FolderRepository> { FolderRepository(get(), get()) }
     single<FavoriteRepository> { FavoriteRepository(get(), get(), get()) }
+    single { LyricsRepository(get(), get()) }
     single<PlaylistRepository> { PlaylistRepository(get(), get(), get()) }
 
 }

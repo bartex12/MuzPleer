@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="20dp"
+    android:background="@drawable/dialog_card_bg">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLyricsChoiceEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/item_list_effects_stroke"
+        android:text="Править текст"
+        android:textColor="@color/white"
+        app:backgroundTint="@null" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLyricsChoiceReset"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/item_list_effects_stroke"
+        android:text="Вернуть первоначальный вариант текста"
+        android:textColor="@color/white"
+        app:backgroundTint="@null" />
+</LinearLayout>

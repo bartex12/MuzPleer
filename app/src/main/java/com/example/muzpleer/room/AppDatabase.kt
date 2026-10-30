@@ -10,6 +10,8 @@ import com.example.muzpleer.room.dao.AlbumDao
 import com.example.muzpleer.room.dao.ArtistDao
 import com.example.muzpleer.room.dao.FavoriteDao
 import com.example.muzpleer.room.dao.FolderDao
+import com.example.muzpleer.room.dao.LyricsDao
+import com.example.muzpleer.room.entity.LyricsEntity
 import com.example.muzpleer.room.dao.PlaylistDao
 import com.example.muzpleer.room.dao.SongDao
 import com.example.muzpleer.room.entity.AlbumFile
@@ -22,8 +24,8 @@ import com.example.muzpleer.room.entity.SongFile
 
 @Database(
     entities = [SongFile::class, AlbumFile::class, ArtistFile::class,
-        FolderFile::class, FavoriteSong::class, PlaylistFile::class, PlaylistSongCrossRef::class],
-    version = 9, // 1. Увеличили версию до 9
+        FolderFile::class, FavoriteSong::class, PlaylistFile::class, PlaylistSongCrossRef::class, LyricsEntity::class],
+    version = 10,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,6 +35,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun artistDao(): ArtistDao
     abstract fun favoriteDao(): FavoriteDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun lyricsDao(): LyricsDao
 
     companion object {
         const val TAG = "33333"
@@ -45,13 +48,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("CREATE TABLE IF NOT EXISTS `lyrics` (`songId` INTEGER NOT NULL, `text` TEXT NOT NULL, `updatedAt` INTEGER NOT NULL, PRIMARY KEY(`songId`))")
+            }
+        }
+
         fun create(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext,
                 AppDatabase::class.java,
                 DATABASE_NAME
             )
-                .addMigrations(MIGRATION_8_9) // 2. Добавили миграцию
+                .addMigrations(MIGRATION_8_9, MIGRATION_9_10)
                 .fallbackToDestructiveMigration() // Резервный вариант на случай сбоя
                 .build()
         }

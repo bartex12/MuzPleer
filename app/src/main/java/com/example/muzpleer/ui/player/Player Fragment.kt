@@ -56,6 +56,8 @@ import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
+import org.koin.android.ext.android.inject
+import com.example.muzpleer.repository.LyricsRepository
 import java.io.File
 
 class PlayerFragment : Fragment() {
@@ -77,6 +79,11 @@ class PlayerFragment : Fragment() {
     private val playlistsViewModel: PlaylistsViewModel by activityViewModel()
     private val appPrefs by lazy { PreferenceHelperImpl(requireActivity().application) }
     private var lyricsJob: kotlinx.coroutines.Job? = null
+    private val lyricsRepository: LyricsRepository by inject()
+    private var lyricsSong: Song? = null      // песня, чей текст показан
+    private var lyricsText: String? = null    // показанный текст (null - текста нет)
+    private var lyricsCustom = false          // текст исправлен в приложении, а не взят из файла
+    private var lyricsEditing = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -127,6 +134,10 @@ class PlayerFragment : Fragment() {
         binding.tabSong.setOnClickListener { showPage(PAGE_SONG) }
         binding.tabLyrics.setOnClickListener { showPage(PAGE_LYRICS) }
         binding.btnLyricsFont.setOnClickListener { showFontSizeDialog() }
+        binding.btnLyricsShare.setOnClickListener { shareLyrics() }
+        binding.btnLyricsEdit.setOnClickListener { onLyricsEditClick() }
+        binding.btnLyricsCancel.setOnClickListener { setLyricsEditing(false) }
+        binding.btnLyricsSave.setOnClickListener { saveLyrics() }
         binding.tvLyrics.textSize = FONT_SIZES_SP[fontSizeIndex()]
         binding.btnPlayerMenu.setOnClickListener { showPlayerMenu() }
         applyArtworkShape()
@@ -325,6 +336,7 @@ class PlayerFragment : Fragment() {
 
     //Переключение страниц «Очередь» / «Песня» / «Текст песни» и подсветка выбранной вкладки
     private fun showPage(newPage: Int) {
+        if (newPage != PAGE_LYRICS && lyricsEditing) setLyricsEditing(false)
         page = newPage
         backToSongCallback.isEnabled = page != PAGE_SONG
         binding.rvQueue.visibility = if (page == PAGE_QUEUE) View.VISIBLE else View.GONE
@@ -347,30 +359,114 @@ class PlayerFragment : Fragment() {
         icon.alpha = if (active) 1f else 0.6f
     }
 
-    //Читаем текст песни из тега файла и показываем на странице «Текст песни»
+    //Показываем на странице «Текст песни» свой текст из базы, а если его нет - текст из тега файла
     private fun loadLyrics(song: Song) {
         binding.tvLyricsTitle.text = song.title
+        if (lyricsEditing && lyricsSong?.id != song.id) setLyricsEditing(false)
         lyricsJob?.cancel()
         lyricsJob = viewLifecycleOwner.lifecycleScope.launch {
-            val appContext = requireContext().applicationContext
-            val text = withContext(Dispatchers.IO) {
-                LyricsReader.read(appContext, song.id, song.getContentUri())
-            }
+            val lyrics = withContext(Dispatchers.IO) { lyricsRepository.get(song) }
             _binding ?: return@launch
-            binding.btnLyricsFont.visibility = if (text != null) View.VISIBLE else View.INVISIBLE
-            if (text != null) {
-                binding.tvLyrics.text = text
-                binding.tvLyrics.gravity = android.view.Gravity.START
-                binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-                binding.tvLyrics.alpha = 1f
-            } else {
-                binding.tvLyrics.text = "Текста песни в файле нет"
-                binding.tvLyrics.gravity = android.view.Gravity.CENTER
-                binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_CENTER
-                binding.tvLyrics.alpha = 0.6f
-            }
+            lyricsSong = song
+            lyricsText = lyrics.text
+            lyricsCustom = lyrics.isCustom
+            if (!lyricsEditing) showLyricsText()
             binding.lyricsScroll.scrollTo(0, 0)
         }
+    }
+
+    private fun showLyricsText() {
+        val text = lyricsText
+        binding.btnLyricsFont.visibility = if (text != null) View.VISIBLE else View.INVISIBLE
+        binding.btnLyricsShare.visibility = if (text != null) View.VISIBLE else View.INVISIBLE
+        if (text != null) {
+            binding.tvLyrics.text = text
+            binding.tvLyrics.gravity = android.view.Gravity.START
+            binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+            binding.tvLyrics.alpha = 1f
+        } else {
+            binding.tvLyrics.text = "Текст песни отсутствует. Нажмите на значок редактирования справа сверху, чтобы добавить."
+            binding.tvLyrics.gravity = android.view.Gravity.CENTER
+            binding.tvLyrics.textAlignment = View.TEXT_ALIGNMENT_CENTER
+            binding.tvLyrics.alpha = 0.6f
+        }
+    }
+
+    //Нажатие на значок правки: если текст исправлялся, предлагаем выбор, иначе сразу открываем правку
+    private fun onLyricsEditClick() {
+        if (lyricsSong == null) return
+        if (!lyricsCustom) { setLyricsEditing(true); return }
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_lyrics_choice, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+        dialog.window?.setBackgroundDrawable(android.graphics.Color.TRANSPARENT.let { android.graphics.drawable.ColorDrawable(it) })
+        view.findViewById<View>(R.id.btnLyricsChoiceEdit).setOnClickListener { dialog.dismiss(); setLyricsEditing(true) }
+        view.findViewById<View>(R.id.btnLyricsChoiceReset).setOnClickListener { dialog.dismiss(); confirmResetLyrics() }
+        dialog.show()
+    }
+
+    private fun setLyricsEditing(on: Boolean) {
+        lyricsEditing = on
+        binding.etLyrics.visibility = if (on) View.VISIBLE else View.GONE
+        binding.btnLyricsCancel.visibility = if (on) View.VISIBLE else View.GONE
+        binding.btnLyricsSave.visibility = if (on) View.VISIBLE else View.GONE
+        binding.lyricsScroll.visibility = if (on) View.GONE else View.VISIBLE
+        binding.btnLyricsEdit.visibility = if (on) View.GONE else View.VISIBLE
+        binding.btnLyricsFont.visibility = if (on || lyricsText == null) View.INVISIBLE else View.VISIBLE
+        binding.btnLyricsShare.visibility = if (on) View.GONE else if (lyricsText == null) View.INVISIBLE else View.VISIBLE
+        val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE)
+                as android.view.inputmethod.InputMethodManager
+        if (on) {
+            binding.etLyrics.setText(lyricsText.orEmpty())
+            binding.etLyrics.textSize = FONT_SIZES_SP[fontSizeIndex()]
+            binding.etLyrics.requestFocus()
+            imm.showSoftInput(binding.etLyrics, 0)
+        } else {
+            imm.hideSoftInputFromWindow(binding.etLyrics.windowToken, 0)
+        }
+    }
+
+    private fun saveLyrics() {
+        val song = lyricsSong ?: return
+        val text = binding.etLyrics.text.toString()
+        viewLifecycleOwner.lifecycleScope.launch {
+            withContext(Dispatchers.IO) { lyricsRepository.save(song.id, text) }
+            _binding ?: return@launch
+            setLyricsEditing(false)
+            loadLyrics(song)
+            Toast.makeText(requireContext(), "Текст сохранён", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    //Перед возвратом к тексту из файла объясняем, что правки пропадут
+    private fun confirmResetLyrics() {
+        val view = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_lyrics_reset, null)
+        val dialog = AlertDialog.Builder(requireContext()).setView(view).create()
+        dialog.window?.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT))
+        view.findViewById<View>(R.id.btnLyricsResetConfirm).setOnClickListener { dialog.dismiss(); resetLyrics() }
+        view.findViewById<View>(R.id.btnLyricsResetCancel).setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun resetLyrics() {
+        val song = lyricsSong ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            withContext(Dispatchers.IO) { lyricsRepository.reset(song.id) }
+            _binding ?: return@launch
+            loadLyrics(song)
+            Toast.makeText(requireContext(), "Возвращён первоначальный текст", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    //Поделиться текстом песни через системное меню «Отправить»
+    private fun shareLyrics() {
+        val song = lyricsSong ?: return
+        val text = lyricsText ?: return
+        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(android.content.Intent.EXTRA_SUBJECT, song.title)
+            putExtra(android.content.Intent.EXTRA_TEXT, "${song.artist} - ${song.title}\n\n$text")
+        }
+        startActivity(android.content.Intent.createChooser(intent, "Поделиться текстом"))
     }
 
     private fun setupControls() {

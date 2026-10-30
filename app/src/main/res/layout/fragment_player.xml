@@ -202,6 +202,12 @@
             android:orientation="vertical"
             android:visibility="gone">
 
+            <!-- Белая черта: отделяет заголовок страницы от вкладок -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#99FFFFFF" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -212,10 +218,23 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <!-- пустое место слева, чтобы название оставалось по центру -->
-                <View
+                <ImageButton
+                    android:id="@+id/btnLyricsCancel"
                     android:layout_width="48dp"
-                    android:layout_height="48dp" />
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Отмена"
+                    android:src="@drawable/ic_lyrics_close"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btnLyricsShare"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Поделиться текстом"
+                    android:src="@drawable/outline_share_24"
+                    app:tint="@color/white" />
 
                 <TextView
                     android:id="@+id/tvLyricsTitle"
@@ -230,6 +249,24 @@
                     android:textStyle="bold" />
 
                 <ImageButton
+                    android:id="@+id/btnLyricsSave"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Сохранить"
+                    android:src="@drawable/ic_lyrics_check"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btnLyricsEdit"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Править текст"
+                    android:src="@drawable/outline_edit_square_24"
+                    app:tint="@color/white" />
+
+                <ImageButton
                     android:id="@+id/btnLyricsFont"
                     android:layout_width="48dp"
                     android:layout_height="48dp"
@@ -238,6 +275,7 @@
                     android:src="@drawable/ic_pl_settings"
                     android:visibility="invisible" />
             </LinearLayout>
+
 
             <ScrollView
                 android:id="@+id/lyricsScroll"
@@ -259,6 +297,25 @@
                     android:textIsSelectable="true"
                     android:textSize="20sp" />
             </ScrollView>
+
+            <!-- Режим правки текста -->
+            <EditText
+                android:id="@+id/etLyrics"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:hint="Вставьте или введите текст песни"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine|textCapSentences"
+                android:textColor="@color/white"
+                android:textColorHint="#99FFFFFF"
+                android:textSize="18sp"
+                android:visibility="gone" />
+
         </LinearLayout>
     </FrameLayout>
 
