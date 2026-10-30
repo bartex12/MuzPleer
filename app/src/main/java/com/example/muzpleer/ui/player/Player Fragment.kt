@@ -339,7 +339,7 @@ class PlayerFragment : Fragment() {
         if (newPage != PAGE_LYRICS && lyricsEditing) setLyricsEditing(false)
         page = newPage
         backToSongCallback.isEnabled = page != PAGE_SONG
-        binding.rvQueue.visibility = if (page == PAGE_QUEUE) View.VISIBLE else View.GONE
+        binding.pageQueue.visibility = if (page == PAGE_QUEUE) View.VISIBLE else View.GONE
         binding.pageSong.visibility = if (page == PAGE_SONG) View.VISIBLE else View.GONE
         binding.pageLyrics.visibility = if (page == PAGE_LYRICS) View.VISIBLE else View.GONE
         styleTab(binding.tvQueueLabel, binding.tabQueueIcon, page == PAGE_QUEUE)
