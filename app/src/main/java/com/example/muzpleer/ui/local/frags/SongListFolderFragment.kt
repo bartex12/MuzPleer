@@ -26,6 +26,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.muzpleer.util.scrollToPlayingRow
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlltracksBinding
@@ -59,6 +60,7 @@ class SongListFolderFragment:Fragment() {
     private val playerViewModel: PlayerViewModel by activityViewModel()
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
     private var folderName: String? = null //имя папки
+    private var scrolledToImported = false
     private lateinit var navController: NavController
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,7 +87,10 @@ class SongListFolderFragment:Fragment() {
         initMenu()
 
         adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
-            val playlist=viewModel.getPlaylist()
+            //очередь собираем из списка, который показан на экране (иначе порядок воспроизведения не совпадёт с видимым);
+            //при поиске на экране не весь список, поэтому тогда берём полный список в том же порядке
+            val shown = this.adapter.data
+            val playlist = if (shown.size == totalSongsCount) shown else (foldersViewModel.listFolderSong.value ?: viewModel.getPlaylist())
 
             viewModel.setPlaybackSource(PlaybackSource(SourceType.FOLDER, key = arguments?.getString("folderPath").orEmpty(), name = folderName.orEmpty()))
             viewModel.setSongAndPlaylist(
@@ -123,6 +128,17 @@ class SongListFolderFragment:Fragment() {
                 //здесь нельзя делать сортировку, иначе собьётся перемещение !!!
                 //adapter.data = getSortedDataSong(folderSongs)
                      adapter.data = folderSongs
+                //пришли из приёма трека: прокручиваем список к добавленному треку (один раз)
+                val scrollId = arguments?.getLong("scrollToSongId", -1L) ?: -1L
+                if (scrollId != -1L && !scrolledToImported) {
+                    val index = folderSongs.indexOfFirst { it.id == scrollId }
+                    if (index >= 0) {
+                        scrolledToImported = true
+                        binding.alltracksRecyclerView.post {
+                            _binding?.alltracksRecyclerView?.scrollToPlayingRow(index)
+                        }
+                    }
+                }
 
                 // Обновляем видимость пустого состояния (только для фильтрации)
                 val showEmptyState = folderSongs.isEmpty() //пусто после поиска
