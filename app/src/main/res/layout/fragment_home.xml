@@ -20,7 +20,7 @@
 <!--        android:layout_gravity="end|bottom"-->
 <!--        android:layout_marginEnd="16dp"-->
 <!--        android:layout_marginBottom="16dp"-->
-<!--        app:backgroundTint="@color/colorPrimaryBlack"-->
+<!--        app:backgroundTint="?attr/appPanel"-->
 <!--        app:layout_behavior="com.bartex.tempoleader2022.FabBehaviorVisible"-->
 <!--        app:srcCompat="@drawable/ic_add_black_48dp"-->
 <!--        android:contentDescription="@string/new_raskladka" />-->

@@ -2,6 +2,9 @@
 <resources>
     <!-- Цвет акцента: активная вкладка, кнопки, ползунок; меняется в «Сменить тему» -->
     <attr name="appAccent" format="color"/>
+    <!-- Цвета панелей: тулбар и плеер / вкладки; меняются в «Сменить тему» -->
+    <attr name="appPanel" format="color"/>
+    <attr name="appPanelLight" format="color"/>
     <attr name="favorite" format="reference"/>
     <attr name="favoriteRemove" format="reference"/>
 

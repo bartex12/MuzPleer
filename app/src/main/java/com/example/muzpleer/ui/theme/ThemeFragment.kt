@@ -25,6 +25,7 @@ class ThemeFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var selected = 0
+    private var selectedPanel = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,11 +43,13 @@ class ThemeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         selected = savedInstanceState?.getInt(KEY_SELECTED) ?: ThemeManager.getAccentIndex(requireContext())
+        selectedPanel = savedInstanceState?.getInt(KEY_PANEL) ?: ThemeManager.getPanelIndex(requireContext())
 
         //выбранный (ещё не применённый) фон показываем и за самим экраном
         AppBackground.applyToWindow(requireActivity(), AppBackground.pending ?: AppBackground.load(requireContext()))
 
         buildColorRow()
+        buildPanelRow()
         renderPreview()
 
         binding.btnChangeBackground.setOnClickListener {
@@ -55,6 +58,7 @@ class ThemeFragment : Fragment() {
 
         binding.btnApplyTheme.setOnClickListener {
             ThemeManager.setAccentIndex(requireContext(), selected)
+            ThemeManager.setPanelIndex(requireContext(), selectedPanel)
             AppBackground.pending?.let { AppBackground.save(requireContext(), it) }
             AppBackground.pending = null
             //сначала уходим на экран, откуда открыли шторку, потом пересоздаём Activity: после пересоздания открыт будет он
@@ -91,9 +95,40 @@ class ThemeFragment : Fragment() {
         }
     }
 
+    //ряд пар цветов панелей: кружок разделён на основной и светлый цвет
+    private fun buildPanelRow() {
+        val row = binding.panelColorsRow
+        row.removeAllViews()
+        val d = resources.displayMetrics.density
+        val size = (40 * d).toInt()
+        val margin = (6 * d).toInt()
+        val stroke = (3 * d).toInt()
+        val thin = d.toInt().coerceAtLeast(1)
+        for (i in ThemeManager.panelOverlays.indices) {
+            val main = androidx.core.content.ContextCompat.getColor(requireContext(), ThemeManager.panelMainRes[i])
+            val light = androidx.core.content.ContextCompat.getColor(requireContext(), ThemeManager.panelLightRes[i])
+            val dot = View(requireContext())
+            dot.layoutParams = LinearLayout.LayoutParams(size, size).apply {
+                setMargins(margin, margin, margin, margin)
+            }
+            val half = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(main, main, light, light)).apply {
+                shape = GradientDrawable.OVAL
+                setStroke(if (i == selectedPanel) stroke else thin, Color.WHITE)
+            }
+            dot.background = half
+            dot.setOnClickListener {
+                selectedPanel = i
+                buildPanelRow()
+                renderPreview()
+            }
+            row.addView(dot)
+        }
+    }
+
     //миниатюра строится из настоящих макетов в контексте с выбранным акцентом
     private fun renderPreview() {
         val themed = ContextThemeWrapper(requireContext(), ThemeManager.accentOverlays[selected])
+        themed.theme.applyStyle(ThemeManager.panelOverlays[selectedPanel], true)
         val inflater = LayoutInflater.from(themed)
         val preview = inflater.inflate(R.layout.layout_theme_preview, binding.themePreviewContainer, false)
 
@@ -152,6 +187,7 @@ class ThemeFragment : Fragment() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(KEY_SELECTED, selected)
+        outState.putInt(KEY_PANEL, selectedPanel)
     }
 
     override fun onDestroy() {
@@ -170,5 +206,6 @@ class ThemeFragment : Fragment() {
 
     companion object {
         private const val KEY_SELECTED = "selected_accent"
+        private const val KEY_PANEL = "selected_panel"
     }
 }

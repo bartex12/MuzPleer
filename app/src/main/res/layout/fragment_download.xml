@@ -71,7 +71,7 @@
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:backgroundTint="?attr/appAccent"
-            android:popupBackground="@color/colorPrimaryBlack" />
+            android:popupBackground="?attr/appPanel" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnPickFile"

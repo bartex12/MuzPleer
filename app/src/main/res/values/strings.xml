@@ -173,4 +173,5 @@
     <string name="cover_search_google_title">В Google по названию</string>
     <string name="cover_search_google">В поиске Google</string>
     <string name="cover_search_no_browser">Не найдено приложение для открытия ссылки</string>
+    <string name="theme_panels_title">Цвет панелей</string>
 </resources>

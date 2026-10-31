@@ -1,5 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
+import com.example.muzpleer.util.panelColor
 import android.content.Context
 import android.graphics.Color
 import android.widget.TextView
@@ -309,7 +310,7 @@ class SongsSelectionFragment : Fragment() {
         if(isEnable){
             btnAdd.setStrokeColorResource(R.color.white)
         }else{
-            btnAdd.setStrokeColorResource(R.color.colorPrimaryBlack)
+            btnAdd.strokeColor = android.content.res.ColorStateList.valueOf(requireContext().panelColor())
         }
     }
 
@@ -320,7 +321,7 @@ class SongsSelectionFragment : Fragment() {
         if(isEnabled){
             btnAdd.setStrokeColorResource(R.color.white)
         }else{
-            btnAdd.setStrokeColorResource(R.color.colorPrimaryBlack)
+            btnAdd.strokeColor = android.content.res.ColorStateList.valueOf(requireContext().panelColor())
         }
     }
 

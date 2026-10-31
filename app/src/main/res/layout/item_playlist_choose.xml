@@ -50,7 +50,7 @@
             android:layout_height="2dp"
             android:layout_marginStart="12dp"
             android:layout_marginEnd="12dp"
-            android:background="@color/colorPrimaryBlack"
+            android:background="?attr/appPanel"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintEnd_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>

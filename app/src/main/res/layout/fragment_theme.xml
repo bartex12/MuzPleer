@@ -35,6 +35,26 @@
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/theme_panels_title"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/panelColorsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnChangeBackground"
         android:layout_width="match_parent"
@@ -42,7 +62,7 @@
         android:layout_marginTop="8dp"
         android:text="@string/change_background"
         android:textColor="@color/white"
-        app:backgroundTint="@color/colorSecondaryBlack"
+        app:backgroundTint="?attr/appPanelLight"
         app:cornerRadius="8dp"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp" />
@@ -54,7 +74,7 @@
         android:layout_marginTop="12dp"
         android:text="@string/theme_apply"
         android:textColor="@color/white"
-        app:backgroundTint="@color/colorSecondaryBlack"
+        app:backgroundTint="?attr/appPanelLight"
         app:cornerRadius="8dp"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp" />

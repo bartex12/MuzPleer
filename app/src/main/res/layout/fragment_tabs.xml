@@ -12,7 +12,7 @@
         android:id="@+id/tab_layout_mytracks"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="@color/colorSecondaryBlack"
+        android:background="?attr/appPanelLight"
         app:layout_constraintBottom_toTopOf="@+id/view_pager_mytracks"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
