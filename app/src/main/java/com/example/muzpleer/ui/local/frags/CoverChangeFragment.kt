@@ -60,6 +60,7 @@ class CoverChangeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
@@ -98,10 +99,6 @@ class CoverChangeFragment : Fragment() {
         val song = viewModel.getSelectedSong()
         val query = song?.let { "${it.artist.takeUnless { a -> a.isBlank() || a == "<unknown>" }.orEmpty()} ${it.title}".trim() }.orEmpty()
         com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
-
-        binding.restoreDefault.setOnClickListener {
-            viewModel.restoreDefaultCover()
-        }
 
         binding.saveButton.setOnClickListener {
             //назад уходим после записи в базу: список, на который вернёмся, читает песни из базы
@@ -144,6 +141,19 @@ class CoverChangeFragment : Fragment() {
 
             binding.coverImageView.layoutParams = params
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_restore_cover, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_restore_cover) {
+            viewModel.restoreDefaultCover()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {

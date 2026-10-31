@@ -32,8 +32,6 @@ object CoverWebSearch {
         addChip(group, ctx.getString(R.string.cover_search_google), "https://www.google.com/imghp")
 
         //сайты бесплатных картинок: с подставленным запросом, а без названия - главная страница
-        addChip(group, "На Unsplash",
-            if (hasQuery) "https://unsplash.com/s/photos/$q" else "https://unsplash.com/")
         addChip(group, "На Magnific", "https://www.magnific.com/ru")
         addChip(group, "На Flickr",
             if (hasQuery) "https://www.flickr.com/search/?text=$q" else "https://www.flickr.com/")

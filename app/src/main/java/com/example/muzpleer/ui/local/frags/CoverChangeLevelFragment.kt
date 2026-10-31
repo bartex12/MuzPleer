@@ -113,6 +113,7 @@ class CoverChangeLevelFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
@@ -164,20 +165,6 @@ class CoverChangeLevelFragment: Fragment() {
         } ?: previousTitle
         com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
-        fun getDefaultCoverUri(): Uri {
-            return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
-        }
-
-        binding.restoreDefaultLevel.setOnClickListener {
-            val uri:Uri = getDefaultCoverUri()
-           when(levelType){
-                LevelType.PLAYLIST ->{ savePlaylistCover(uri, levelId) }
-                LevelType.ALBUM ->{ saveAlbumCover(uri, levelId) }
-                LevelType.ARTIST ->{ saveArtistCover(uri, levelId) }
-                LevelType.FOLDER ->{ saveFolderCover(uri, levelId) }
-            }
-        }
-
         binding.saveButtonLevel.setOnClickListener {
             viewModel.getCoverImageUriLevel()?. let{curUri->
                 Log.d(TAG, "4--- CoverChangeLevelFragment saveButtonLevel: curUri = $curUri")
@@ -218,6 +205,25 @@ class CoverChangeLevelFragment: Fragment() {
             }
             binding.coverImageViewLevel.layoutParams = params
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_restore_cover, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_restore_cover) {
+            val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
+            when (levelType) {
+                LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
+                LevelType.ALBUM -> saveAlbumCover(uri, levelId)
+                LevelType.ARTIST -> saveArtistCover(uri, levelId)
+                LevelType.FOLDER -> saveFolderCover(uri, levelId)
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {

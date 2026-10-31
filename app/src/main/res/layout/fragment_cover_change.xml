@@ -25,6 +25,8 @@
         android:layout_marginTop="24dp"
         android:background="@drawable/item_list_effects_revers_button"
         android:text="Использовать фотографии в телефоне"
+        android:textSize="13sp"
+        android:maxLines="1"
         android:textColor="@color/white"
         app:backgroundTint="@null"
         app:layout_constraintEnd_toEndOf="parent"
@@ -43,29 +45,17 @@
         app:layout_constraintTop_toBottomOf="@+id/usePhonePhotos" />
 
     <Button
-        android:id="@+id/restoreDefault"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="24dp"
-        android:text="Вернуться к изображению по умолчанию"
-        android:background="@drawable/item_list_effects_revers_button"
-        android:textColor="@color/white"
-        app:backgroundTint="@null"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/webSearch" />
-
-    <Button
         android:id="@+id/saveButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Сохранить"
+        android:textSize="13sp"
+        android:maxLines="1"
         android:background="@drawable/item_list_effects_revers_button"
         android:textColor="@color/white"
         app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/restoreDefault" />
+        app:layout_constraintTop_toBottomOf="@+id/webSearch" />
 </androidx.constraintlayout.widget.ConstraintLayout>
