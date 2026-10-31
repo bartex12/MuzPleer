@@ -195,6 +195,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.themeFragment -> R.string.change_theme
                 R.id.backgroundFragment -> R.string.change_background
                 R.id.duplicatesFragment -> R.string.duplicates_title
+                R.id.splashImageFragment -> R.string.splash_image_title
                 else -> null
             }
             titleRes?.let { viewModel.setAppBarTitle(getString(it)) }

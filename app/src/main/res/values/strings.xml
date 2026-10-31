@@ -134,6 +134,14 @@
 
 
     <!-- Скачивание трека -->
+    <string name="splash_image_title">Картинка экрана загрузки</string>
+    <string name="splash_image_hint">Выберите картинку, которая будет показана при запуске приложения. Окно ниже показывает, как она будет выглядеть.</string>
+    <string name="splash_use_background">Взять для экрана загрузки картинку фона приложения</string>
+    <string name="splash_section">Ваши картинки (до трёх)</string>
+    <string name="splash_default_label">Стандартная</string>
+    <string name="pref_splash_image_summary_default">Стандартная</string>
+    <string name="pref_splash_image_summary_custom">Своя картинка</string>
+    <string name="pref_splash_image_summary_background">Картинка фона приложения</string>
     <string name="duplicates_title">Дубли треков</string>
     <string name="pref_theme_summary">Цвет акцента и фон приложения</string>
     <string name="pref_duplicates_summary">Найти и удалить копии одного трека</string>

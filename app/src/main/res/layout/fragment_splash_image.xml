@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="12dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:text="@string/splash_image_hint"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <!-- Большое окно: так картинка будет выглядеть при запуске -->
+        <ImageView
+            android:id="@+id/ivSplashPreview"
+            android:layout_width="202dp"
+            android:layout_height="360dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/splash_image_title"
+            android:padding="2dp"
+            android:scaleType="centerCrop" />
+
+        <CheckBox
+            android:id="@+id/cbSplashUseBackground"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:buttonTint="?attr/appAccent"
+            android:text="@string/splash_use_background"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <TextView
+            style="@style/ThemeSectionTitle"
+            android:text="@string/splash_section" />
+
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none">
+
+            <LinearLayout
+                android:id="@+id/rowSplash"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+</ScrollView>

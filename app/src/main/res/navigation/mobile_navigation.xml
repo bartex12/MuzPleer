@@ -22,6 +22,11 @@
         android:name="com.example.muzpleer.setting.SettingsFragment"
         android:label="Настройки" />
     <fragment
+        android:id="@+id/splashImageFragment"
+        android:name="com.example.muzpleer.ui.theme.SplashImageFragment"
+        android:label="@string/splash_image_title"
+        tools:layout="@layout/fragment_splash_image" />
+    <fragment
         android:id="@+id/duplicatesFragment"
         android:name="com.example.muzpleer.ui.duplicates.DuplicatesFragment"
         android:label="@string/duplicates_title"

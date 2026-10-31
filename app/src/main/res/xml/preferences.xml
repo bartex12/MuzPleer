@@ -20,6 +20,10 @@
             android:summaryOn="@string/show_screen"
             android:summaryOff="@string/hide_screen">
         </CheckBoxPreference>
+        <Preference
+            android:key="pref_splash_image"
+            android:layout="@layout/preference_item_white"
+            android:title="@string/splash_image_title" />
     </PreferenceCategory>
 
     <Preference

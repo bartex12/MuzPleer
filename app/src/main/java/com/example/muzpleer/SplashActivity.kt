@@ -20,6 +20,7 @@ class SplashActivity: AppCompatActivity() {
 
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        showSplashImage()
 
         val  isShowScreen = PreferenceManager.getDefaultSharedPreferences(this)
             .getBoolean("cbScreen", true)
@@ -41,5 +42,14 @@ class SplashActivity: AppCompatActivity() {
             startActivity(Intent(this@SplashActivity, MainActivity::class.java))
             finish()
         }
+    }
+
+    //своя картинка или фон приложения; если не выбрано (или файла нет) остаётся стандартная
+    private fun showSplashImage() {
+        val path = com.example.muzpleer.util.SplashImage.resolvePath(this) ?: return
+        val dm = resources.displayMetrics
+        val bitmap = com.example.muzpleer.util.SplashImage.decode(path, dm.widthPixels, dm.heightPixels) ?: return
+        binding.imageViewSplash.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+        binding.imageViewSplash.setImageBitmap(bitmap)
     }
 }
