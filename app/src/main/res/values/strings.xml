@@ -168,4 +168,9 @@
     <string name="playlist_tracks_and_time">%1$s, суммарное время %2$s</string>
     <string name="update_data">Обновить данные</string>
     <string name="data_updated">Данные обновлены</string>
+    <string name="cover_search_title">Найти в интернете</string>
+    <string name="cover_search_hint">Если не получается скачать картинку, сделайте снимок экрана. Затем вернитесь сюда и выберите «Использовать фотографии в телефоне»</string>
+    <string name="cover_search_google_title">В Google по названию</string>
+    <string name="cover_search_google">В поиске Google</string>
+    <string name="cover_search_no_browser">Не найдено приложение для открытия ссылки</string>
 </resources>

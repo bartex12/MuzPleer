@@ -151,9 +151,18 @@ class CoverChangeLevelFragment: Fragment() {
             pickImage.launch("image/*")
         }
 
-        binding.searchOnlineLevel.setOnClickListener {
-            openFlickrSearch()
-        }
+        //поиск картинки в интернете: в запрос подставляем название альбома/исполнителя/папки/плейлиста
+        val query = when (levelType) {
+            LevelType.ALBUM -> albumsViewModel.albums.value
+                ?.find { it.id == levelId || it.albumId == levelId }
+                ?.let { "${it.artist} ${it.title}" }
+            LevelType.ARTIST -> artistsViewModel.artists.value
+                ?.find { it.id == levelId || it.artistId == levelId }?.name
+            LevelType.FOLDER -> foldersViewModel.folders.value?.find { it.id == levelId }?.name
+            LevelType.PLAYLIST -> playlistsViewModel.playlists.value
+                ?.find { it.id == levelId }?.playlistName
+        } ?: previousTitle
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
         fun getDefaultCoverUri(): Uri {
             return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
@@ -234,10 +243,6 @@ class CoverChangeLevelFragment: Fragment() {
         (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
     }
 
-    private fun openFlickrSearch() {
-        val intent = Intent(Intent.ACTION_VIEW, "https://www.flickr.com/search/".toUri())
-        startActivity(intent)
-    }
     companion object{
         const val  TAG = "33333"
     }

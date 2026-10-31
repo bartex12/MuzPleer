@@ -94,9 +94,10 @@ class CoverChangeFragment : Fragment() {
             pickImage.launch("image/*")
         }
 
-        binding.searchOnline.setOnClickListener {
-            openFlickrSearch()
-        }
+        //поиск картинки в интернете: в запрос подставляем исполнителя и название выбранной песни
+        val song = viewModel.getSelectedSong()
+        val query = song?.let { "${it.artist.takeUnless { a -> a.isBlank() || a == "<unknown>" }.orEmpty()} ${it.title}".trim() }.orEmpty()
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
         binding.restoreDefault.setOnClickListener {
             viewModel.restoreDefaultCover()
@@ -168,10 +169,6 @@ class CoverChangeFragment : Fragment() {
         (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
     }
 
-    private fun openFlickrSearch() {
-        val intent = Intent(Intent.ACTION_VIEW, "https://www.flickr.com/search/".toUri())
-        startActivity(intent)
-    }
     companion object{
         const val  TAG = "33333"
     }
