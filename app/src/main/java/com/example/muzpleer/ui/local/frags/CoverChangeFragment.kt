@@ -60,6 +60,7 @@ class CoverChangeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
@@ -94,13 +95,10 @@ class CoverChangeFragment : Fragment() {
             pickImage.launch("image/*")
         }
 
-        binding.searchOnline.setOnClickListener {
-            openFlickrSearch()
-        }
-
-        binding.restoreDefault.setOnClickListener {
-            viewModel.restoreDefaultCover()
-        }
+        //поиск картинки в интернете: в запрос подставляем исполнителя и название выбранной песни
+        val song = viewModel.getSelectedSong()
+        val query = song?.let { "${it.artist.takeUnless { a -> a.isBlank() || a == "<unknown>" }.orEmpty()} ${it.title}".trim() }.orEmpty()
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
         binding.saveButton.setOnClickListener {
             //назад уходим после записи в базу: список, на который вернёмся, читает песни из базы
@@ -128,21 +126,35 @@ class CoverChangeFragment : Fragment() {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
                 params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                params.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                //на всю видимую область прокручиваемой части
+                params.height = binding.coverScroll.height
                 params.dimensionRatio = ""
                 binding.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 // Возвращаем оригинальные размеры
-                params.topMargin = 16
-                params.width = 0
-                params.height = 0
-                params.dimensionRatio = "1:1"
-                params.matchConstraintPercentWidth = 0.6f
+                params.topMargin = 0
+                val size = (240 * resources.displayMetrics.density).toInt()
+                params.width = size
+                params.height = size
+                params.dimensionRatio = null
                 binding.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
 
             binding.coverImageView.layoutParams = params
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_restore_cover, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_restore_cover) {
+            viewModel.restoreDefaultCover()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
@@ -168,10 +180,6 @@ class CoverChangeFragment : Fragment() {
         (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
     }
 
-    private fun openFlickrSearch() {
-        val intent = Intent(Intent.ACTION_VIEW, "https://www.flickr.com/search/".toUri())
-        startActivity(intent)
-    }
     companion object{
         const val  TAG = "33333"
     }

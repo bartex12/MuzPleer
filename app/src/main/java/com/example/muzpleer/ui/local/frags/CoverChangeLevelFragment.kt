@@ -113,6 +113,7 @@ class CoverChangeLevelFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
         previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
@@ -151,23 +152,18 @@ class CoverChangeLevelFragment: Fragment() {
             pickImage.launch("image/*")
         }
 
-        binding.searchOnlineLevel.setOnClickListener {
-            openFlickrSearch()
-        }
-
-        fun getDefaultCoverUri(): Uri {
-            return "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
-        }
-
-        binding.restoreDefaultLevel.setOnClickListener {
-            val uri:Uri = getDefaultCoverUri()
-           when(levelType){
-                LevelType.PLAYLIST ->{ savePlaylistCover(uri, levelId) }
-                LevelType.ALBUM ->{ saveAlbumCover(uri, levelId) }
-                LevelType.ARTIST ->{ saveArtistCover(uri, levelId) }
-                LevelType.FOLDER ->{ saveFolderCover(uri, levelId) }
-            }
-        }
+        //поиск картинки в интернете: в запрос подставляем название альбома/исполнителя/папки/плейлиста
+        val query = when (levelType) {
+            LevelType.ALBUM -> albumsViewModel.albums.value
+                ?.find { it.id == levelId || it.albumId == levelId }
+                ?.let { "${it.artist} ${it.title}" }
+            LevelType.ARTIST -> artistsViewModel.artists.value
+                ?.find { it.id == levelId || it.artistId == levelId }?.name
+            LevelType.FOLDER -> foldersViewModel.folders.value?.find { it.id == levelId }?.name
+            LevelType.PLAYLIST -> playlistsViewModel.playlists.value
+                ?.find { it.id == levelId }?.playlistName
+        } ?: previousTitle
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
         binding.saveButtonLevel.setOnClickListener {
             viewModel.getCoverImageUriLevel()?. let{curUri->
@@ -195,20 +191,40 @@ class CoverChangeLevelFragment: Fragment() {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
                 params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                params.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                //на всю видимую область прокручиваемой части
+                params.height = binding.coverScroll.height
                 params.dimensionRatio = ""
                 binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 // Возвращаем оригинальные размеры
-                params.topMargin = 16
-                params.width = 0
-                params.height = 0
-                params.dimensionRatio = "1:1"
-                params.matchConstraintPercentWidth = 0.6f
+                params.topMargin = 0
+                val size = (240 * resources.displayMetrics.density).toInt()
+                params.width = size
+                params.height = size
+                params.dimensionRatio = null
                 binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
             }
             binding.coverImageViewLevel.layoutParams = params
         }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_restore_cover, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_restore_cover) {
+            val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
+            when (levelType) {
+                LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
+                LevelType.ALBUM -> saveAlbumCover(uri, levelId)
+                LevelType.ARTIST -> saveArtistCover(uri, levelId)
+                LevelType.FOLDER -> saveFolderCover(uri, levelId)
+            }
+            return true
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     override fun onResume() {
@@ -234,10 +250,6 @@ class CoverChangeLevelFragment: Fragment() {
         (requireActivity() as? MainActivity)?.updateToolbarTitle(title)
     }
 
-    private fun openFlickrSearch() {
-        val intent = Intent(Intent.ACTION_VIEW, "https://www.flickr.com/search/".toUri())
-        startActivity(intent)
-    }
     companion object{
         const val  TAG = "33333"
     }
