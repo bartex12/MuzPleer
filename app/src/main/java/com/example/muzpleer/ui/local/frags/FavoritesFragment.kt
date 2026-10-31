@@ -364,7 +364,7 @@ class FavoritesFragment: Fragment() {
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
-                editItem.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
             }
             override fun onPrepareMenu(menu: Menu) {
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
@@ -386,7 +386,7 @@ class FavoritesFragment: Fragment() {
                 val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
                 Log.d(TAG, "$$$$$ SongPlaylistFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше  7 песен
-                menu.findItem(R.id.action_go_to_song_favorite).isVisible = songsCount > 7
+                menu.findItem(R.id.action_go_to_song_favorite)?.isVisible = songsCount > 7
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
