@@ -90,9 +90,9 @@
 
     <!-- Messages Preferences -->
     <string name="splash">Экран загрузки</string>
-    <string name="show_hide">Показать/скрыть.</string>
-    <string name="show_screen">Показываем экран загрузки</string>
-    <string name="hide_screen">Не показываем экран загрузки</string>
+    <string name="show_hide">Показать/скрыть экран загрузки</string>
+    <string name="show_screen">Показываем при запуске</string>
+    <string name="hide_screen">Не показываем при запуске</string>
 
     <plurals name="delete_songs_message">
         <item quantity="one">Удалить %1$d трек из плейлиста &quot;%2$s&quot;?</item>
