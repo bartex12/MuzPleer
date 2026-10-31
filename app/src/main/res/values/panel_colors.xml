@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Пары цветов панелей: основной (тулбар, плеер) и светлее (вкладки) -->
+    <color name="panel_1_main">#5C5C5C</color>
+    <color name="panel_1_light">#6E6D6D</color>
+    <color name="panel_2_main">#3A3A3C</color>
+    <color name="panel_2_light">#4A4A4D</color>
+    <color name="panel_3_main">#1C1C1E</color>
+    <color name="panel_3_light">#2C2C2E</color>
+    <color name="panel_4_main">#2E4057</color>
+    <color name="panel_4_light">#3D536E</color>
+    <color name="panel_5_main">#2F4A41</color>
+    <color name="panel_5_light">#3E6054</color>
+    <color name="panel_6_main">#5A2E3A</color>
+    <color name="panel_6_light">#6F3C4A</color>
+    <color name="panel_7_main">#473A63</color>
+    <color name="panel_7_light">#59497A</color>
+    <color name="panel_8_main">#5B4636</color>
+    <color name="panel_8_light">#6E5846</color>
+</resources>

@@ -14,6 +14,7 @@ import com.example.muzpleer.R
 object ThemeManager {
     private const val PREFS = "theme_prefs"
     private const val KEY_ACCENT = "accent_index"
+    private const val KEY_PANEL = "panel_index"
 
     val accentColorRes = intArrayOf(
         R.color.accent_1, R.color.accent_2, R.color.accent_3, R.color.accent_4,
@@ -27,6 +28,22 @@ object ThemeManager {
         R.style.AccentOverlay7, R.style.AccentOverlay8, R.style.AccentOverlay9,
         R.style.AccentOverlay10, R.style.AccentOverlay11, R.style.AccentOverlay12
     )
+
+    //пары цветов панелей: основной (тулбар, плеер) и светлее (вкладки)
+    val panelMainRes = intArrayOf(R.color.panel_1_main, R.color.panel_2_main, R.color.panel_3_main, R.color.panel_4_main, R.color.panel_5_main, R.color.panel_6_main, R.color.panel_7_main, R.color.panel_8_main)
+    val panelLightRes = intArrayOf(R.color.panel_1_light, R.color.panel_2_light, R.color.panel_3_light, R.color.panel_4_light, R.color.panel_5_light, R.color.panel_6_light, R.color.panel_7_light, R.color.panel_8_light)
+    val panelOverlays = intArrayOf(R.style.PanelOverlay1, R.style.PanelOverlay2, R.style.PanelOverlay3, R.style.PanelOverlay4, R.style.PanelOverlay5, R.style.PanelOverlay6, R.style.PanelOverlay7, R.style.PanelOverlay8)
+
+    fun getPanelIndex(context: Context): Int {
+        val index = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getInt(KEY_PANEL, 0)
+        return index.coerceIn(0, panelOverlays.size - 1)
+    }
+
+    fun setPanelIndex(context: Context, index: Int) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putInt(KEY_PANEL, index).apply()
+    }
 
     fun getAccentIndex(context: Context): Int {
         val index = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -42,6 +59,7 @@ object ThemeManager {
     /** Накладываем выбранный акцент на тему экрана; вызывать после setTheme и до super.onCreate. */
     fun apply(activity: Activity) {
         activity.theme.applyStyle(accentOverlays[getAccentIndex(activity)], true)
+        activity.theme.applyStyle(panelOverlays[getPanelIndex(activity)], true)
     }
 
     //снимок экрана перед пересозданием: показываем его поверх нового экрана и плавно убираем,
@@ -95,4 +113,11 @@ fun Context.accentColor(): Int {
     val value = TypedValue()
     return if (theme.resolveAttribute(R.attr.appAccent, value, true)) value.data
     else ContextCompat.getColor(this, R.color.colorSecondaryBlue)
+}
+
+/** Основной цвет панелей из темы контекста. */
+fun Context.panelColor(): Int {
+    val value = TypedValue()
+    return if (theme.resolveAttribute(R.attr.appPanel, value, true)) value.data
+    else ContextCompat.getColor(this, R.color.colorPrimaryBlack)
 }

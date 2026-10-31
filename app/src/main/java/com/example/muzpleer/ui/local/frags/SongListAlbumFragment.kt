@@ -341,12 +341,12 @@ class SongListAlbumFragment:Fragment() {
 
             override fun onPrepareMenu(menu: Menu) {
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
-                menu.findItem(R.id.action_edit_order2).isVisible = false
+                menu.findItem(R.id.action_edit_order2)?.isVisible = false
                 var songsCount = 0
                 songsCount =  albumsViewModel.filteredListAlbumSong.value?.size?:0
                 Log.d(TAG, "$$$$$ SongListAlbumFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше 7 песен
-                menu.findItem(R.id.action_go_to_song2).isVisible = songsCount > 7
+                menu.findItem(R.id.action_go_to_song2)?.isVisible = songsCount > 7
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {

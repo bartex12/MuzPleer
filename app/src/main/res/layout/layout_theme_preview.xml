@@ -25,14 +25,14 @@
         android:id="@+id/previewTabs"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorSecondaryBlack"
+        android:background="?attr/appPanelLight"
         app:tabIndicatorHeight="3dp"
         app:tabTextAppearance="@style/TabWidget" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/colorPrimaryBlack"
+        android:background="?attr/appPanel"
         android:orientation="vertical"
         android:padding="8dp">
 

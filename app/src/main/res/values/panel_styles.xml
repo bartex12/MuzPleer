@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Накладки темы: каждая задаёт пару цветов панелей -->
+    <style name="PanelOverlay1">
+        <item name="appPanel">@color/panel_1_main</item>
+        <item name="appPanelLight">@color/panel_1_light</item>
+    </style>
+    <style name="PanelOverlay2">
+        <item name="appPanel">@color/panel_2_main</item>
+        <item name="appPanelLight">@color/panel_2_light</item>
+    </style>
+    <style name="PanelOverlay3">
+        <item name="appPanel">@color/panel_3_main</item>
+        <item name="appPanelLight">@color/panel_3_light</item>
+    </style>
+    <style name="PanelOverlay4">
+        <item name="appPanel">@color/panel_4_main</item>
+        <item name="appPanelLight">@color/panel_4_light</item>
+    </style>
+    <style name="PanelOverlay5">
+        <item name="appPanel">@color/panel_5_main</item>
+        <item name="appPanelLight">@color/panel_5_light</item>
+    </style>
+    <style name="PanelOverlay6">
+        <item name="appPanel">@color/panel_6_main</item>
+        <item name="appPanelLight">@color/panel_6_light</item>
+    </style>
+    <style name="PanelOverlay7">
+        <item name="appPanel">@color/panel_7_main</item>
+        <item name="appPanelLight">@color/panel_7_light</item>
+    </style>
+    <style name="PanelOverlay8">
+        <item name="appPanel">@color/panel_8_main</item>
+        <item name="appPanelLight">@color/panel_8_light</item>
+    </style>
+</resources>

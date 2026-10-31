@@ -15,7 +15,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimaryBlack"
+            android:background="?attr/appPanel"
             app:popupTheme="@style/Theme.MuzPleer.PopupOverlay">
 
         <TextView

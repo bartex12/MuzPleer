@@ -214,12 +214,12 @@ class ArtistsFragment:Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_go_to_song).isVisible = true
+        menu.findItem(R.id.action_go_to_song)?.isVisible = true
 
         // Настраиваем кнопку редактирования
         val editItem = menu.findItem(R.id.action_edit_order)
         // Меняем текст
-        editItem.title = if (isEditMode) "Готово" else "Редактировать порядок"
+        editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
 
         // Меняем цвет в зависимости от режима
         val color = if (isEditMode) {

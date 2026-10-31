@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="8dp">
 
     <TextView
         android:layout_width="match_parent"
@@ -18,10 +19,17 @@
         android:id="@+id/themePreviewContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="12dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
         android:layout_weight="1"
         android:background="@drawable/theme_preview_frame" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/theme_accents_title"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
 
     <HorizontalScrollView
         android:layout_width="match_parent"
@@ -35,14 +43,33 @@
             android:orientation="horizontal" />
     </HorizontalScrollView>
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/theme_panels_title"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/panelColorsRow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnChangeBackground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:text="@string/change_background"
         android:textColor="@color/white"
-        app:backgroundTint="@color/colorSecondaryBlack"
+        app:backgroundTint="?attr/appPanelLight"
         app:cornerRadius="8dp"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp" />
@@ -51,10 +78,10 @@
         android:id="@+id/btnApplyTheme"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="6dp"
         android:text="@string/theme_apply"
         android:textColor="@color/white"
-        app:backgroundTint="@color/colorSecondaryBlack"
+        app:backgroundTint="?attr/appPanelLight"
         app:cornerRadius="8dp"
         app:strokeColor="@color/white"
         app:strokeWidth="1dp" />

@@ -391,12 +391,12 @@ class SongPlaylistFragment:Fragment() {
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order2)
-                editItem.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
             }
 
             override fun onPrepareMenu(menu: Menu) {
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
-                //menu.findItem(R.id.action_edit_order2).isVisible =false
+                //menu.findItem(R.id.action_edit_order2)?.isVisible =false
                 val editItem = menu.findItem(R.id.action_edit_order2)
 
                 // Меняем цвет в зависимости от режима
@@ -414,7 +414,7 @@ class SongPlaylistFragment:Fragment() {
                 val songsCount = playlistsViewModel.currentFilteredPlaylistSongs.value?.size ?: 0
                Log.d(TAG, "$$$$$5 SongPlaylistFragment onPrepareMenu songsCount = $songsCount ")
                 // Простое условие - больше 7 песен
-                menu.findItem(R.id.action_go_to_song2).isVisible = songsCount > 7
+                menu.findItem(R.id.action_go_to_song2)?.isVisible = songsCount > 7
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
