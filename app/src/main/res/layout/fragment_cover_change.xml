@@ -26,8 +26,8 @@
 
             <com.github.chrisbanes.photoview.PhotoView
                 android:id="@+id/coverImageView"
-                android:layout_width="240dp"
-                android:layout_height="240dp"
+                android:layout_width="280dp"
+                android:layout_height="280dp"
                 android:scaleType="centerCrop"
                 android:src="@drawable/placeholder1024"
                 app:layout_constraintEnd_toEndOf="parent"
