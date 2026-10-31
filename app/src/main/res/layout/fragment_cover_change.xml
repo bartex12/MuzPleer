@@ -4,58 +4,77 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
+    android:padding="12dp"
     android:id="@+id/coverContainer">
 
-    <com.github.chrisbanes.photoview.PhotoView
-        android:id="@+id/coverImageView"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_marginBottom="24dp"
-        android:scaleType="centerCrop"
-        android:src="@drawable/placeholder1024"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/usePhonePhotos"
+    <!-- Всё, кроме кнопки «Сохранить», прокручивается: на малых экранах ничего не обрезается -->
+    <ScrollView
+        android:id="@+id/coverScroll"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/item_list_effects_revers_button"
-        android:text="Использовать фотографии в телефоне"
-        android:textSize="13sp"
-        android:maxLines="1"
-        android:textColor="@color/white"
-        app:backgroundTint="@null"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/saveButton"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/coverImageView" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <include
-        android:id="@+id/webSearch"
-        layout="@layout/include_cover_web_search"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/usePhonePhotos" />
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/coverScrollContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.github.chrisbanes.photoview.PhotoView
+                android:id="@+id/coverImageView"
+                android:layout_width="240dp"
+                android:layout_height="240dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/placeholder1024"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <Button
+                android:id="@+id/usePhonePhotos"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/item_list_effects_revers_button"
+                android:letterSpacing="0"
+                android:maxLines="1"
+                android:text="Использовать фотографии в телефоне"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                app:backgroundTint="@null"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/coverImageView" />
+
+            <include
+                android:id="@+id/webSearch"
+                layout="@layout/include_cover_web_search"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/usePhonePhotos" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
 
     <Button
         android:id="@+id/saveButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Сохранить"
-        android:textSize="13sp"
-        android:maxLines="1"
+        android:layout_marginTop="8dp"
         android:background="@drawable/item_list_effects_revers_button"
+        android:letterSpacing="0"
+        android:maxLines="1"
+        android:text="Сохранить"
         android:textColor="@color/white"
+        android:textSize="13sp"
         app:backgroundTint="@null"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/webSearch" />
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

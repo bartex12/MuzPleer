@@ -191,16 +191,17 @@ class CoverChangeLevelFragment: Fragment() {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
                 params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
-                params.height = ConstraintLayout.LayoutParams.MATCH_PARENT
+                //на всю видимую область прокручиваемой части
+                params.height = binding.coverScroll.height
                 params.dimensionRatio = ""
                 binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 // Возвращаем оригинальные размеры
-                params.topMargin = 16
-                params.width = 0
-                params.height = 0
-                params.dimensionRatio = "1:1"
-                params.matchConstraintPercentWidth = 0.6f
+                params.topMargin = 0
+                val size = (240 * resources.displayMetrics.density).toInt()
+                params.width = size
+                params.height = size
+                params.dimensionRatio = null
                 binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
             }
             binding.coverImageViewLevel.layoutParams = params
