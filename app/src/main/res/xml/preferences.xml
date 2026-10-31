@@ -2,6 +2,12 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <Preference
+        android:key="pref_theme"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/change_theme"
+        android:summary="@string/pref_theme_summary" />
+
     <PreferenceCategory
         android:layout="@layout/preference_category_white"
         android:title="@string/splash">
@@ -15,5 +21,11 @@
             android:summaryOff="@string/hide_screen">
         </CheckBoxPreference>
     </PreferenceCategory>
+
+    <Preference
+        android:key="pref_duplicates"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/duplicates_title"
+        android:summary="@string/pref_duplicates_summary" />
 
 </PreferenceScreen>

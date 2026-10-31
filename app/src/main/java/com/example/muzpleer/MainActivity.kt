@@ -182,7 +182,7 @@ class MainActivity : AppCompatActivity() {
         // menu should be considered as top level destinations.
         appBarConfiguration = AppBarConfiguration(
             setOf(
-                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment, R.id.themeFragment), drawerLayout
+                R.id.tabLocalFragment,  R.id.settingsFragment, R.id.helpFragment, R.id.downloadFragment), drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         //заголовок экранов из шторки ставим по месту назначения: так он верный и при переходе, и при возврате кнопкой Назад
@@ -194,6 +194,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.helpFragment -> R.string.help
                 R.id.themeFragment -> R.string.change_theme
                 R.id.backgroundFragment -> R.string.change_background
+                R.id.duplicatesFragment -> R.string.duplicates_title
                 else -> null
             }
             titleRes?.let { viewModel.setAppBarTitle(getString(it)) }
@@ -232,14 +233,6 @@ class MainActivity : AppCompatActivity() {
                     R.id.nav_setting -> {
                         Log.d(TAG, "MainActivity onNavigationItemSelected nav_setting")
                         navController.navigate(R.id.settingsFragment, null, drawerNavOptions)
-                        true
-                    }
-                    R.id.nav_duplicates -> {
-                        navController.navigate(R.id.duplicatesFragment, null, drawerNavOptions)
-                        true
-                    }
-                    R.id.nav_theme -> {
-                        navController.navigate(R.id.themeFragment, null, drawerNavOptions)
                         true
                     }
                     R.id.nav_help ->{
