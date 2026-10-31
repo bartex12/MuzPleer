@@ -2,18 +2,34 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <PreferenceCategory
-        android:layout="@layout/preference_category_white"
-        android:title="@string/splash">
-        <CheckBoxPreference
-            android:key="cbScreen"
-            android:layout="@layout/preference_item_white"
-            android:widgetLayout="@layout/preference_widget_checkbox_white"
-            android:title="@string/show_hide"
-            app:defaultValue="false"
-            android:summaryOn="@string/show_screen"
-            android:summaryOff="@string/hide_screen">
-        </CheckBoxPreference>
-    </PreferenceCategory>
+    <Preference
+        android:key="pref_theme"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/change_theme"
+        android:summary="@string/pref_theme_summary"
+        app:icon="@drawable/ic_palette_24" />
+
+    <CheckBoxPreference
+        android:key="cbScreen"
+        android:layout="@layout/preference_item_white"
+        android:widgetLayout="@layout/preference_widget_checkbox_white"
+        android:title="@string/show_hide"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_pref_visibility"
+        android:summaryOn="@string/show_screen"
+        android:summaryOff="@string/hide_screen" />
+
+    <Preference
+        android:key="pref_splash_image"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/splash_image_title"
+        app:icon="@drawable/ic_pref_image" />
+
+    <Preference
+        android:key="pref_duplicates"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/duplicates_title"
+        android:summary="@string/pref_duplicates_summary"
+        app:icon="@drawable/ic_duplicates_24" />
 
 </PreferenceScreen>

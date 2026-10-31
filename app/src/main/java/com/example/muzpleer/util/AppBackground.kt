@@ -125,7 +125,7 @@ object AppBackground {
     }
 
     /** Копия выбранного снимка в память приложения, уменьшенная и с учётом поворота. Вызывать не в основном потоке. */
-    fun importPhoto(context: Context, uri: Uri): String? {
+    fun importPhoto(context: Context, uri: Uri, prefix: String = PHOTO_PREFIX): String? {
         return try {
             val resolver = context.contentResolver
             val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
@@ -152,7 +152,7 @@ object AppBackground {
                 val m = Matrix().apply { postRotate(degrees) }
                 Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, m, true)
             } else decoded
-            val file = File(context.filesDir, "$PHOTO_PREFIX${System.currentTimeMillis()}.jpg")
+            val file = File(context.filesDir, "$prefix${System.currentTimeMillis()}.jpg")
             file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 90, it) }
             file.absolutePath
         } catch (e: Exception) {
