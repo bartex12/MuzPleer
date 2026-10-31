@@ -8,66 +8,18 @@
     android:focusable="true"
     android:padding="16dp">
 
-    <!-- Заголовок -->
-    <TextView
-        android:id="@+id/tvTitle"
+    <!-- Создать новый плейлист и сразу положить в него песню -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnCreatePlaylist"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Выберите плейлист"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:textColor="@android:color/white"
+        android:background="@drawable/item_list_effects_stroke"
+        android:text="Создать плейлист"
+        android:textColor="@color/white"
+        app:backgroundTint="@null"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Разделитель -->
-    <View
-        android:id="@+id/divider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:layout_marginTop="12dp"
-        android:background="@android:color/darker_gray"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Поиск плейлиста (виден, когда есть плейлисты) -->
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/input_layout_search"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:hint="@string/search_playlist"
-        android:theme="@style/WhiteTextInputLayoutOverlay"
-        android:visibility="gone"
-        app:boxCornerRadiusBottomEnd="20dp"
-        app:boxCornerRadiusTopStart="20dp"
-        app:counterEnabled="true"
-        app:counterMaxLength="30"
-        app:counterTextColor="@android:color/white"
-        app:endIconCheckable="true"
-        app:endIconDrawable="@drawable/baseline_search_24"
-        app:endIconMode="custom"
-        app:endIconTint="@android:color/white"
-        app:helperText="@string/search_playlist_helper"
-        app:helperTextTextColor="@android:color/white"
-        app:layout_constraintTop_toBottomOf="@id/divider"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="visible">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_edit_text_search"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:imeOptions="actionSearch"
-            android:inputType="text"
-            android:maxLines="1"
-            android:textColor="@android:color/white" />
-    </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Список плейлистов: занимает всё свободное место -->
     <androidx.recyclerview.widget.RecyclerView
@@ -77,7 +29,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginBottom="8dp"
         android:scrollbars="vertical"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search"
+        app:layout_constraintTop_toBottomOf="@id/btnCreatePlaylist"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnClose"
@@ -95,7 +47,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintTop_toBottomOf="@id/btnCreatePlaylist"
         app:layout_constraintBottom_toTopOf="@id/btnClose"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -112,7 +64,7 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/divider"
+        app:layout_constraintTop_toBottomOf="@id/btnCreatePlaylist"
         app:layout_constraintBottom_toTopOf="@id/btnClose"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

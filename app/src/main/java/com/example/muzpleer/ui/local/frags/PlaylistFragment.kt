@@ -303,53 +303,10 @@ class PlaylistFragment():Fragment() {
     }
 
     private fun showCreatePlaylistDialog() {
-        val dialog = Dialog(requireContext()).apply {
-            setContentView(R.layout.dialog_create_playlist)
-            window?.setBackgroundDrawableResource(android.R.color.transparent)
-            window?.setLayout(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
+        //после создания список обновится сам через observer filteredPlaylists
+        com.example.muzpleer.util.showCreatePlaylistDialog(requireContext()) { name ->
+            playlistsViewModel.createPlaylist(name)
         }
-        // Находим все элементы
-        val editText = dialog.findViewById<TextInputEditText>(R.id.etPlaylistName)
-        val charCount = dialog.findViewById<TextView>(R.id.tvCharCount) // Вот эта переменная!
-        val btnCreate = dialog.findViewById<Button>(R.id.btnCreate)
-        val btnCancel = dialog.findViewById<Button>(R.id.btnCancel)
-
-        // Счетчик символов
-        editText?.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                charCount?.text = "${s?.length ?: 0}/50"
-            }
-        })
-
-        btnCreate.setOnClickListener {
-            val name=editText.text.toString().trim()
-            if (name.isNotEmpty()) {
-                playlistsViewModel.createPlaylist(name){
-                    // После создания плейлиста состояние обновится автоматически
-                    // через observer filteredPlaylists
-                    //binding.emptyImageViewPlaylists.visibility =  View.GONE
-                    //binding.tvEmptyPlaylists.visibility = View.GONE
-                }
-                dialog.dismiss()
-            } else {
-                editText.error="Введите название плейлиста"
-            }
-        }
-
-        btnCancel?.setOnClickListener {
-            dialog.dismiss()
-        }
-
-        // Показать клавиатуру при открытии
-        editText?.requestFocus()
-        dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-
-        dialog.show()
     }
 
 }

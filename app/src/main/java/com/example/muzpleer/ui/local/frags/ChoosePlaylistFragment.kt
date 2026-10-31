@@ -1,16 +1,10 @@
 package com.example.muzpleer.ui.local.frags
 
-import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.KeyEvent
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.Fragment
@@ -21,8 +15,6 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentChoosePlaylistBinding
 import com.example.muzpleer.ui.local.adapters.PlaylistChooseAdapter
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
-import com.example.muzpleer.util.toast
-import com.google.android.material.textfield.TextInputLayout
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -78,6 +70,7 @@ class ChoosePlaylistFragment :Fragment()  {
         Log.d(TAG, " //**// ChoosePlaylistFragment onViewCreated:  ")
 
         updateToolbarTitle("Выбор плейлиста")
+        setHasOptionsMenu(true)
 
         // Настройка адаптера
         adapter = PlaylistChooseAdapter(viewModel, playlistsViewModel) { playlist ->
@@ -101,13 +94,9 @@ class ChoosePlaylistFragment :Fragment()  {
             adapter = this@ChoosePlaylistFragment.adapter
         }
 
-        // Строка поиска плейлиста
-        setupSearch()
-
         // Поиск показываем, только если есть из чего выбирать; без плейлистов - надпись
         playlistsViewModel.playlists.observe(viewLifecycleOwner) { all ->
             val hasPlaylists = all.any { it.id != -1L }
-            binding.inputLayoutSearch.visibility = if (hasPlaylists) View.VISIBLE else View.GONE
             //плейлистов нет вообще: вместо пустого списка надпись
             binding.tvNoPlaylists.visibility = if (hasPlaylists) View.GONE else View.VISIBLE
             binding.rvPlaylists.visibility = if (hasPlaylists) View.VISIBLE else View.GONE
@@ -128,83 +117,55 @@ class ChoosePlaylistFragment :Fragment()  {
             Log.d(TAG, " //**// ChoosePlaylistFragment onViewCreated:  uri = $uri")
         }
 
+        // Новый плейлист: создаём и сразу кладём в него песню, затем возвращаемся в список, откуда пришли
+        binding.btnCreatePlaylist.setOnClickListener {
+            val ctx = requireContext().applicationContext
+            val nav = findNavController()
+            val title = songTitle
+            val id = songId
+            com.example.muzpleer.util.showCreatePlaylistDialog(requireContext()) { name ->
+                playlistsViewModel.createPlaylist(name) { newId ->
+                    playlistsViewModel.addSongToPlaylist(id, newId) { added ->
+                        Toast.makeText(
+                            ctx,
+                            if (added) "Трек \"$title\" добавлен в \"$name\""
+                            else ctx.getString(R.string.song_already_in_playlist),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    if (isAdded) nav.navigateUp()
+                }
+            }
+        }
+
         // Кнопка закрытия
         binding.btnClose.setOnClickListener {
             findNavController().navigateUp()
         }
     }
 
-    private fun setupSearch() {
-        // Enter на клавиатуре
-        binding.inputEditTextSearch.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                performSearch()
-                return@setOnEditorActionListener true
-            }
-            false
-        }
-
-        // Поиск при каждом изменении текста
-        binding.inputEditTextSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                s?.let { playlistsViewModel.filterPlaylists(it.toString()) }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                val hasText = s?.isNotEmpty() == true
-                binding.inputLayoutSearch.endIconMode =
-                    if (hasText) TextInputLayout.END_ICON_CLEAR_TEXT
-                    else TextInputLayout.END_ICON_CUSTOM
-                binding.inputLayoutSearch.setEndIconDrawable(
-                    if (hasText) R.drawable.baseline_close_24
-                    else R.drawable.baseline_search_24
-                )
+    //поиск плейлиста в тулбаре, как в списке папок
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_choose_playlist, menu)
+        val searchItem = menu.findItem(R.id.search_toolbar_choose)
+        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+        searchView.setIconifiedByDefault(true)
+        searchView.queryHint = getString(R.string.search_playlist)
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                playlistsViewModel.filterPlaylists(newText.orEmpty())
+                return true
             }
         })
-
-        // Иконка справа: очистить текст, а если он пуст - выполнить поиск
-        binding.inputLayoutSearch.setEndIconOnClickListener {
-            if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
-                binding.inputEditTextSearch.text?.clear()
+        searchItem.setOnActionExpandListener(object : android.view.MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: android.view.MenuItem) = true
+            override fun onMenuItemActionCollapse(item: android.view.MenuItem): Boolean {
                 playlistsViewModel.filterPlaylists("")
-            } else {
-                performSearch()
+                return true
             }
-        }
-
-        // Кнопка "Назад" при открытой клавиатуре: убрать фокус, очистить поиск
-        binding.inputEditTextSearch.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP &&
-                binding.inputEditTextSearch.hasFocus()
-            ) {
-                binding.inputEditTextSearch.clearFocus()
-                binding.inputEditTextSearch.isCursorVisible = false
-                if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
-                    binding.inputEditTextSearch.text?.clear()
-                    playlistsViewModel.filterPlaylists("")
-                }
-                hideKeyboard()
-                return@setOnKeyListener true
-            }
-            false
-        }
-    }
-
-    private fun performSearch() {
-        val query = binding.inputEditTextSearch.text.toString().trim()
-        if (query.isNotEmpty()) {
-            playlistsViewModel.filterPlaylists(query)
-            hideKeyboard()
-        } else {
-            toast("Введите текст для поиска")
-        }
-    }
-
-    private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
+        })
+        super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onDestroyView() {

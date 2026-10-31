@@ -142,6 +142,7 @@
     <string name="pref_splash_image_summary_default">Стандартная</string>
     <string name="pref_splash_image_summary_custom">Своя картинка</string>
     <string name="pref_splash_image_summary_background">Картинка фона приложения</string>
+    <string name="choose_playlist_title">Выбор плейлиста</string>
     <string name="duplicates_title">Дубли треков</string>
     <string name="pref_theme_summary">Цвет акцента и фон приложения</string>
     <string name="pref_duplicates_summary">Найти и удалить копии одного трека</string>
