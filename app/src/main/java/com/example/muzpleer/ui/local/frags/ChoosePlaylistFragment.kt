@@ -100,16 +100,16 @@ class ChoosePlaylistFragment :Fragment()  {
             //плейлистов нет вообще: вместо пустого списка надпись
             binding.tvNoPlaylists.visibility = if (hasPlaylists) View.GONE else View.VISIBLE
             binding.rvPlaylists.visibility = if (hasPlaylists) View.VISIBLE else View.GONE
+            if (!hasPlaylists) binding.tvEmptyPlaylistsSelect.visibility = View.GONE
         }
 
         // Наблюдаем за списком плейлистов с правильным LifecycleOwner
         playlistsViewModel.filteredPlaylists.observe(viewLifecycleOwner) { playlists ->
             adapter.playlists = playlists.filter { it.id != -1L }
-            if (playlists.isEmpty()){
-                binding.tvEmptyPlaylistsSelect.visibility = View.VISIBLE
-            }else{
-                binding.tvEmptyPlaylistsSelect.visibility = View.GONE
-            }
+            //«ничего не найдено» только если плейлисты есть, но поиск их отсёк
+            val hasAny = playlistsViewModel.playlists.value?.any { it.id != -1L } == true
+            binding.tvEmptyPlaylistsSelect.visibility =
+                if (playlists.isEmpty() && hasAny) View.VISIBLE else View.GONE
         }
 
         viewModel.coverImageUriLevel.observe(viewLifecycleOwner) {uri->
