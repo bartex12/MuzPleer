@@ -196,6 +196,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.backgroundFragment -> R.string.change_background
                 R.id.duplicatesFragment -> R.string.duplicates_title
                 R.id.splashImageFragment -> R.string.splash_image_title
+                R.id.choosePlaylistFragment -> R.string.choose_playlist_title
                 else -> null
             }
             titleRes?.let { viewModel.setAppBarTitle(getString(it)) }
