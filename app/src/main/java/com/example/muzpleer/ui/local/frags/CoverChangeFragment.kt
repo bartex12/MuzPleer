@@ -80,6 +80,9 @@ class CoverChangeFragment : Fragment() {
                         // Загрузка обложки из picker
                         val  photoPickerUri =artUri.toString().toUri()
                         showImageWithGlide(binding.root.context, photoPickerUri, binding.coverImageView)
+                    }else if (artUri.toString().contains("://")){
+                        // любой другой uri (галерея MIUI, content://media/..., file://, android.resource://)
+                        showImageWithGlide(binding.root.context, artUri, binding.coverImageView)
                     }else {
                         // Загрузка обложки из кэша приложения
                         showImageWithGlide(binding.root.context, File(artUri.toString()), binding.coverImageView)
