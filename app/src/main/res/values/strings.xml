@@ -40,7 +40,7 @@
 
     <string name="favorites">Избранное</string>
     <string name="change_theme">Сменить тему</string>
-    <string name="theme_hint">Выберите цвет акцента и измените фон. Затем нажмите «Применить».</string>
+    <string name="theme_hint">Выберите цвет акцента, панелей и измените фон. Затем нажмите «Применить».</string>
     <string name="theme_apply">Применить</string>
     <string name="theme_preview_playing">Песня играет</string>
     <string name="change_background">Изменить фон</string>
@@ -174,4 +174,5 @@
     <string name="cover_search_google">В поиске Google</string>
     <string name="cover_search_no_browser">Не найдено приложение для открытия ссылки</string>
     <string name="theme_panels_title">Цвет панелей</string>
+    <string name="theme_accents_title">Акценты</string>
 </resources>

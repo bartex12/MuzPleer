@@ -31,6 +31,9 @@ class ThemeFragment : Fragment() {
         super.onCreate(savedInstanceState)
         //новый заход на экран: прежний невыбранный фон не тянем
         if (savedInstanceState == null) AppBackground.pending = null
+        //выбор хранится в самом фрагменте: после возврата с экрана выбора фона он не сбрасывается
+        selected = savedInstanceState?.getInt(KEY_SELECTED) ?: ThemeManager.getAccentIndex(requireContext())
+        selectedPanel = savedInstanceState?.getInt(KEY_PANEL) ?: ThemeManager.getPanelIndex(requireContext())
     }
 
     override fun onCreateView(
@@ -42,8 +45,6 @@ class ThemeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        selected = savedInstanceState?.getInt(KEY_SELECTED) ?: ThemeManager.getAccentIndex(requireContext())
-        selectedPanel = savedInstanceState?.getInt(KEY_PANEL) ?: ThemeManager.getPanelIndex(requireContext())
 
         //выбранный (ещё не применённый) фон показываем и за самим экраном
         AppBackground.applyToWindow(requireActivity(), AppBackground.pending ?: AppBackground.load(requireContext()))
@@ -73,7 +74,7 @@ class ThemeFragment : Fragment() {
         val row = binding.accentColorsRow
         row.removeAllViews()
         val size = (40 * resources.displayMetrics.density).toInt()
-        val margin = (6 * resources.displayMetrics.density).toInt()
+        val margin = (3 * resources.displayMetrics.density).toInt()
         val stroke = (3 * resources.displayMetrics.density).toInt() //толстое кольцо у выбранного
         val thin = (1 * resources.displayMetrics.density).toInt().coerceAtLeast(1) //тонкое у остальных, чтобы цвет не терялся на фоне
         for (i in ThemeManager.accentColorRes.indices) {
@@ -101,7 +102,7 @@ class ThemeFragment : Fragment() {
         row.removeAllViews()
         val d = resources.displayMetrics.density
         val size = (40 * d).toInt()
-        val margin = (6 * d).toInt()
+        val margin = (3 * d).toInt()
         val stroke = (3 * d).toInt()
         val thin = d.toInt().coerceAtLeast(1)
         for (i in ThemeManager.panelOverlays.indices) {
