@@ -176,6 +176,6 @@
     <string name="theme_panels_title">Цвет панелей</string>
     <string name="theme_accents_title">Акценты</string>
     <string name="bg_replace_selected">Новое фото заменяет отмеченное</string>
-    <string name="bg_mode_replace_oldest">Когда фото три, новое заменит самое старое. Режим можно изменить в меню ⋮ вверху.</string>
-    <string name="bg_mode_replace_selected">Когда фото три, новое заменит отмеченное. Режим можно изменить в меню ⋮ вверху.</string>
+    <string name="bg_mode_replace_oldest">Когда фото три, новое заменит самое старое. Измените переключателем выше.</string>
+    <string name="bg_mode_replace_selected">Когда фото три, новое заменит отмеченное. Измените переключателем выше.</string>
 </resources>
