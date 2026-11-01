@@ -42,8 +42,12 @@ class BackgroundFragment : Fragment() {
                 if (path == null) {
                     toast(getString(R.string.bg_photo_failed))
                 } else {
-                    //новое фото становится выбранным; если фото уже три, самое старое вытесняется
-                    select(AppBackground.withNewPhoto(spec, path))
+                    //новое фото становится выбранным; если фото уже три, оно заменяет отмеченное или самое старое (по режиму)
+                    select(
+                        if (AppBackground.isReplaceSelected(appContext))
+                            AppBackground.withPhotoReplacingSelected(spec, path)
+                        else AppBackground.withNewPhoto(spec, path)
+                    )
                 }
             }
         }
@@ -55,10 +59,40 @@ class BackgroundFragment : Fragment() {
         return binding.root
     }
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
+    //переключатель режима замены фото в меню тулбара
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_background, menu)
+        menu.findItem(R.id.action_replace_selected)?.isChecked = AppBackground.isReplaceSelected(requireContext())
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_replace_selected) {
+            val value = !item.isChecked
+            item.isChecked = value
+            AppBackground.setReplaceSelected(requireContext(), value)
+            updatePhotoHint()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    private fun updatePhotoHint() {
+        _binding?.tvPhotoMode?.setText(
+            if (AppBackground.isReplaceSelected(requireContext())) R.string.bg_mode_replace_selected else R.string.bg_mode_replace_oldest
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         spec = AppBackground.pending ?: AppBackground.load(requireContext())
         render()
+        updatePhotoHint()
     }
 
     private fun select(newSpec: BgSpec) {

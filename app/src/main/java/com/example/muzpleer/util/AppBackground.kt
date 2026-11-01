@@ -102,6 +102,24 @@ object AppBackground {
         return spec.copy(type = TYPE_PHOTO, photo = path, photos = list)
     }
 
+    /** Режим добавления фото: true - новое заменяет отмеченное (когда уже три), false - вытесняет самое старое. */
+    fun isReplaceSelected(context: Context): Boolean =
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .getBoolean("bg_replace_selected", false)
+
+    fun setReplaceSelected(context: Context, value: Boolean) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit().putBoolean("bg_replace_selected", value).apply()
+    }
+
+    /** Новое фото на место отмеченного; два других остаются. Если места ещё есть или отмеченного фото нет - обычное добавление. */
+    fun withPhotoReplacingSelected(spec: BgSpec, path: String): BgSpec {
+        val index = if (spec.type == TYPE_PHOTO && spec.photos.size >= MAX_PHOTOS) spec.photos.indexOf(spec.photo) else -1
+        if (index < 0) return withNewPhoto(spec, path)
+        val list = spec.photos.toMutableList().also { it[index] = path }
+        return spec.copy(type = TYPE_PHOTO, photo = path, photos = list)
+    }
+
     /** Показываем выбранный фон прямо сейчас в окне приложения (до подтверждения кнопкой «Применить»). */
     fun applyToWindow(activity: android.app.Activity, spec: BgSpec) {
         activity.window.setBackgroundDrawable(drawable(activity, spec))
