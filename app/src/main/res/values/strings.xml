@@ -44,7 +44,7 @@
     <string name="theme_apply">Применить</string>
     <string name="theme_preview_playing">Песня играет</string>
     <string name="change_background">Изменить фон</string>
-    <string name="bg_hint">Вернитесь назад кнопкой «Назад» и нажмите «Применить».</string>
+    <string name="bg_hint">Выберите фон, вернитесь назад кнопкой «Назад» и нажмите «Применить».</string>
     <string name="bg_section_solid">Однотонные</string>
     <string name="bg_section_gradient">Градиенты из двух цветов</string>
     <string name="bg_section_photo">Ваши фото (до трёх)</string>
