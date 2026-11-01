@@ -178,4 +178,13 @@
     <string name="bg_replace_selected">Новое фото заменяет отмеченное (иначе самое старое)</string>
     <string name="bg_mode_replace_oldest">Когда фото три, новое заменит самое старое. Измените переключателем выше.</string>
     <string name="bg_mode_replace_selected">Когда фото три, новое заменит отмеченное. Измените переключателем выше.</string>
+    <string name="sleep_timer_title">Таймер остановки воспроизведения</string>
+    <string name="sleep_timer_dialog_title">Таймер остановки</string>
+    <string name="sleep_timer_custom_title">Выбрать время</string>
+    <string name="sleep_timer_summary_active">Музыка прекратится в %1$s</string>
+    <string name="sleep_timer_left">Осталось %1$s</string>
+    <string name="sleep_timer_stops_at">Воспроизведение остановится в %1$s</string>
+    <string name="sleep_timer_started">Таймер запущен: музыка остановится через %1$d мин</string>
+    <string name="sleep_timer_cancelled">Таймер остановки отменён</string>
+    <string name="sleep_timer_zero">Выберите время больше нуля</string>
 </resources>

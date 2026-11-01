@@ -148,6 +148,15 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
+
+        //таймер остановки: возвращаем после перезапуска и показываем значок в нижнем плеере
+        com.example.muzpleer.util.SleepTimer.restore(this)
+        com.example.muzpleer.util.SleepTimer.remaining.observe(this) { left ->
+            val badge = binding.appBarMain.contentMain.timerBadge
+            val end = com.example.muzpleer.util.SleepTimer.endWall
+            badge.visibility = if (left != null && end != null) android.view.View.VISIBLE else android.view.View.GONE
+            if (end != null) binding.appBarMain.contentMain.timerBadgeText.text = com.example.muzpleer.util.SleepTimer.formatEnd(end)
+        }
         setContentView(binding.root)
         //фон за экранами из настроек темы (окно, чтобы он был за всеми экранами и мини-плеером)
         window.setBackgroundDrawable(com.example.muzpleer.util.AppBackground.drawable(this, com.example.muzpleer.util.AppBackground.load(this)))

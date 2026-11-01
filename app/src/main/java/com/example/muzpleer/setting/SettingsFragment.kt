@@ -17,6 +17,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         findPreference<androidx.preference.Preference>("pref_splash_image")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.splashImageFragment); true
         }
+        findPreference<androidx.preference.Preference>("pref_sleep_timer")?.setOnPreferenceClickListener {
+            SleepTimerDialog.show(this); true
+        }
         findPreference<androidx.preference.Preference>("pref_duplicates")?.setOnPreferenceClickListener {
             findNavController().navigate(R.id.duplicatesFragment); true
         }
@@ -37,6 +40,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
     override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        //пока таймер идёт, под заголовком пункта: «Музыка прекратится в чч:мм:сс»
+        com.example.muzpleer.util.SleepTimer.remaining.observe(viewLifecycleOwner) { left ->
+            val pref = findPreference<androidx.preference.Preference>("pref_sleep_timer")
+            val end = com.example.muzpleer.util.SleepTimer.endWall
+            pref?.summary = if (left != null && end != null)
+                getString(R.string.sleep_timer_summary_active, com.example.muzpleer.util.SleepTimer.formatEnd(end))
+            else null
+        }
     }
     //так  как нет view, viewLifecycleOwner и Lifecycle.State.RESUMED не работают
 }
