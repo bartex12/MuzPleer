@@ -1,5 +1,6 @@
 package com.example.muzpleer
 
+import com.example.muzpleer.util.panelColor
 import android.Manifest
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -387,6 +388,13 @@ class MainActivity : AppCompatActivity() {
     fun updateToolbarTitle(title: String) {
         Log.d(TAG, "### ### MainActivity updateToolbarTitle title = $title ")
         binding.appBarMain.mainTitle.text = title
+    }
+
+    /** Временный показ цвета панелей (экран «Сменить тему»); null - вернуть цвет из темы. */
+    fun previewPanelColor(color: Int?) {
+        val c = color ?: panelColor()
+        binding.appBarMain.toolbar.setBackgroundColor(c)
+        binding.appBarMain.contentMain.playerBottom.setBackgroundColor(c)
     }
 
     fun getCurrentTitle(): String {
