@@ -44,7 +44,7 @@
     <string name="theme_apply">Применить</string>
     <string name="theme_preview_playing">Песня играет</string>
     <string name="change_background">Изменить фон</string>
-    <string name="bg_hint">Выбранный фон сразу виден на экране. Вернитесь назад кнопкой «Назад» и нажмите «Применить».</string>
+    <string name="bg_hint">Вернитесь назад кнопкой «Назад» и нажмите «Применить».</string>
     <string name="bg_section_solid">Однотонные</string>
     <string name="bg_section_gradient">Градиенты из двух цветов</string>
     <string name="bg_section_photo">Ваши фото (до трёх)</string>
@@ -175,7 +175,7 @@
     <string name="cover_search_no_browser">Не найдено приложение для открытия ссылки</string>
     <string name="theme_panels_title">Цвет панелей</string>
     <string name="theme_accents_title">Акценты</string>
-    <string name="bg_replace_selected">Новое фото заменяет отмеченное</string>
+    <string name="bg_replace_selected">Новое фото заменяет отмеченное (иначе самое старое)</string>
     <string name="bg_mode_replace_oldest">Когда фото три, новое заменит самое старое. Измените переключателем выше.</string>
     <string name="bg_mode_replace_selected">Когда фото три, новое заменит отмеченное. Измените переключателем выше.</string>
 </resources>

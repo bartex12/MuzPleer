@@ -8,15 +8,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="0dp"
             android:text="@string/bg_hint"
-            android:textColor="@color/white"
-            android:textSize="15sp" />
+            android:textSize="14sp"
+            android:textColor="@color/white" />
 
         <TextView
             style="@style/ThemeSectionTitle"
@@ -70,17 +71,11 @@
             android:id="@+id/cbReplaceSelected"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:minHeight="0dp"
             android:buttonTint="?attr/appAccent"
             android:text="@string/bg_replace_selected"
             android:textColor="@color/white"
             android:textSize="15sp" />
 
-        <TextView
-            android:id="@+id/tvPhotoMode"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="12sp" />
     </LinearLayout>
 </ScrollView>

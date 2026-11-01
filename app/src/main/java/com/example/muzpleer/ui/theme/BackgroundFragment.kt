@@ -59,12 +59,6 @@ class BackgroundFragment : Fragment() {
         return binding.root
     }
 
-    private fun updatePhotoHint() {
-        _binding?.tvPhotoMode?.setText(
-            if (AppBackground.isReplaceSelected(requireContext())) R.string.bg_mode_replace_selected else R.string.bg_mode_replace_oldest
-        )
-    }
-
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         spec = AppBackground.pending ?: AppBackground.load(requireContext())
@@ -73,9 +67,7 @@ class BackgroundFragment : Fragment() {
         binding.cbReplaceSelected.isChecked = AppBackground.isReplaceSelected(requireContext())
         binding.cbReplaceSelected.setOnCheckedChangeListener { _, checked ->
             AppBackground.setReplaceSelected(requireContext(), checked)
-            updatePhotoHint()
         }
-        updatePhotoHint()
     }
 
     private fun select(newSpec: BgSpec) {
@@ -141,8 +133,8 @@ class BackgroundFragment : Fragment() {
     ): View {
         val d = resources.displayMetrics.density
         val frame = FrameLayout(requireContext())
-        frame.layoutParams = LinearLayout.LayoutParams((84 * d).toInt(), (132 * d).toInt()).apply {
-            setMargins((5 * d).toInt(), (5 * d).toInt(), (5 * d).toInt(), (5 * d).toInt())
+        frame.layoutParams = LinearLayout.LayoutParams((54 * d).toInt(), (76 * d).toInt()).apply {
+            setMargins((3 * d).toInt(), (2 * d).toInt(), (3 * d).toInt(), (2 * d).toInt())
         }
         val shape = (background ?: GradientDrawable().apply { setColor(Color.BLACK) }).apply {
             cornerRadius = 8 * d
@@ -161,7 +153,7 @@ class BackgroundFragment : Fragment() {
             tv.text = it
             tv.setTextColor(Color.WHITE)
             tv.gravity = Gravity.CENTER
-            tv.textSize = if (big) 36f else 12f
+            tv.textSize = if (big) 26f else 10f
             frame.addView(tv, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         if (selected) {
