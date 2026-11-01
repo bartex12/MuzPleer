@@ -219,7 +219,7 @@ class ArtistsFragment:Fragment() {
         // Настраиваем кнопку редактирования
         val editItem = menu.findItem(R.id.action_edit_order)
         // Меняем текст
-        editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
+        editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
 
         // Меняем цвет в зависимости от режима
         val color = if (isEditMode) {

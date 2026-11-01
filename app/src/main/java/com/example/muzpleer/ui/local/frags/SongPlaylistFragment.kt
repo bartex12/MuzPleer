@@ -391,7 +391,7 @@ class SongPlaylistFragment:Fragment() {
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order2)
-                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
             }
 
             override fun onPrepareMenu(menu: Menu) {
@@ -408,7 +408,7 @@ class SongPlaylistFragment:Fragment() {
                 editItem?.icon?.setTint(color)
 
                 // Обновляем текст кнопки
-                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
 
                 // вычисляем количество песен в списке
                 val songsCount = playlistsViewModel.currentFilteredPlaylistSongs.value?.size ?: 0

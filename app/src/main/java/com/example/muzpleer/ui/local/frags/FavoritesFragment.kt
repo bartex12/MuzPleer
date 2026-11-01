@@ -364,7 +364,7 @@ class FavoritesFragment: Fragment() {
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
-                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
             }
             override fun onPrepareMenu(menu: Menu) {
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
@@ -380,7 +380,7 @@ class FavoritesFragment: Fragment() {
                 editItem?.icon?.setTint(color)
 
                 // Обновляем текст кнопки
-                editItem?.title = if (isEditMode) "Готово" else "Редактировать порядок"
+                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
 
                 // вычисляем количество песен в списке
                 val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
