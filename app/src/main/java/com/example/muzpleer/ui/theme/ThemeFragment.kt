@@ -52,6 +52,7 @@ class ThemeFragment : Fragment() {
         buildColorRow()
         buildPanelRow()
         renderPreview()
+        applyPanelLive()
 
         binding.btnChangeBackground.setOnClickListener {
             findNavController().navigate(R.id.backgroundFragment)
@@ -96,6 +97,17 @@ class ThemeFragment : Fragment() {
         }
     }
 
+    //выбранные панели сразу видны и на живых элементах: тулбар, нижний плеер, кнопки этого экрана
+    private fun applyPanelLive() {
+        val ctx = requireContext()
+        val main = androidx.core.content.ContextCompat.getColor(ctx, ThemeManager.panelMainRes[selectedPanel])
+        val light = androidx.core.content.ContextCompat.getColor(ctx, ThemeManager.panelLightRes[selectedPanel])
+        (activity as? com.example.muzpleer.MainActivity)?.previewPanelColor(main)
+        val tint = android.content.res.ColorStateList.valueOf(light)
+        binding.btnChangeBackground.backgroundTintList = tint
+        binding.btnApplyTheme.backgroundTintList = tint
+    }
+
     //ряд пар цветов панелей: кружок разделён на основной и светлый цвет
     private fun buildPanelRow() {
         val row = binding.panelColorsRow
@@ -121,6 +133,7 @@ class ThemeFragment : Fragment() {
                 selectedPanel = i
                 buildPanelRow()
                 renderPreview()
+                applyPanelLive()
             }
             row.addView(dot)
         }
@@ -193,8 +206,9 @@ class ThemeFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        //ушли с экрана без «Применить»: возвращаем сохранённый фон
+        //ушли с экрана без «Применить»: возвращаем сохранённый фон и цвет панелей
         activity?.takeIf { !it.isFinishing && !it.isDestroyed }?.let {
+            (it as? com.example.muzpleer.MainActivity)?.previewPanelColor(null)
             AppBackground.applyToWindow(it, AppBackground.load(it))
         }
         AppBackground.pending = null
