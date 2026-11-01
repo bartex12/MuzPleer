@@ -26,6 +26,12 @@
         app:icon="@drawable/ic_pref_image" />
 
     <Preference
+        android:key="pref_sleep_timer"
+        android:layout="@layout/preference_item_white"
+        android:title="@string/sleep_timer_title"
+        app:icon="@drawable/ic_timer_24" />
+
+    <Preference
         android:key="pref_duplicates"
         android:layout="@layout/preference_item_white"
         android:title="@string/duplicates_title"
