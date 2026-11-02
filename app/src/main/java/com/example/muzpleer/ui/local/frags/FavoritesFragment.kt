@@ -5,20 +5,15 @@ import com.example.muzpleer.util.applyShuffleIcon
 import com.example.muzpleer.util.accentColor
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -41,9 +36,7 @@ import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.syncShuffleIcon
-import com.example.muzpleer.util.toast
 import com.google.android.material.snackbar.Snackbar
-import com.google.android.material.textfield.TextInputLayout
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class FavoritesFragment: Fragment() {
@@ -56,6 +49,8 @@ class FavoritesFragment: Fragment() {
     private lateinit var adapter: FavoritesAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
+    private var searchMenuItem: MenuItem? = null //пункт поиска в тулбаре
+    private var currentSearchQuery = ""
     private var totalSongsCount = 0  // Храним общее количество песен (не отфильтрованных)
     private lateinit var navController: NavController
 
@@ -100,16 +95,13 @@ class FavoritesFragment: Fragment() {
             adapter=this@FavoritesFragment.adapter
         }
 
-        // Настраиваем поиск
-        setupSearch()
-
         //загружаем избранные песни
         favoritesViewModel.loadFavoriteSongs()
 
         // Слушаем ОБЩИЙ список избранных песен (не отфильтрованный)
         favoritesViewModel.favoriteSongs.observe(viewLifecycleOwner) { allFavorites ->
             totalSongsCount = allFavorites.size
-            updateSearchVisibility()
+            activity?.invalidateOptionsMenu()  //строка поиска в тулбаре есть, только если в избранном есть треки
 
             Log.d(TAG, "###FavoritesFragment total songs: $totalSongsCount")
         }
@@ -156,153 +148,9 @@ class FavoritesFragment: Fragment() {
         }
     }
 
-    private fun setupSearch() {
-        // Устанавливаем слушатель на иконку поиска
-        binding.inputLayoutSearch.setEndIconOnClickListener {
-            performSearch()
-        }
-
-        // Устанавливаем слушатель на нажатие Enter на клавиатуре
-        binding.inputEditTextSearch.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                performSearch()
-                hideKeyboard()
-                return@setOnEditorActionListener true
-            }
-            false
-        }
-
-        // Устанавливаем TextWatcher для поиска при вводе текста
-        binding.inputEditTextSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Не нужно
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Ищем при каждом изменении текста
-                s?.let { query ->
-                    favoritesViewModel.filterFavoriteSongs(query.toString())
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                val hasText = s?.isNotEmpty() == true
-                binding.inputLayoutSearch.endIconMode =
-                    if (hasText) TextInputLayout.END_ICON_CLEAR_TEXT
-                    else TextInputLayout.END_ICON_CUSTOM
-                binding.inputLayoutSearch.setEndIconDrawable(
-                    if (hasText) R.drawable.baseline_close_24
-                    else R.drawable.baseline_search_24
-                )
-            }
-        })
-
-        // Очистка по нажатию на иконку
-        binding.inputLayoutSearch.setEndIconOnClickListener {
-            if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
-                binding.inputEditTextSearch.text?.clear()
-                favoritesViewModel.filterFavoriteSongs("")
-            } else {
-                performSearch()
-            }
-        }
-
-        // Перехватываем нажатие кнопки "Назад" для поля ввода
-        setupBackButtonHandler()
-    }
-
-    // Перехватываем события клавиатуры для кнопки "Назад"
-    private fun setupBackButtonHandler() {
-        binding.inputEditTextSearch.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                if (binding.inputEditTextSearch.hasFocus()) {
-                    // Скрываем клавиатуру и убираем фокус ТОЛЬКО при нажатии Back
-                    hideKeyboardAndClearFocus()
-                    return@setOnKeyListener true
-                }
-            }
-            false
-        }
-    }
-
-    private fun hideKeyboardAndClearFocus() {
-        // Убираем фокус с поля
-        binding.inputEditTextSearch.clearFocus()
-
-        // Гарантированно скрываем курсор
-        binding.inputEditTextSearch.isCursorVisible = false
-
-        //стираем текст в поле ввода и показываем весь список
-        if (binding.inputEditTextSearch.text?.isNotEmpty() == true) {
-            binding.inputEditTextSearch.text?.clear()
-            favoritesViewModel.filterFavoriteSongs("")
-        }
-
-        // Скрываем клавиатуру
-        hideKeyboard()
-
-        Log.d(TAG, "hideKeyboardAndClearFocus: фокус снят, курсор скрыт")
-    }
-
-    private fun performSearch() {
-        val query = binding.inputEditTextSearch.text.toString().trim()
-        if (query.isNotEmpty()) {
-            favoritesViewModel.filterFavoriteSongs(query)
-            hideKeyboard()
-        } else {
-            toast("Введите текст для поиска")
-        }
-    }
-
     private fun hideKeyboard() {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(binding.inputEditTextSearch.windowToken, 0)
-    }
-
-    private fun updateSearchVisibility() {
-        // Показываем строку поиска только если ЕСТЬ песни в избранном
-        val shouldShowSearch = totalSongsCount > 0
-
-        if (shouldShowSearch) {
-            // Показываем строку поиска с анимацией
-            if (binding.inputLayoutSearch.visibility != View.VISIBLE) {
-                binding.inputLayoutSearch.visibility = View.VISIBLE
-                binding.inputLayoutSearch.alpha = 0f
-                binding.inputLayoutSearch.animate()
-                    .alpha(1f)
-                    .setDuration(300)
-                    .start()
-
-                // Обновляем constraints для RecyclerView
-                val params = binding.favoriteRecyclerView.layoutParams as ConstraintLayout.LayoutParams
-                params.topToTop = ConstraintLayout.LayoutParams.UNSET
-                params.topToBottom = binding.inputLayoutSearch.id
-                binding.favoriteRecyclerView.layoutParams = params
-            }
-        } else {
-            // Скрываем строку поиска с анимацией
-            if (binding.inputLayoutSearch.visibility != View.GONE) {
-                binding.inputLayoutSearch.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .withEndAction {
-                        binding.inputLayoutSearch.visibility = View.GONE
-                        // Обновляем constraints для RecyclerView
-                        val params = binding.favoriteRecyclerView.layoutParams as ConstraintLayout.LayoutParams
-                        params.topToBottom = ConstraintLayout.LayoutParams.UNSET
-                        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        binding.favoriteRecyclerView.layoutParams = params
-                    }
-                    .start()
-
-                // Очищаем текст поиска
-                binding.inputEditTextSearch.text?.clear()
-                favoritesViewModel.filterFavoriteSongs("")
-                hideKeyboard()
-            }
-        }
-
-        Log.d(TAG, "updateSearchVisibility: totalSongsCount=$totalSongsCount, shouldShowSearch=$shouldShowSearch")
+        imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
     override fun onResume() {
@@ -317,6 +165,12 @@ class FavoritesFragment: Fragment() {
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
     override fun onPause() {
         super.onPause()
+
+        //при уходе с экрана поиск закрывается: при возврате список не должен остаться урезанным
+        hideKeyboard()
+        searchMenuItem?.collapseActionView()
+        currentSearchQuery = ""
+        favoritesViewModel.filterFavoriteSongs("")
 
         // Сбрасываем режим редактирования при уходе с фрагмента
         resetEditModeOnPause()
@@ -361,6 +215,7 @@ class FavoritesFragment: Fragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_favorites, menu)
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
+                setupSearchItem(menu)
 
                 // Показываем/скрываем пункт в зависимости от режима
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
@@ -370,6 +225,8 @@ class FavoritesFragment: Fragment() {
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
                 super.onPrepareMenu(menu)
                 val editItem = menu.findItem(R.id.action_edit_order_favorite)
+                //поиск нужен, только если в избранном есть треки
+                menu.findItem(R.id.search_toolbar_favorite)?.isVisible = totalSongsCount > 0
 
                 // Меняем цвет в зависимости от режима
                 val color = if (isEditMode) {
@@ -423,6 +280,38 @@ class FavoritesFragment: Fragment() {
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    //строка поиска в тулбаре, как в списке «Все треки»
+    private fun setupSearchItem(menu: Menu) {
+        val searchItem = menu.findItem(R.id.search_toolbar_favorite) ?: return
+        searchMenuItem = searchItem
+        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+        searchView.setIconifiedByDefault(true)
+        searchView.queryHint = getString(R.string.search_favorite)
+        //сохраняем состояние поиска при пересоздании меню и повороте экрана
+        if (currentSearchQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(currentSearchQuery, false)
+        }
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                currentSearchQuery = newText.orEmpty()
+                favoritesViewModel.filterFavoriteSongs(currentSearchQuery)
+                return true
+            }
+        })
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                currentSearchQuery = ""
+                favoritesViewModel.filterFavoriteSongs("")
+                return true
+            }
+        })
     }
 
     private fun toggleEditMode() {

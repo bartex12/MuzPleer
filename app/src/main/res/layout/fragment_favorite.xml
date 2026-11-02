@@ -5,38 +5,6 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/input_layout_search"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:hint="@string/search_favorite"
-        android:theme="@style/WhiteTextInputLayoutOverlay"
-        android:visibility="gone"
-        app:boxCornerRadiusBottomEnd="20dp"
-        app:boxCornerRadiusTopStart="20dp"
-        app:counterEnabled="true"
-        app:counterMaxLength="30"
-        app:counterTextColor="@android:color/white"
-        app:endIconCheckable="true"
-        app:endIconDrawable="@drawable/baseline_search_24"
-        app:endIconMode="custom"
-        app:endIconTint="@android:color/white"
-        app:helperText="Найдите трек в списке треков"
-        app:helperTextTextColor="@android:color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
-
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_edit_text_search"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white" />
-    </com.google.android.material.textfield.TextInputLayout>
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/favoriteRecyclerView"
         android:layout_width="match_parent"
@@ -46,7 +14,7 @@
         android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@layout/item_music" />
 
@@ -60,7 +28,7 @@
         android:src="@drawable/answer300"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search"
+        app:layout_constraintTop_toTopOf="parent"
         tools:visibility="visible"/>
 
         <TextView
