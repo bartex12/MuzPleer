@@ -204,6 +204,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.helpFragment -> R.string.help
                 R.id.themeFragment -> R.string.change_theme
                 R.id.backgroundFragment -> R.string.change_background
+                R.id.generateBackgroundFragment -> R.string.gen_bg_title
                 R.id.duplicatesFragment -> R.string.duplicates_title
                 R.id.splashImageFragment -> R.string.splash_image_title
                 R.id.choosePlaylistFragment -> R.string.choose_playlist_title

@@ -142,6 +142,15 @@ object AppBackground {
         else -> ContextCompat.getDrawable(context, R.drawable.item_list_effects_revers)!!
     }
 
+    /** Сохраняет сгенерированную картинку как своё фото (JPEG в памяти приложения); возвращает путь. Не в основном потоке. */
+    fun saveGenerated(context: Context, bitmap: Bitmap): String? = try {
+        val file = File(context.filesDir, "$PHOTO_PREFIX${System.currentTimeMillis()}.jpg")
+        file.outputStream().use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+        file.absolutePath
+    } catch (e: Exception) {
+        null
+    }
+
     /** Копия выбранного снимка в память приложения, уменьшенная и с учётом поворота. Вызывать не в основном потоке. */
     fun importPhoto(context: Context, uri: Uri, prefix: String = PHOTO_PREFIX): String? {
         return try {

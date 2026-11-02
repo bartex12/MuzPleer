@@ -19,6 +19,8 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentBackgroundBinding
 import com.example.muzpleer.util.AppBackground
 import com.example.muzpleer.util.BgSpec
+import com.example.muzpleer.util.landscape.LandscapeKind
+import com.example.muzpleer.util.panelLightColor
 import com.example.muzpleer.util.toast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,10 +65,39 @@ class BackgroundFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         spec = AppBackground.pending ?: AppBackground.load(requireContext())
         render()
+        buildGenerateChips()
         //режим замены фото: переключатель под рядом фото
         binding.cbReplaceSelected.isChecked = AppBackground.isReplaceSelected(requireContext())
         binding.cbReplaceSelected.setOnCheckedChangeListener { _, checked ->
             AppBackground.setReplaceSelected(requireContext(), checked)
+        }
+    }
+
+    //чипсы генерации фона: тип пейзажа передаётся на экран генерации
+    private fun buildGenerateChips() {
+        val ctx = requireContext()
+        val kinds = listOf(
+            LandscapeKind.CLOUDS to R.string.gen_bg_kind_clouds,
+            LandscapeKind.CLOUD_LAKE to R.string.gen_bg_kind_cloud_lake,
+            LandscapeKind.FOREST to R.string.gen_bg_kind_forest,
+            LandscapeKind.FOREST_LAKE to R.string.gen_bg_kind_forest_lake
+        )
+        val group = binding.chipsGenerate
+        group.removeAllViews()
+        for ((kind, res) in kinds) {
+            val chip = com.google.android.material.chip.Chip(ctx).apply {
+                setText(res)
+                isCheckable = false
+                chipBackgroundColor = android.content.res.ColorStateList.valueOf(ctx.panelLightColor())
+                setTextColor(Color.WHITE)
+                chipStrokeColor = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                chipStrokeWidth = resources.displayMetrics.density
+                setOnClickListener {
+                    androidx.navigation.fragment.NavHostFragment.findNavController(this@BackgroundFragment)
+                        .navigate(R.id.generateBackgroundFragment, Bundle().apply { putInt(GenerateBackgroundFragment.ARG_KIND, kind.ordinal) })
+                }
+            }
+            group.addView(chip)
         }
     }
 

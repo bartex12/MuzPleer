@@ -42,6 +42,11 @@
         android:label="@string/change_background"
         tools:layout="@layout/fragment_background" />
     <fragment
+        android:id="@+id/generateBackgroundFragment"
+        android:name="com.example.muzpleer.ui.theme.GenerateBackgroundFragment"
+        android:label="@string/gen_bg_title"
+        tools:layout="@layout/fragment_generate_background" />
+    <fragment
         android:id="@+id/downloadFragment"
         android:name="com.example.muzpleer.ui.download.DownloadFragment"
         android:label="@string/download_track"
