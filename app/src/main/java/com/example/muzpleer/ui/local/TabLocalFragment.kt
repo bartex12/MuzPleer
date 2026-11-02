@@ -7,12 +7,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.compose.ui.res.colorResource
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.MainActivity
-import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentTabslocalBinding
 import com.example.muzpleer.ui.local.adapters.ViewPageAdapterLocal
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel

@@ -1,7 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.util.Log
@@ -26,9 +25,7 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
-import com.example.muzpleer.databinding.ActivityMainBinding
 import com.example.muzpleer.databinding.FragmentCoverChangeBinding
-import com.example.muzpleer.model.Song
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker

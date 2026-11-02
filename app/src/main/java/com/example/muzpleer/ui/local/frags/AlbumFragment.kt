@@ -20,7 +20,6 @@ import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentAlbumBinding
 import com.example.muzpleer.model.Album
-import com.example.muzpleer.model.Folder
 import com.example.muzpleer.ui.local.adapters.AlbumsAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel

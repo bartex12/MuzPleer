@@ -23,7 +23,6 @@ import com.example.muzpleer.databinding.FragmentSongsBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.SourceType
-import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.SongsAdapter
