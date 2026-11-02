@@ -101,7 +101,7 @@ class FavoritesFragment: Fragment() {
         // Слушаем ОБЩИЙ список избранных песен (не отфильтрованный)
         favoritesViewModel.favoriteSongs.observe(viewLifecycleOwner) { allFavorites ->
             totalSongsCount = allFavorites.size
-            activity?.invalidateOptionsMenu()  //строка поиска в тулбаре есть, только если в избранном есть треки
+            updateMenuVisibility()  //строка поиска в тулбаре есть, только если в избранном есть треки
 
             Log.d(TAG, "###FavoritesFragment total songs: $totalSongsCount")
         }
@@ -129,8 +129,8 @@ class FavoritesFragment: Fragment() {
                 binding.favoriteEmpty.text = "Здесь пока нет ни одного трека"
             }
 
-            // обновляем меню при загрузке данных
-            requireActivity().invalidateOptionsMenu()
+            //пункты меню обновляем на месте: пересоздание меню во время ввода закрывало бы строку поиска и сбрасывало раскладку клавиатуры
+            updateMenuVisibility()
         }
 
         //восстанавливаем позицию списка после поворота или возвращения на экран и при новой загрузке
@@ -186,6 +186,8 @@ class FavoritesFragment: Fragment() {
         super.onDestroyView()
         // Сбрасываем режим редактирования при уничтожении вью
         resetEditModeOnPause()
+        favMenu = null
+        searchMenuItem = null
         _binding = null
     }
 
@@ -215,6 +217,7 @@ class FavoritesFragment: Fragment() {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_favorites, menu)
                 menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
+                favMenu = menu
                 setupSearchItem(menu)
 
                 // Показываем/скрываем пункт в зависимости от режима
@@ -280,6 +283,15 @@ class FavoritesFragment: Fragment() {
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    private var favMenu: Menu? = null
+
+    private fun updateMenuVisibility() {
+        val menu = favMenu ?: return
+        menu.findItem(R.id.search_toolbar_favorite)?.isVisible = totalSongsCount > 0
+        val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
+        menu.findItem(R.id.action_go_to_song_favorite)?.isVisible = songsCount > 7
     }
 
     //строка поиска в тулбаре, как в списке «Все треки»
