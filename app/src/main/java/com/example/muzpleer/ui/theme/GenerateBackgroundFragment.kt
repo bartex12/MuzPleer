@@ -41,6 +41,10 @@ class GenerateBackgroundFragment : Fragment() {
     private var palette = -1          // -1 - как выпадет по зерну
     private var water = 0.40f
     private var clouds = 0.5f
+    private var density = 1f
+    private var treeH = 1f
+    private var moonSize = 1f
+    private var moonPos = 0.65f
     private var kind = LandscapeKind.CLOUD_LAKE
 
     //размер окна приложения и видимая между тулбаром и плеером часть
@@ -61,6 +65,10 @@ class GenerateBackgroundFragment : Fragment() {
         palette = savedInstanceState?.getInt(KEY_PALETTE) ?: -1
         water = savedInstanceState?.getFloat(KEY_WATER) ?: 0.40f
         clouds = savedInstanceState?.getFloat(KEY_CLOUDS) ?: 0.5f
+        density = savedInstanceState?.getFloat(KEY_DENSITY) ?: 1f
+        treeH = savedInstanceState?.getFloat(KEY_TREEH) ?: 1f
+        moonSize = savedInstanceState?.getFloat(KEY_MOONSIZE) ?: 1f
+        moonPos = savedInstanceState?.getFloat(KEY_MOONPOS) ?: 0.65f
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -77,6 +85,21 @@ class GenerateBackgroundFragment : Fragment() {
         }
         bindSlider(binding.sbClouds, binding.tvClouds, { (clouds * 100).toInt() }, { clouds = it / 100f }) {
             getString(R.string.gen_bg_clouds, (clouds * 100).toInt())
+        }
+        val forest = !kind.hasClouds
+        for (row in listOf(binding.rowDensity, binding.rowTreeH, binding.rowMoonSize, binding.rowMoonPos))
+            row.visibility = if (forest) View.VISIBLE else View.GONE
+        bindSlider(binding.sbDensity, binding.tvDensity, { Math.round((density - 0.5f) * 20) }, { density = 0.5f + it * 0.05f }) {
+            getString(R.string.gen_bg_density, (density * 100).toInt())
+        }
+        bindSlider(binding.sbTreeH, binding.tvTreeH, { Math.round((treeH - 0.6f) * 20) }, { treeH = 0.6f + it * 0.05f }) {
+            getString(R.string.gen_bg_tree_height, (treeH * 100).toInt())
+        }
+        bindSlider(binding.sbMoonSize, binding.tvMoonSize, { Math.round((moonSize - 0.5f) * 20) }, { moonSize = 0.5f + it * 0.05f }) {
+            getString(R.string.gen_bg_moon_size, (moonSize * 100).toInt())
+        }
+        bindSlider(binding.sbMoonPos, binding.tvMoonPos, { (moonPos * 100).toInt() }, { moonPos = it / 100f }) {
+            getString(R.string.gen_bg_moon_pos, (moonPos * 100).toInt())
         }
         binding.rowWater.visibility = if (kind.hasWater) View.VISIBLE else View.GONE
         binding.rowClouds.visibility = if (kind.hasClouds) View.VISIBLE else View.GONE
@@ -170,7 +193,7 @@ class GenerateBackgroundFragment : Fragment() {
         })
     }
 
-    private fun params() = LandscapeParams(kind, seed, winW, winH, viewTop, viewBottom, water, clouds, palette)
+    private fun params() = LandscapeParams(kind, seed, winW, winH, viewTop, viewBottom, water, clouds, palette, density, treeH, moonSize, moonPos)
 
     //предпросмотр считается в уменьшенном размере, чтобы ползунки отзывались быстро
     private fun renderPreview() {
@@ -237,6 +260,10 @@ class GenerateBackgroundFragment : Fragment() {
         outState.putInt(KEY_PALETTE, palette)
         outState.putFloat(KEY_WATER, water)
         outState.putFloat(KEY_CLOUDS, clouds)
+        outState.putFloat(KEY_DENSITY, density)
+        outState.putFloat(KEY_TREEH, treeH)
+        outState.putFloat(KEY_MOONSIZE, moonSize)
+        outState.putFloat(KEY_MOONPOS, moonPos)
     }
 
     override fun onDestroyView() {
@@ -250,6 +277,10 @@ class GenerateBackgroundFragment : Fragment() {
         private const val KEY_SEED = "gen_seed"
         private const val KEY_PALETTE = "gen_palette"
         private const val KEY_WATER = "gen_water"
+        private const val KEY_DENSITY = "gen_density"
+        private const val KEY_TREEH = "gen_treeh"
+        private const val KEY_MOONSIZE = "gen_moonsize"
+        private const val KEY_MOONPOS = "gen_moonpos"
         private const val KEY_CLOUDS = "gen_clouds"
         const val ARG_KIND = "kind"
         private const val PREVIEW_LONG_SIDE = 800f

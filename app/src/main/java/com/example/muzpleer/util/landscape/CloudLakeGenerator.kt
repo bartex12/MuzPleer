@@ -47,12 +47,16 @@ class LandscapeParams(
     val viewBottom: Float,
     val water: Float = 0.40f,     // доля видимой высоты под водой
     val cover: Float = 0.5f,      // облачность 0..1
-    val palette: Int = -1         // облака: 0 день, 1 закат, 2 ночь, 3 пасмурно; лес: 0 синий, 1 розовый, 2 серый; -1 - по зерну
+    val palette: Int = -1,        // облака: 0 день, 1 закат, 2 ночь, 3 пасмурно; лес: 0 синий, 1 розовый, 2 серый; -1 - по зерну
+    val density: Float = 1f,      // лес: густота, 0.5..2
+    val treeHeight: Float = 1f,   // лес: высота деревьев, 0.6..1.6
+    val moonSize: Float = 1f,     // лес: размер луны, 0.5..1.6
+    val moonPos: Float = -1f      // лес: положение луны по горизонтали 0..1; отрицательное - по зерну
 ) {
     /** Те же параметры в другом размере (для предпросмотра): всё пропорционально. */
     fun scaled(s: Float) = LandscapeParams(
         kind, seed, (width * s).roundToInt().coerceAtLeast(1), (height * s).roundToInt().coerceAtLeast(1),
-        viewTop * s, viewBottom * s, water, cover, palette
+        viewTop * s, viewBottom * s, water, cover, palette, density, treeHeight, moonSize, moonPos
     )
 }
 

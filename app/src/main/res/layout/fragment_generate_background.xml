@@ -102,6 +102,106 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/rowDensity"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvDensity"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/sbDensity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="30"
+            android:progressTint="?attr/appAccent"
+            android:thumbTint="?attr/appAccent" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowTreeH"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvTreeH"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/sbTreeH"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="20"
+            android:progressTint="?attr/appAccent"
+            android:thumbTint="?attr/appAccent" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowMoonSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvMoonSize"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/sbMoonSize"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="22"
+            android:progressTint="?attr/appAccent"
+            android:thumbTint="?attr/appAccent" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/rowMoonPos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvMoonPos"
+            android:layout_width="130dp"
+            android:layout_height="wrap_content"
+            android:textColor="@color/white"
+            android:textSize="13sp" />
+
+        <SeekBar
+            android:id="@+id/sbMoonPos"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="100"
+            android:progressTint="?attr/appAccent"
+            android:thumbTint="?attr/appAccent" />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"

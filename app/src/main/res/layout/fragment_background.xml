@@ -83,6 +83,13 @@
             style="@style/ThemeSectionTitle"
             android:text="@string/gen_bg_title" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gen_bg_try_hint"
+            android:textColor="@color/secondary_text"
+            android:textSize="12sp" />
+
         <com.google.android.material.chip.ChipGroup
             android:id="@+id/chipsGenerate"
             android:layout_width="match_parent"

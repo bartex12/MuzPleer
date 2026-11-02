@@ -31,8 +31,9 @@ class ForestGenerator(
     private val W = p.width
     private val H = p.height
     private val u = min(W, H) / 900f
-    private val fq = 1.25f
+    private val fq = 1.25f * p.density
     private var tall = 1f
+    private val hk get() = p.treeHeight
 
     private val seedMix = mixSeed(p.seed.toLong())
     private val rnd = ProcessingRandom(seedMix)
@@ -68,9 +69,11 @@ class ForestGenerator(
             ox = rnd.random(100f, 1000f)
             oz = rnd.random(100f, 1000f)
             // луна: над лесом и так, чтобы её отражение попало в воду
-            moonR = (if (H > W) 210f else 150f) * u
-            moonX = W * rnd.random(0.35f, 0.7f)
+            moonR = (if (H > W) 210f else 150f) * u * p.moonSize
+            val rx = rnd.random(0.35f, 0.7f)
+            moonX = W * (if (p.moonPos >= 0f) p.moonPos else rx)
             moonY = shore - moonR - rnd.random(0.12f, 0.3f) * (shore - p.viewTop)
+            moonY = max(moonY, p.viewTop + moonR * 0.3f)
             paint.color = c
             canvas.drawOval(RectF(moonX - moonR, moonY - moonR, moonX + moonR, moonY + moonR), paint)
             layer(0.275f, shore - 50 * u, 0.10f, 0.15f, 8, cb, cf)    // дальний план
@@ -83,7 +86,7 @@ class ForestGenerator(
             paint.color = c
             if (H > W) {   // вертикальный экран: четыре плана, деревья выше и стройнее
                 tall = max(1f, 1.65f * (viewH / W) / (2712f / 1220f))
-                val mx = W * 0.64f; val my = p.viewTop + viewH * 0.34f; val mr = 240 * u
+                val mx = W * (if (p.moonPos >= 0f) p.moonPos else 0.64f); val my = p.viewTop + viewH * 0.34f; val mr = 240 * u * p.moonSize
                 canvas.drawOval(RectF(mx - mr, my - mr, mx + mr, my + mr), paint)
                 layer(0.20f, vb - 110 * u, 0.05f, 0.10f, 8, cb, cf)
                 layer(0.35f, vb - 80 * u, 0.25f, 0.32f, 9, cb, cf)
@@ -91,7 +94,7 @@ class ForestGenerator(
                 layer(1.10f, vb - 20 * u, 0.80f, 1.00f, 12, cb, cf)
             } else {
                 tall = 1f
-                val mx = W * 0.7f; val my = p.viewTop + viewH * 0.45f; val mr = 225 * u
+                val mx = W * (if (p.moonPos >= 0f) p.moonPos else 0.7f); val my = p.viewTop + viewH * 0.45f; val mr = 225 * u * p.moonSize
                 canvas.drawOval(RectF(mx - mr, my - mr, mx + mr, my + mr), paint)
                 layer(0.275f, vb - 50 * u, 0.10f, 0.15f, 8, cb, cf)
                 layer(0.55f, vb - 40 * u, 0.40f, 0.50f, 10, cb, cf)
@@ -211,7 +214,7 @@ class ForestGenerator(
     private fun bush(x: Float, sz0: Float, rb: Float, rj: Float, d: Int) {
         val sz = sz0 * rnd.random(0.3f, 0.5f)
         canvas.save()
-        canvas.translate(x, levelAt(x) + rnd.random(100f, 200f) * sz * u * tall)
+        canvas.translate(x, levelAt(x) + rnd.random(100f, 200f) * sz * u * tall * hk)
         canvas.rotate(Math.toDegrees(rnd.random(-0.1f, 0.1f).toDouble()).toFloat())
         branch(sz, rb, rj, d, true)
         canvas.restore()
@@ -227,7 +230,7 @@ class ForestGenerator(
 
     private fun branch(sz: Float, b: Float, j: Float, d: Int, s: Boolean) {
         val w = 12 * sz * u
-        val len = 135 * sz * u * tall
+        val len = 135 * sz * u * tall * hk
         val sc = if (s) 0.8f else 0.9f
         if (d > 0) {
             val v = rnd.random(1f) < 0.6f

@@ -192,6 +192,11 @@
     <string name="gen_bg_use">Использовать</string>
     <string name="gen_bg_water">Вода: %1$d%%</string>
     <string name="gen_bg_clouds">Облака: %1$d%%</string>
+    <string name="gen_bg_density">Густота: %1$d%%</string>
+    <string name="gen_bg_tree_height">Деревья: %1$d%%</string>
+    <string name="gen_bg_moon_size">Луна: %1$d%%</string>
+    <string name="gen_bg_moon_pos">Луна: слева %1$d%%</string>
+    <string name="gen_bg_try_hint">Попробуйте сами создать фон с помощью генератора фона</string>
     <string name="gen_bg_info">Зерно %1$d, палитра: %2$s</string>
     <string name="gen_bg_failed">Не удалось сохранить фон</string>
     <string name="gen_bg_pal_any">Любая</string>
