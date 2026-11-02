@@ -177,23 +177,6 @@ class FoldersAdapter(
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
 
-//    private fun showPopupMenu(view: View, folder: Folder) {
-//        val context = view.context
-//        val popup = PopupMenu(context, view)
-//        popup.menuInflater.inflate(R.menu.level_item_menu, popup.menu)
-//
-//        popup.setOnMenuItemClickListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.action_change_cover_level -> {  //изменить обложку плейлиста
-//                    navigateToChangeLevelCover(view, folder)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
-//        popup.show()
-//    }
-
     private fun navigateToChangeLevelCover(view: View,  folder: Folder) {
         //сразу, до перехода: иначе экран замены откроется с обложкой, оставшейся от другого списка
         viewModel.setCoverImageUriLevel(folder.artworkUri)

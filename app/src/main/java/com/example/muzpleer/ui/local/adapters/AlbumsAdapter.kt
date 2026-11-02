@@ -173,23 +173,6 @@ class AlbumsAdapter(
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
 
-//    private fun showPopupMenu2(view: View, album: Album) {
-//        val context = view.context
-//        val popup = PopupMenu(context, view)
-//        popup.menuInflater.inflate(R.menu.level_item_menu, popup.menu)
-//
-//        popup.setOnMenuItemClickListener { menuItem ->
-//            when (menuItem.itemId) {
-//                R.id.action_change_cover_level -> {  //изменить обложку плейлиста
-//                    navigateToChangeLevelCover(view, album)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
-//        popup.show()
-//    }
-
     private fun navigateToChangeLevelCover(view: View,  album: Album) {
         Log.d(TAG, "-=- AlbumsAdapter navigateToChangeLevelCover: " +
                 "album = ${album.title} id = ${album.id} albumId = ${album.albumId} artworkUri = ${album.artworkUri.toString()}")

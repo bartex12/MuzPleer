@@ -213,57 +213,6 @@ class PlaylistAdapter(
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
     }
 
-//    private fun showPopupMenu(view: View, playlist: Playlist) {
-//        val context = view.context
-//        val popup = PopupMenu(context, view)
-//        popup.menuInflater.inflate(R.menu.playlist_item_menu, popup.menu)
-//
-//        // Скрываем или показываем пункт в зависимости от содержимого
-//        val deleteSongsItem = popup.menu.findItem(R.id.delete_song_from_playlist)
-//        if (playlist.playlistSongs.isEmpty()) {
-//            // Если пусто - меняем текст и отключаем
-//            deleteSongsItem?.title = "Плейлист пуст"
-//            deleteSongsItem?.isEnabled = false
-//        } else {
-//            // Если есть песни - показываем нормальный текст
-//            deleteSongsItem?.title = "Удалить песни из плейлиста"
-//            deleteSongsItem?.isEnabled = true
-//        }
-//
-//        popup.setOnMenuItemClickListener { menuItem ->
-//            when (menuItem.itemId) {
-//
-//                R.id.add_song_to_playlist -> {  //добавить песню в плейлист
-//                    navigateToAddSongsSource(view, playlist)
-//                    true
-//                }
-//                R.id.action_change_cover_playlist -> {  //изменить обложку плейлиста
-//                    navigateToChangePlaylistCover(view, playlist)
-//                    true
-//                }
-//                R.id.rename_playlist -> { //переименовать плейлист
-//                    showRenameDialog(context, playlist)
-//                    true
-//                }
-//                R.id.delete_song_from_playlist -> {
-//                    if (playlist.playlistSongs.isNotEmpty()) {
-//                        navigateToRemoveSongsFromPlaylist(view, playlist)
-//                        true
-//                    } else {
-//                        // Просто игнорируем нажатие на неактивный пункт
-//                        false
-//                    }
-//                }
-//                R.id.delete_playlist -> {  //удалить плейлист
-//                    showDeleteDialog(context, playlist)
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
-//        popup.show()
-//    }
-
     // Новый метод для навигации к удалению песен
     private fun navigateToRemoveSongsFromPlaylist(view: View, playlist: Playlist) {
         // Создаем Bundle для передачи данных
@@ -304,19 +253,6 @@ class PlaylistAdapter(
 
         dialog.show()
     }
-
-//    fun showDeleteDialog(context:Context, playlist: Playlist) {
-//        val deleteDialog = AlertDialog.Builder(context)
-//        deleteDialog.setTitle("Удалить: Вы уверены?")
-//        deleteDialog.setPositiveButton("Нет") { _, _ ->
-//            //ничего не делаем
-//            deleteDialog.create().dismiss()
-//        }
-//        deleteDialog.setNegativeButton("Да" ) { _, _ -> //поручаем удаление файла ViewModel
-//            playlistsViewModel.deletePlaylist(playlist.id)
-//        }
-//        deleteDialog.show()
-//    }
 
     private fun showRenameDialog(context: Context, playlist: Playlist) {
         val dialogView = LayoutInflater.from(context)
@@ -378,54 +314,6 @@ class PlaylistAdapter(
 
         dialog.show()
     }
-
-//    private fun showRenameDialog(context: Context, playlist: Playlist) {
-//        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_rename_playlist, null)
-//        val editText = dialogView.findViewById<EditText>(R.id.rename_edit_text)
-//        val textLayout = dialogView.findViewById<TextInputLayout>(R.id.rename_text_layout)
-//
-//        editText.setText(playlist.playlistName)
-//        editText.setSelection(playlist.playlistName.length)
-//
-//        val dialog = AlertDialog.Builder(context)
-//            .setTitle("Переименовать плейлист")
-//            .setView(dialogView)
-//            .setPositiveButton("Сохранить", null) // Обработчик установим позже
-//            .setNegativeButton("Отмена") { dialog, _ ->
-//                dialog.dismiss()
-//            }
-//            .create()
-//
-//        // Показываем клавиатуру
-//        dialog.setOnShowListener {
-//            editText.requestFocus()
-//            val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-//            imm.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
-//        }
-//
-//        // Обработка кнопки Сохранить с валидацией
-//        dialog.setOnShowListener {
-//            val positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
-//            positiveButton.setOnClickListener {
-//                val newName = editText.text.toString().trim()
-//
-//                when {
-//                    newName.isEmpty() -> {
-//                        textLayout.error = "Название не может быть пустым"
-//                    }
-//                    newName == playlist.playlistName -> {
-//                        dialog.dismiss()
-//                    }
-//                    else -> {
-//                        playlistsViewModel.renamePlaylist(playlist.id, newName)
-//                        dialog.dismiss()
-//                    }
-//                }
-//            }
-//        }
-//
-//        dialog.show()
-//    }
 
     //Окно ввода желаемой длительности плейлиста (часы, минуты, секунды)
     private fun showTimeLimitDialog(view: View, playlist: Playlist) {
