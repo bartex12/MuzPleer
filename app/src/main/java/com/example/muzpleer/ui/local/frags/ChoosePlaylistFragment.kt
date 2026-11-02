@@ -28,12 +28,14 @@ class ChoosePlaylistFragment :Fragment()  {
     private lateinit var adapter: PlaylistChooseAdapter
     private var songId: Long = -1L
     private var songTitle: String = ""
+    private var previousTitle: String? = null
 
     companion object {
         const val TAG = "33333"
         const val TAG1 = "ChoosePlaylistFragment"
         private const val ARG_SONG_ID = "song_id"
         private const val ARG_SONG_TITLE = "song_title"
+        private const val KEY_PREV_TITLE = "prev_title"
 
         fun newInstance(songId: Long, songTitle: String): ChoosePlaylistFragment {
             return ChoosePlaylistFragment().apply {
@@ -53,6 +55,14 @@ class ChoosePlaylistFragment :Fragment()  {
             songId = it.getLong(ARG_SONG_ID, -1L)
             songTitle = it.getString(ARG_SONG_TITLE, "")
         }
+        //заголовок экрана, с которого пришли: вернём его, уходя отсюда
+        previousTitle = savedInstanceState?.getString(KEY_PREV_TITLE)
+            ?: (requireActivity() as? MainActivity)?.getCurrentTitle()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(KEY_PREV_TITLE, previousTitle)
     }
 
     override fun onCreateView(
@@ -167,12 +177,21 @@ class ChoosePlaylistFragment :Fragment()  {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    override fun onResume() {
+        super.onResume()
+        //экран, с которого пришли (альбом, папка, исполнитель), при закрытии своего вида возвращает заголовок вкладок:
+        //ставим заголовок заново, когда этот экран уже на виду
+        updateToolbarTitle("Выбор плейлиста")
+        //и ещё раз после завершения смены экранов - на случай, если прежний экран сбросил заголовок позже
+        view?.post { if (_binding != null) updateToolbarTitle("Выбор плейлиста") }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         //фильтр общий для списка плейлистов: уходя, показываем все плейлисты
         playlistsViewModel.filterPlaylists("")
-        // Сбрасываем заголовок при уходе с фрагмента
-        (requireActivity() as? MainActivity)?.resetToTabTitle()
+        //возвращаем заголовок прежнего экрана (раньше ставился общий заголовок вкладок)
+        previousTitle?.let { updateToolbarTitle(it) } ?: (requireActivity() as? MainActivity)?.resetToTabTitle()
         _binding = null
     }
 
