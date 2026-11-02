@@ -203,6 +203,8 @@
     <string name="gen_bg_moon_pos">Луна: слева %1$d%%</string>
     <string name="gen_bg_try_hint">Попробуйте сами создать фон с помощью генератора фона</string>
     <string name="gen_bg_info">Зерно %1$d, палитра: %2$s</string>
+    <string name="gen_bg_share">Поделиться</string>
+    <string name="gen_bg_share_title">Поделиться фоном</string>
     <string name="gen_bg_failed">Не удалось сохранить фон</string>
     <string name="gen_bg_pal_any">Любая</string>
     <string name="gen_bg_pal_day">День</string>

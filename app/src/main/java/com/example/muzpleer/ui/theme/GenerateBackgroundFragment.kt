@@ -59,6 +59,7 @@ class GenerateBackgroundFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
         kind = LandscapeKind.values()[(arguments?.getInt(ARG_KIND) ?: LandscapeKind.CLOUD_LAKE.ordinal)
             .coerceIn(0, LandscapeKind.values().size - 1)]
         seed = savedInstanceState?.getInt(KEY_SEED) ?: newSeed()
@@ -216,6 +217,60 @@ class GenerateBackgroundFragment : Fragment() {
             binding.ivPreview.setImageBitmap(Bitmap.createBitmap(bmp, 0, top, bmp.width, h))
             binding.tvInfo.text = getString(R.string.gen_bg_info, seed, getString(palNames()[pal.coerceIn(0, palNames().size - 1)]))
             binding.progress.visibility = View.GONE
+        }
+    }
+
+    override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
+        inflater.inflate(R.menu.menu_share_generated, menu)
+        super.onCreateOptionsMenu(menu, inflater)
+    }
+
+    override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_share_generated) {
+            shareCurrent()
+            return true
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
+    //то, что сейчас в окне просмотра (видимая часть), пересчитывается в большем размере и уходит в другое приложение
+    private fun shareCurrent() {
+        if (binding.progress.visibility == View.VISIBLE) return
+        handler.removeCallbacks(regenerate)
+        job?.cancel()
+        binding.progress.visibility = View.VISIBLE
+        val appContext = requireContext().applicationContext
+        val full = params().scaled(min(1f, FULL_LONG_SIDE / max(winW, winH)))
+        job = viewLifecycleOwner.lifecycleScope.launch {
+            val ctxJob = coroutineContext[Job]
+            val uri = withContext(Dispatchers.Default) {
+                try {
+                    val bmp = createGenerator(full) { ctxJob?.isActive == false }.generate() ?: return@withContext null
+                    val top = full.viewTop.toInt().coerceIn(0, bmp.height - 1)
+                    val h = (full.viewBottom.toInt() - top).coerceIn(1, bmp.height - top)
+                    val visible = Bitmap.createBitmap(bmp, 0, top, bmp.width, h)
+                    val dir = java.io.File(appContext.cacheDir, "shared").apply { mkdirs() }
+                    dir.listFiles()?.forEach { it.delete() }
+                    val file = java.io.File(dir, "background_$seed.jpg")
+                    file.outputStream().use { visible.compress(Bitmap.CompressFormat.JPEG, 92, it) }
+                    androidx.core.content.FileProvider.getUriForFile(appContext, "${appContext.packageName}.fileprovider", file)
+                } catch (e: Exception) {
+                    null
+                }
+            }
+            if (_binding == null) return@launch
+            binding.progress.visibility = View.GONE
+            if (uri == null) {
+                toast(getString(R.string.gen_bg_failed))
+                return@launch
+            }
+            val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                type = "image/jpeg"
+                putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                clipData = android.content.ClipData.newRawUri(null, uri)
+                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(android.content.Intent.createChooser(send, getString(R.string.gen_bg_share_title)))
         }
     }
 
