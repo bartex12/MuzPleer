@@ -20,20 +20,6 @@
             android:textSize="14sp"
             android:textColor="@color/white" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnGenerateBg"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:background="@drawable/item_list_effects_stroke"
-            android:insetTop="0dp"
-            android:insetBottom="0dp"
-            android:letterSpacing="0"
-            android:minHeight="40dp"
-            android:text="@string/gen_bg_title"
-            android:textColor="@color/white"
-            android:textSize="14sp"
-            app:backgroundTint="@null" />
 
         <TextView
             style="@style/ThemeSectionTitle"
@@ -92,6 +78,16 @@
             android:text="@string/bg_replace_selected"
             android:textColor="@color/white"
             android:textSize="15sp" />
+
+        <TextView
+            style="@style/ThemeSectionTitle"
+            android:text="@string/gen_bg_title" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipsGenerate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:chipSpacingVertical="0dp" />
 
     </LinearLayout>
 </ScrollView>

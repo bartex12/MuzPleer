@@ -189,10 +189,9 @@
     <string name="sleep_timer_zero">Выберите время больше нуля</string>
     <string name="gen_bg_title">Сгенерировать фон</string>
     <string name="gen_bg_generate">Сгенерировать</string>
-    <string name="gen_bg_use">Использовать как фон</string>
+    <string name="gen_bg_use">Использовать</string>
     <string name="gen_bg_water">Вода: %1$d%%</string>
     <string name="gen_bg_clouds">Облака: %1$d%%</string>
-    <string name="gen_bg_ripple">Рябь: %1$d</string>
     <string name="gen_bg_info">Зерно %1$d, палитра: %2$s</string>
     <string name="gen_bg_failed">Не удалось сохранить фон</string>
     <string name="gen_bg_pal_any">Любая</string>
@@ -200,4 +199,11 @@
     <string name="gen_bg_pal_sunset">Закат</string>
     <string name="gen_bg_pal_night">Ночь</string>
     <string name="gen_bg_pal_overcast">Пасмурно</string>
+    <string name="gen_bg_pal_blue">Синий</string>
+    <string name="gen_bg_pal_pink">Розовый</string>
+    <string name="gen_bg_pal_gray">Серый</string>
+    <string name="gen_bg_kind_clouds">Облака</string>
+    <string name="gen_bg_kind_cloud_lake">Облака и вода</string>
+    <string name="gen_bg_kind_forest">Лес</string>
+    <string name="gen_bg_kind_forest_lake">Лес и вода</string>
 </resources>

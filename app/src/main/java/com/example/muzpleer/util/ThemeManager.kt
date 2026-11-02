@@ -34,6 +34,9 @@ object ThemeManager {
     val panelLightRes = intArrayOf(R.color.panel_1_light, R.color.panel_2_light, R.color.panel_3_light, R.color.panel_4_light, R.color.panel_5_light, R.color.panel_6_light, R.color.panel_7_light, R.color.panel_8_light)
     val panelOverlays = intArrayOf(R.style.PanelOverlay1, R.style.PanelOverlay2, R.style.PanelOverlay3, R.style.PanelOverlay4, R.style.PanelOverlay5, R.style.PanelOverlay6, R.style.PanelOverlay7, R.style.PanelOverlay8)
 
+    /** Выбранная на экране темы, но ещё не применённая пара панелей (null - нет). */
+    @Volatile var pendingPanel: Int? = null
+
     fun getPanelIndex(context: Context): Int {
         val index = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
             .getInt(KEY_PANEL, 0)
@@ -120,4 +123,12 @@ fun Context.panelColor(): Int {
     val value = TypedValue()
     return if (theme.resolveAttribute(R.attr.appPanel, value, true)) value.data
     else ContextCompat.getColor(this, R.color.colorPrimaryBlack)
+}
+
+/** Светлый цвет панелей (для кнопок): выбранный на экране темы, ещё не применённый, или из темы контекста. */
+fun Context.panelLightColor(): Int {
+    ThemeManager.pendingPanel?.let { return ContextCompat.getColor(this, ThemeManager.panelLightRes[it]) }
+    val value = TypedValue()
+    return if (theme.resolveAttribute(R.attr.appPanelLight, value, true)) value.data
+    else ContextCompat.getColor(this, R.color.panel_1_light)
 }

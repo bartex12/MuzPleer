@@ -54,6 +54,7 @@
     </HorizontalScrollView>
 
     <LinearLayout
+        android:id="@+id/rowWater"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -77,6 +78,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/rowClouds"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -102,29 +104,6 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvRipple"
-            android:layout_width="110dp"
-            android:layout_height="wrap_content"
-            android:textColor="@color/white"
-            android:textSize="13sp" />
-
-        <SeekBar
-            android:id="@+id/sbRipple"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:max="30"
-            android:progressTint="?attr/appAccent"
-            android:thumbTint="?attr/appAccent" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:orientation="horizontal">
 
@@ -134,13 +113,15 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="6dp"
             android:layout_weight="1"
-            android:background="@drawable/item_list_effects_stroke"
             android:letterSpacing="0"
             android:maxLines="1"
             android:text="@string/gen_bg_generate"
             android:textColor="@color/white"
             android:textSize="13sp"
-            app:backgroundTint="@null" />
+            app:backgroundTint="?attr/appPanelLight"
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnUse"
@@ -148,12 +129,14 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:background="@drawable/item_list_effects_stroke"
             android:letterSpacing="0"
             android:maxLines="1"
             android:text="@string/gen_bg_use"
             android:textColor="@color/white"
             android:textSize="13sp"
-            app:backgroundTint="@null" />
+            app:backgroundTint="?attr/appPanelLight"
+            app:cornerRadius="8dp"
+            app:strokeColor="@color/white"
+            app:strokeWidth="1dp" />
     </LinearLayout>
 </LinearLayout>

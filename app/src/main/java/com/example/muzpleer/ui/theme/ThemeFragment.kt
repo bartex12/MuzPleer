@@ -102,6 +102,7 @@ class ThemeFragment : Fragment() {
         val ctx = requireContext()
         val main = androidx.core.content.ContextCompat.getColor(ctx, ThemeManager.panelMainRes[selectedPanel])
         val light = androidx.core.content.ContextCompat.getColor(ctx, ThemeManager.panelLightRes[selectedPanel])
+        ThemeManager.pendingPanel = selectedPanel
         (activity as? com.example.muzpleer.MainActivity)?.previewPanelColor(main)
         val tint = android.content.res.ColorStateList.valueOf(light)
         binding.btnChangeBackground.backgroundTintList = tint
@@ -212,6 +213,7 @@ class ThemeFragment : Fragment() {
             AppBackground.applyToWindow(it, AppBackground.load(it))
         }
         AppBackground.pending = null
+        ThemeManager.pendingPanel = null
     }
 
     override fun onDestroyView() {

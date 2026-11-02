@@ -17,8 +17,10 @@ import com.example.muzpleer.R
 import com.example.muzpleer.databinding.FragmentGenerateBackgroundBinding
 import com.example.muzpleer.util.AppBackground
 import com.example.muzpleer.util.accentColor
-import com.example.muzpleer.util.landscape.CloudLakeGenerator
+import com.example.muzpleer.util.landscape.LandscapeKind
 import com.example.muzpleer.util.landscape.LandscapeParams
+import com.example.muzpleer.util.landscape.createGenerator
+import com.example.muzpleer.util.panelLightColor
 import com.example.muzpleer.util.toast
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +31,7 @@ import kotlin.coroutines.coroutineContext
 import kotlin.math.max
 import kotlin.math.min
 
-//экран «Сгенерировать фон»: облака в озере; палитра, доля воды, облачность и рябь, просмотр здесь же
+//экран «Сгенерировать фон»: облака / лес, с водой или без; палитра, доля воды, облачность, просмотр здесь же
 class GenerateBackgroundFragment : Fragment() {
 
     private var _binding: FragmentGenerateBackgroundBinding? = null
@@ -39,7 +41,7 @@ class GenerateBackgroundFragment : Fragment() {
     private var palette = -1          // -1 - как выпадет по зерну
     private var water = 0.40f
     private var clouds = 0.5f
-    private var ripple = 14f
+    private var kind = LandscapeKind.CLOUD_LAKE
 
     //размер окна приложения и видимая между тулбаром и плеером часть
     private var winW = 0
@@ -53,11 +55,12 @@ class GenerateBackgroundFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        kind = LandscapeKind.values()[(arguments?.getInt(ARG_KIND) ?: LandscapeKind.CLOUD_LAKE.ordinal)
+            .coerceIn(0, LandscapeKind.values().size - 1)]
         seed = savedInstanceState?.getInt(KEY_SEED) ?: newSeed()
         palette = savedInstanceState?.getInt(KEY_PALETTE) ?: -1
         water = savedInstanceState?.getFloat(KEY_WATER) ?: 0.40f
         clouds = savedInstanceState?.getFloat(KEY_CLOUDS) ?: 0.5f
-        ripple = savedInstanceState?.getFloat(KEY_RIPPLE) ?: 14f
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -75,9 +78,11 @@ class GenerateBackgroundFragment : Fragment() {
         bindSlider(binding.sbClouds, binding.tvClouds, { (clouds * 100).toInt() }, { clouds = it / 100f }) {
             getString(R.string.gen_bg_clouds, (clouds * 100).toInt())
         }
-        bindSlider(binding.sbRipple, binding.tvRipple, { ripple.toInt() }, { ripple = it.toFloat() }) {
-            getString(R.string.gen_bg_ripple, ripple.toInt())
-        }
+        binding.rowWater.visibility = if (kind.hasWater) View.VISIBLE else View.GONE
+        binding.rowClouds.visibility = if (kind.hasClouds) View.VISIBLE else View.GONE
+        val btnTint = ColorStateList.valueOf(requireContext().panelLightColor())
+        binding.btnGenerate.backgroundTintList = btnTint
+        binding.btnUse.backgroundTintList = btnTint
         binding.btnGenerate.setOnClickListener {
             seed = newSeed()
             renderPreview()
@@ -85,6 +90,8 @@ class GenerateBackgroundFragment : Fragment() {
         binding.btnUse.setOnClickListener { useAsBackground() }
         renderPreview()
     }
+
+    private fun palNames() = if (kind.hasClouds) CLOUD_PAL_NAMES else FOREST_PAL_NAMES
 
     private fun newSeed() = (System.currentTimeMillis() % 1000000).toInt()
 
@@ -110,26 +117,32 @@ class GenerateBackgroundFragment : Fragment() {
     }
 
     private fun buildPalette() {
-        val accent = requireContext().accentColor()
+        val ctx = requireContext()
         val states = arrayOf(intArrayOf(android.R.attr.state_checked), intArrayOf())
-        val bg = ColorStateList(states, intArrayOf(accent, 0x33FFFFFF))
-        val names = listOf(R.string.gen_bg_pal_any, R.string.gen_bg_pal_day, R.string.gen_bg_pal_sunset,
-            R.string.gen_bg_pal_night, R.string.gen_bg_pal_overcast)
+        val bg = ColorStateList(states, intArrayOf(ctx.accentColor(), ctx.panelLightColor()))
+        val names = if (kind.hasClouds)
+            listOf(R.string.gen_bg_pal_any, R.string.gen_bg_pal_day, R.string.gen_bg_pal_sunset,
+                R.string.gen_bg_pal_night, R.string.gen_bg_pal_overcast)
+        else listOf(R.string.gen_bg_pal_any, R.string.gen_bg_pal_blue, R.string.gen_bg_pal_pink, R.string.gen_bg_pal_gray)
         binding.chipsPalette.removeAllViews()
         for ((i, res) in names.withIndex()) {
-            val chip = Chip(requireContext()).apply {
+            val chip = Chip(ctx).apply {
                 id = View.generateViewId()
                 setText(res)
                 isCheckable = true
                 isChecked = (i - 1) == palette
                 chipBackgroundColor = bg
                 setTextColor(Color.WHITE)
+                chipStrokeColor = ColorStateList.valueOf(Color.WHITE)
+                chipStrokeWidth = resources.displayMetrics.density
                 isCheckedIconVisible = false
                 setOnClickListener {
                     palette = i - 1
-                    //готовая облачность под палитру: пасмурно - почти сплошные облака
-                    clouds = if (palette == 3) 0.9f else 0.5f
-                    binding.sbClouds.progress = (clouds * 100).toInt()
+                    if (kind.hasClouds) {
+                        //готовая облачность под палитру: пасмурно - почти сплошные облака
+                        clouds = if (palette == 3) 0.9f else 0.5f
+                        binding.sbClouds.progress = (clouds * 100).toInt()
+                    }
                     renderPreview()
                 }
             }
@@ -157,7 +170,7 @@ class GenerateBackgroundFragment : Fragment() {
         })
     }
 
-    private fun params() = LandscapeParams(seed, winW, winH, viewTop, viewBottom, water, ripple, clouds, palette)
+    private fun params() = LandscapeParams(kind, seed, winW, winH, viewTop, viewBottom, water, clouds, palette)
 
     //предпросмотр считается в уменьшенном размере, чтобы ползунки отзывались быстро
     private fun renderPreview() {
@@ -169,7 +182,7 @@ class GenerateBackgroundFragment : Fragment() {
         job = viewLifecycleOwner.lifecycleScope.launch {
             val ctxJob = coroutineContext[Job]
             val result = withContext(Dispatchers.Default) {
-                val gen = CloudLakeGenerator(small) { ctxJob?.isActive == false }
+                val gen = createGenerator(small) { ctxJob?.isActive == false }
                 gen.generate()?.let { it to gen.paletteUsed() }
             } ?: return@launch
             if (_binding == null) return@launch
@@ -178,7 +191,7 @@ class GenerateBackgroundFragment : Fragment() {
             val top = small.viewTop.toInt().coerceIn(0, bmp.height - 1)
             val h = (small.viewBottom.toInt() - top).coerceIn(1, bmp.height - top)
             binding.ivPreview.setImageBitmap(Bitmap.createBitmap(bmp, 0, top, bmp.width, h))
-            binding.tvInfo.text = getString(R.string.gen_bg_info, seed, getString(PAL_NAMES[pal]))
+            binding.tvInfo.text = getString(R.string.gen_bg_info, seed, getString(palNames()[pal.coerceIn(0, palNames().size - 1)]))
             binding.progress.visibility = View.GONE
         }
     }
@@ -195,7 +208,7 @@ class GenerateBackgroundFragment : Fragment() {
         job = viewLifecycleOwner.lifecycleScope.launch {
             val ctxJob = coroutineContext[Job]
             val path = withContext(Dispatchers.Default) {
-                val bmp = CloudLakeGenerator(full) { ctxJob?.isActive == false }.generate() ?: return@withContext null
+                val bmp = createGenerator(full) { ctxJob?.isActive == false }.generate() ?: return@withContext null
                 AppBackground.saveGenerated(appContext, bmp).also { bmp.recycle() }
             }
             if (_binding == null) return@launch
@@ -212,7 +225,9 @@ class GenerateBackgroundFragment : Fragment() {
             else AppBackground.withNewPhoto(current, path)
             AppBackground.pending = spec
             activity?.let { AppBackground.applyToWindow(it, spec) }
-            findNavController().navigateUp()
+            //сразу на «Сменить тему», где доступна кнопка «Применить»
+            val nav = findNavController()
+            if (!nav.popBackStack(R.id.themeFragment, false)) nav.navigateUp()
         }
     }
 
@@ -222,7 +237,6 @@ class GenerateBackgroundFragment : Fragment() {
         outState.putInt(KEY_PALETTE, palette)
         outState.putFloat(KEY_WATER, water)
         outState.putFloat(KEY_CLOUDS, clouds)
-        outState.putFloat(KEY_RIPPLE, ripple)
     }
 
     override fun onDestroyView() {
@@ -237,11 +251,12 @@ class GenerateBackgroundFragment : Fragment() {
         private const val KEY_PALETTE = "gen_palette"
         private const val KEY_WATER = "gen_water"
         private const val KEY_CLOUDS = "gen_clouds"
-        private const val KEY_RIPPLE = "gen_ripple"
+        const val ARG_KIND = "kind"
         private const val PREVIEW_LONG_SIDE = 800f
         private const val FULL_LONG_SIDE = 2400f
-        private val PAL_NAMES = intArrayOf(
+        private val CLOUD_PAL_NAMES = intArrayOf(
             R.string.gen_bg_pal_day, R.string.gen_bg_pal_sunset, R.string.gen_bg_pal_night, R.string.gen_bg_pal_overcast
         )
+        private val FOREST_PAL_NAMES = intArrayOf(R.string.gen_bg_pal_blue, R.string.gen_bg_pal_pink, R.string.gen_bg_pal_gray)
     }
 }

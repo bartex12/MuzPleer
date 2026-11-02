@@ -22,29 +22,48 @@ import kotlin.math.sqrt
  * [viewTop]..[viewBottom] - часть, которая видна между тулбаром и нижним плеером:
  * горизонт, доля воды и тростник считаются по ней.
  */
+enum class LandscapeKind {
+    CLOUDS, CLOUD_LAKE, FOREST, FOREST_LAKE;
+
+    val hasWater get() = this == CLOUD_LAKE || this == FOREST_LAKE
+    val hasClouds get() = this == CLOUDS || this == CLOUD_LAKE
+}
+
+/** Общий вид генераторов: готовая картинка (null - расчёт отменили) и номер выпавшей палитры. */
+interface LandscapeGenerator {
+    fun generate(): Bitmap?
+    fun paletteUsed(): Int
+}
+
+fun createGenerator(p: LandscapeParams, cancelled: () -> Boolean = { false }): LandscapeGenerator =
+    if (p.kind.hasClouds) CloudLakeGenerator(p, cancelled) else ForestGenerator(p, cancelled)
+
 class LandscapeParams(
+    val kind: LandscapeKind,
     val seed: Int,
     val width: Int,
     val height: Int,
     val viewTop: Float,
     val viewBottom: Float,
     val water: Float = 0.40f,     // доля видимой высоты под водой
-    val ripple: Float = 14f,      // 0 - гладкое зеркало, 30 - ветрено
     val cover: Float = 0.5f,      // облачность 0..1
-    val palette: Int = -1         // 0 день, 1 закат, 2 ночь, 3 пасмурно, -1 - как выпадет по зерну
+    val palette: Int = -1         // облака: 0 день, 1 закат, 2 ночь, 3 пасмурно; лес: 0 синий, 1 розовый, 2 серый; -1 - по зерну
 ) {
     /** Те же параметры в другом размере (для предпросмотра): всё пропорционально. */
     fun scaled(s: Float) = LandscapeParams(
-        seed, (width * s).roundToInt().coerceAtLeast(1), (height * s).roundToInt().coerceAtLeast(1),
-        viewTop * s, viewBottom * s, water, ripple, cover, palette
+        kind, seed, (width * s).roundToInt().coerceAtLeast(1), (height * s).roundToInt().coerceAtLeast(1),
+        viewTop * s, viewBottom * s, water, cover, palette
     )
 }
 
-/** Облака, отражённые в озере. Порт скетча CloudLake.pde (Processing) на Android Canvas. */
+/**
+ * Небо с облаками: с озером (порт CloudLake.pde) или без него (порт Clouds.pde) на Android Canvas.
+ */
 class CloudLakeGenerator(
     private val p: LandscapeParams,
     private val cancelled: () -> Boolean = { false }
-) {
+) : LandscapeGenerator {
+    private val lake = p.kind == LandscapeKind.CLOUD_LAKE
     private val W = p.width
     private val H = p.height
     private val u = min(W, H) / 900f
@@ -69,11 +88,12 @@ class CloudLakeGenerator(
     private val pix = IntArray(W * H)
 
     /** Возвращает готовую картинку или null, если расчёт отменили. */
-    fun generate(): Bitmap? {
-        horizon = p.viewTop + (p.viewBottom - p.viewTop) * (1f - p.water)
+    override fun generate(): Bitmap? {
+        val viewH = p.viewBottom - p.viewTop
+        horizon = p.viewTop + viewH * (if (lake) 1f - p.water else 0.84f)
         pickPalette()
         // облачность всегда тянет один random(), чтобы сцена не менялась от положения ползунка
-        if (pal != 3) rnd.random(0.25f, 0.8f) else rnd.random(0.8f, 0.95f)
+        if (pal != 3) rnd.random(0.25f, 0.8f) else if (lake) rnd.random(0.8f, 0.95f) else rnd.random(0.85f, 1.0f)
         cover = if (pal == 3) max(p.cover, 0.75f) else p.cover
         stretch = rnd.random(1.0f, 2.5f)
         ox = rnd.random(100f, 1000f)
@@ -84,13 +104,18 @@ class CloudLakeGenerator(
         if (!sky()) return null
         bitmap.setPixels(pix, 0, W, 0, 0, W, H)
 
-        // дальний берег: холмы в дымке, ближе - тёмная полоса с лесом
-        hills(horizon - 8 * u, 55 * u, 0.0025f / u, lerp(skyHor, cDark, 0.35f))
-        val far = rnd.random(1f)
-        if (far < 0.6f) treeLine(lerp(skyHor, cDark, 0.7f))
-        hills(horizon + 2 * u, 14 * u, 0.006f / u, lerp(skyHor, cDark, 0.75f))
-        if (!water()) return null
-        reeds(cDark)
+        if (lake) {
+            // дальний берег: холмы в дымке, ближе - тёмная полоса с лесом
+            hills(horizon - 8 * u, 55 * u, 0.0025f / u, lerp(skyHor, cDark, 0.35f))
+            val far = rnd.random(1f)
+            if (far < 0.6f) treeLine(lerp(skyHor, cDark, 0.7f))
+            hills(horizon + 2 * u, 14 * u, 0.006f / u, lerp(skyHor, cDark, 0.75f))
+            if (!water()) return null
+            reeds(cDark)
+        } else {
+            hills(horizon - 25 * u, 70 * u, 0.0025f / u, lerp(skyHor, cDark, 0.55f))   // дальние холмы
+            hills(horizon + 15 * u, 45 * u, 0.0045f / u, cDark)                        // ближние
+        }
         return bitmap
     }
 
@@ -106,28 +131,28 @@ class CloudLakeGenerator(
                 cLight = color(255f, 255f, 255f); cShade = jc(135f, 150f, 180f)
                 cSun = color(255f, 250f, 230f); cDark = jc(30f, 45f, 60f)
                 sunR = 34 * u; glow = 0.55f
-                sunX = rnd.random(0.15f, 0.85f) * W; sunY = rnd.random(lo, lo + 0.3f) * horizon
+                sunX = rnd.random(0.15f, 0.85f) * W; sunY = (if (lake) rnd.random(lo, lo + 0.3f) else rnd.random(0.12f, 0.45f)) * horizon
             }
             1 -> {   // закат: солнце у горизонта, тёплый свет снизу
                 skyTop = jc(60f, 60f, 120f); skyHor = jc(245f, 150f, 95f)
                 cLight = jc(255f, 195f, 150f); cShade = jc(100f, 70f, 100f)
                 cSun = color(255f, 225f, 170f); cDark = jc(35f, 25f, 40f)
                 sunR = 55 * u; glow = 0.8f
-                sunX = rnd.random(0.15f, 0.85f) * W; sunY = rnd.random(0.80f, 0.92f) * horizon
+                sunX = rnd.random(0.15f, 0.85f) * W; sunY = (if (lake) rnd.random(0.80f, 0.92f) else rnd.random(0.80f, 0.95f)) * horizon
             }
             2 -> {   // ночь: луна и звёзды
                 skyTop = jc(8f, 12f, 30f); skyHor = jc(35f, 50f, 80f)
                 cLight = jc(165f, 175f, 200f); cShade = jc(28f, 33f, 52f)
                 cSun = color(235f, 235f, 225f); cDark = jc(5f, 8f, 15f)
                 sunR = 60 * u; glow = 0.35f
-                sunX = rnd.random(0.2f, 0.8f) * W; sunY = rnd.random(lo, lo + 0.3f) * horizon
+                sunX = rnd.random(0.2f, 0.8f) * W; sunY = (if (lake) rnd.random(lo, lo + 0.3f) else rnd.random(0.12f, 0.45f)) * horizon
             }
             else -> {   // пасмурно: солнце только угадывается за облаками
                 skyTop = jc(105f, 115f, 130f); skyHor = jc(175f, 180f, 185f)
                 cLight = jc(225f, 225f, 228f); cShade = jc(105f, 110f, 120f)
                 cSun = color(250f, 248f, 240f); cDark = jc(40f, 45f, 50f)
                 sunR = 0f; glow = 0.3f
-                sunX = rnd.random(0.2f, 0.8f) * W; sunY = rnd.random(lo, lo + 0.2f) * horizon
+                sunX = rnd.random(0.2f, 0.8f) * W; sunY = (if (lake) rnd.random(lo, lo + 0.2f) else rnd.random(0.15f, 0.4f)) * horizon
             }
         }
     }
@@ -150,7 +175,7 @@ class CloudLakeGenerator(
     private fun sky(): Boolean {
         val th = 0.60f + (0.38f - 0.60f) * cover
         val white = color(255f, 255f, 255f)
-        val yEnd = min(H, ceil(horizon).toInt() + 2)
+        val yEnd = if (lake) min(H, ceil(horizon).toInt() + 2) else min(H, ceil(horizon + 80 * u).toInt())
         for (y in 0 until yEnd) {
             if (cancelled()) return false
             val pp = (horizon - y) / horizon
@@ -290,7 +315,7 @@ class CloudLakeGenerator(
             val pp = (y - horizon) / wh                // 0 - у дальнего берега, 1 - у зрителя
             val wz = 1 / (pp + 0.06f)
             val nzz = oz + 500 + wz * kz
-            val amp = (1.0f + p.ripple * pp * pp) * u
+            val amp = (1.0f + RIPPLE * pp * pp) * u
             val mod = smooth01(pp / 0.12f)
             val fres = 0.10f + 0.40f * pp
             val hw = hw0 * (0.5f + 1.2f * pp)
@@ -377,5 +402,9 @@ class CloudLakeGenerator(
     }
 
     /** Какая палитра выпала (для подписи на экране). */
-    fun paletteUsed(): Int = pal
+    override fun paletteUsed(): Int = pal
+
+    private companion object {
+        const val RIPPLE = 14f      // сила ряби: 0 - гладкое зеркало, 30 - ветрено
+    }
 }
