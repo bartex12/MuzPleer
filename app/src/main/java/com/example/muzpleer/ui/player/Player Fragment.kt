@@ -28,7 +28,6 @@ import androidx.core.graphics.drawable.toDrawable
 import androidx.preference.PreferenceManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.example.muzpleer.util.LyricsReader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

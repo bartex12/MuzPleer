@@ -41,7 +41,6 @@ import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.syncShuffleIcon
-import com.example.muzpleer.util.getSortedDataSong
 import com.example.muzpleer.util.toast
 import com.google.android.material.textfield.TextInputLayout
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
