@@ -167,6 +167,15 @@ class ChoosePlaylistFragment :Fragment()  {
         super.onCreateOptionsMenu(menu, inflater)
     }
 
+    override fun onResume() {
+        super.onResume()
+        //экран, с которого пришли (альбом, папка, исполнитель), при закрытии своего вида возвращает заголовок вкладок:
+        //ставим заголовок заново, когда этот экран уже на виду
+        updateToolbarTitle("Выбор плейлиста")
+        //и ещё раз после завершения смены экранов - на случай, если прежний экран сбросил заголовок позже
+        view?.post { if (_binding != null) updateToolbarTitle("Выбор плейлиста") }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         //фильтр общий для списка плейлистов: уходя, показываем все плейлисты
