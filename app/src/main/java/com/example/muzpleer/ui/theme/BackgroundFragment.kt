@@ -63,6 +63,9 @@ class BackgroundFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         spec = AppBackground.pending ?: AppBackground.load(requireContext())
         render()
+        binding.btnGenerateBg.setOnClickListener {
+            androidx.navigation.fragment.NavHostFragment.findNavController(this).navigate(R.id.generateBackgroundFragment)
+        }
         //режим замены фото: переключатель под рядом фото
         binding.cbReplaceSelected.isChecked = AppBackground.isReplaceSelected(requireContext())
         binding.cbReplaceSelected.setOnCheckedChangeListener { _, checked ->

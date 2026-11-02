@@ -187,4 +187,17 @@
     <string name="sleep_timer_started">Таймер запущен: музыка остановится через %1$d мин</string>
     <string name="sleep_timer_cancelled">Таймер остановки отменён</string>
     <string name="sleep_timer_zero">Выберите время больше нуля</string>
+    <string name="gen_bg_title">Сгенерировать фон</string>
+    <string name="gen_bg_generate">Сгенерировать</string>
+    <string name="gen_bg_use">Использовать как фон</string>
+    <string name="gen_bg_water">Вода: %1$d%%</string>
+    <string name="gen_bg_clouds">Облака: %1$d%%</string>
+    <string name="gen_bg_ripple">Рябь: %1$d</string>
+    <string name="gen_bg_info">Зерно %1$d, палитра: %2$s</string>
+    <string name="gen_bg_failed">Не удалось сохранить фон</string>
+    <string name="gen_bg_pal_any">Любая</string>
+    <string name="gen_bg_pal_day">День</string>
+    <string name="gen_bg_pal_sunset">Закат</string>
+    <string name="gen_bg_pal_night">Ночь</string>
+    <string name="gen_bg_pal_overcast">Пасмурно</string>
 </resources>
