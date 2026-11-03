@@ -18,7 +18,9 @@ import com.example.muzpleer.room.entity.SongFile
 import com.example.muzpleer.room.utils.fromSongFileToSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.getNormalizedPath
+import com.example.muzpleer.util.SongSortField
 import com.example.muzpleer.util.getSortedDataSong
+import com.example.muzpleer.util.sortSongsBy
 import com.example.muzpleer.util.UserMessenger
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.Dispatchers
@@ -134,13 +136,46 @@ class SharedViewModel(
     //поэтому результат запоминается и пересчитывается только когда список песен заменили
     //(любое изменение песни создаёт новый список, так что сравнение по ссылке достаточно)
     private var sortedSongsSource: List<Song>? = null
+    private var sortedSongsKey: Triple<SongSortField, Boolean, Int>? = null
     private var sortedSongsCache: List<Song> = emptyList()
 
-    private fun getSortedSongs(): List<Song> {
+    //сортировка вкладки «Все треки»: NONE - порядок по названию, как был всегда
+    var sortField = SongSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+    private var datesAdded: Map<Long, Long> = emptyMap()
+    private var lastQuery = ""
+
+    /** Сортирует список для показа и для воспроизведения по выбранному полю. */
+    fun sortForDisplay(list: List<Song>): List<Song> =
+        if (sortField == SongSortField.NONE) getSortedDataSong(list)
+        else sortSongsBy(list, sortField, sortAscending, datesAdded)
+
+    /** Включает сортировку вкладки «Все треки» и перестраивает список; воспроизведение идёт в том же порядке. */
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        viewModelScope.launch {
+            if (field == SongSortField.DATE_ADDED) {
+                datesAdded = withContext(Dispatchers.IO) {
+                    try { getSongs().associate { it.id to (repository.getById(it.id)?.dateAdded ?: 0L) } }
+                    catch (e: Exception) { emptyMap() }
+                }
+            }
+            //сортированный список для воспроизведения и новый список для экрана
+            _currentSong.value?.let { updateIndexOfCurrentSong(it) }
+            if (songs.value != null) _filteredSongs.value = songs.value!!.filterSongsByQuery(lastQuery)
+        }
+    }
+
+    fun getSortedSongs(): List<Song> {
         val source = getSongs()
-        if (source !== sortedSongsSource) {
-            sortedSongsCache = getSortedDataSong(source)
+        val key = Triple(sortField, sortAscending, System.identityHashCode(datesAdded))
+        if (source !== sortedSongsSource || key != sortedSongsKey) {
+            sortedSongsCache = sortForDisplay(source)
             sortedSongsSource = source
+            sortedSongsKey = key
         }
         return sortedSongsCache
     }
@@ -185,6 +220,7 @@ class SharedViewModel(
     internal fun filterSongs(query: String) {
         //данные ещё не загружены: фильтровать нечего, пустой результат принимался за "список пуст"
         if (songs.value == null) return
+        lastQuery = query
         _filteredSongs.value = (songs.value ?: listOf()).filterSongsByQuery(query)
     }
 

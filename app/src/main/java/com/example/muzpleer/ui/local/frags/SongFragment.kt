@@ -1,6 +1,5 @@
 package com.example.muzpleer.ui.local.frags
 
-import com.example.muzpleer.util.applyShuffleIcon
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -35,8 +34,9 @@ import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
-import com.example.muzpleer.util.getSortedDataSong
-import com.example.muzpleer.util.syncShuffleIcon
+import com.example.muzpleer.util.SongSortField
+import androidx.core.content.ContextCompat
+import com.example.muzpleer.util.accentColor
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SongFragment : Fragment() {
@@ -55,6 +55,8 @@ class SongFragment : Fragment() {
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
+    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var eyeItem: MenuItem? = null
     private var searchMenuItem: MenuItem? = null //пункт поиска, чтобы закрыть его при уходе с экрана
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -82,7 +84,7 @@ class SongFragment : Fragment() {
 
         adapter = SongsAdapter(viewModel, playlistsViewModel, favoritesViewModel, navController) { song ->
             //устанавливаем список песен как плейлист
-            val playlist=getSortedDataSong(viewModel.getSongs())
+            val playlist=viewModel.getSortedSongs()
             viewModel.setPlaylist(playlist) //устанавливаем список песен как плейлист
             viewModel.setPlaybackSource(PlaybackSource(SourceType.SONGS))
             viewModel.setSongAndPlaylist(
@@ -100,7 +102,7 @@ class SongFragment : Fragment() {
 
         viewModel.filteredSongs.observe(viewLifecycleOwner) { filteredSongs ->
             Log.d( TAG,"32 SongsFragment onViewCreated filteredSongs.observe: filteredSongs.size= ${filteredSongs.size} ")
-            val sortedData = getSortedDataSong(filteredSongs) //здесь песни отсортированы
+            val sortedData = viewModel.sortForDisplay(filteredSongs) //здесь песни отсортированы
             adapter.data = sortedData  //передаём данные в адаптер
 
             // Управляем видимостью в зависимости от состояния
@@ -121,6 +123,54 @@ class SongFragment : Fragment() {
            }
             adapter.notifyDataSetChanged()
         }
+
+        setupStrip()
+    }
+
+    //значки полоски под тулбаром: переход к треку, случайный порядок, сортировка
+    private fun setupStrip() {
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripGoTo, "К треку")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripShuffle, "Случайный порядок")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripSort, getString(R.string.strip_sort))
+        binding.stripGoTo.setOnClickListener {
+            viewPager.setCurrentItem(0)
+            val pos = viewModel.getIndexOfCurrentSong()
+            (binding.localRecyclerView.layoutManager as LinearLayoutManager).let {
+                if (pos >= 0) it.scrollToPositionWithOffset(pos, 0)
+                else { it.scrollToPosition(0); Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", Toast.LENGTH_SHORT).show() }
+            }
+        }
+        binding.stripShuffle.setOnClickListener {
+            val newShuffleState = playerViewModel.setPlaybackMode()
+            updateStripIcons()
+            Toast.makeText(context, if (newShuffleState) "Случайный порядок включен" else "Прямой порядок включен", Toast.LENGTH_SHORT).show()
+        }
+        binding.stripSort.setOnClickListener { binding.sortPanel.toggle() }
+        //«Без сортировки» - порядок по названию, как был всегда
+        binding.sortPanel.bind({ viewModel.sortField }, { viewModel.sortAscending }) { field, asc ->
+            viewModel.setSort(field, asc)
+            updateStripIcons()
+        }
+        applyStripState()
+        updateStripIcons()
+    }
+
+    private fun applyStripState() {
+        _binding?.songsStrip?.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+    }
+
+    //случайный порядок и включённая сортировка окрашены цветом акцента
+    private fun updateStripIcons() {
+        if (_binding == null) return
+        val ctx = requireContext()
+        val white = ContextCompat.getColor(ctx, R.color.white)
+        val accent = ctx.accentColor()
+        val shuffle = playerViewModel.isShuffleMode()
+        binding.stripShuffle.setImageResource(if (shuffle) R.drawable.baseline_shuffle_24 else R.drawable.icons8_data_white_24)
+        binding.stripShuffle.imageTintList = android.content.res.ColorStateList.valueOf(if (shuffle) accent else white)
+        binding.stripSort.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (viewModel.sortField != SongSortField.NONE) accent else white)
     }
 
     /**
@@ -168,6 +218,7 @@ class SongFragment : Fragment() {
         manager.scrollToPositionWithOffset(pos, 0)
         // Пересоздаём меню, как на вкладках альбомов, папок и исполнителей
         requireActivity().invalidateOptionsMenu()
+        updateStripIcons()
     }
 
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
@@ -182,6 +233,10 @@ class SongFragment : Fragment() {
             (requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
                 ?.hideSoftInputFromWindow(v.windowToken, 0)
         }
+        //полоска со значками при уходе с экрана снова видна, панель сортировки убрана
+        stripVisible = true
+        applyStripState()
+        binding.sortPanel.hide(false)
         //сворачиваем строку поиска (слушатель сворачивания сбросит фильтр)
         searchMenuItem?.collapseActionView()
         isSearchActive = false
@@ -213,7 +268,8 @@ class SongFragment : Fragment() {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         menu.clear() // Очищаем меню
         inflater.inflate(R.menu.song_menu, menu)
-        menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
+        eyeItem = menu.findItem(R.id.action_toggle_strip)
+        applyStripState()
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar)
         searchMenuItem = searchItem
@@ -243,7 +299,11 @@ class SongFragment : Fragment() {
         })
         // Сбрасываем флаг поиска при закрытии SearchView
         searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                //клавиатура закрыла бы выдвинутую панель сортировки и список: панель убираем
+                if (_binding != null) binding.sortPanel.hide()
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
@@ -256,21 +316,14 @@ class SongFragment : Fragment() {
 
     override fun onPrepareOptionsMenu(menu: Menu) {
         super.onPrepareOptionsMenu(menu)
-        menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
 
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.action_to->{
-                Log.d(TAG, "$ SongFragment onMenuItemSelected текущая вкладка = ${viewPager.currentItem}")
-                viewPager.setCurrentItem(0)
-                Log.d(TAG, "$$ SongFragment onMenuItemSelected текущая вкладка = ${viewPager.currentItem}")
-                val pos = viewModel.getIndexOfCurrentSong()
-                Log.d(TAG, "$$$ SongFragment onMenuItemSelected pos = $pos")
-                (binding.localRecyclerView.layoutManager as LinearLayoutManager).let{
-                    if(pos >=0 ) it.scrollToPositionWithOffset(pos, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
-                }
+            R.id.action_toggle_strip -> {
+                stripVisible = !stripVisible
+                applyStripState()
                 return true
             }
             R.id.updateSongs->{
@@ -283,18 +336,6 @@ class SongFragment : Fragment() {
                     Log.d(TAG, "###SongFragment onMenuItemSelected currentSong = ${currentSong?.title} ")
                 }
                 return  true
-            }
-            R.id.action_shuffle->{
-                val newShuffleState = playerViewModel.setPlaybackMode()
-                // Меняем иконку в зависимости от состояния
-                if (newShuffleState) {
-                    item.applyShuffleIcon(requireContext(), true)
-                    Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
-                } else {
-                    item.applyShuffleIcon(requireContext(), false)
-                    Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
-                }
-                return   true
             }
         }
         return false

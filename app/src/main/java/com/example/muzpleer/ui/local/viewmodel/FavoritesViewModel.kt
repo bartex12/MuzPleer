@@ -10,16 +10,15 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.FavoriteRepository
 import com.example.muzpleer.room.entity.FavoriteSong
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.SongSortField
 import com.example.muzpleer.util.saveDefaultCoverToCache
+import com.example.muzpleer.util.sortSongsBy
 import kotlinx.coroutines.launch
 
 /**
  * Всё, что относится к избранному: список избранных песен, поиск, добавление и удаление,
  * порядок, позиция прокрутки. Раньше это жило в SharedViewModel.
  */
-/** По какому полю отсортирован список избранного; NONE - свой порядок, заданный перетаскиванием. */
-enum class FavoriteSortField { NONE, TITLE, ALBUM, ARTIST, DURATION, DATE_ADDED }
-
 class FavoritesViewModel(
     private val favoriteRepository: FavoriteRepository,
     private val helper: IPreferenceHelper
@@ -36,7 +35,7 @@ class FavoritesViewModel(
     val favoriteIds: LiveData<Set<Long>> = _favoriteIds
 
     //сортировка списка: хранится здесь, переживает поворот экрана; свой порядок песен лежит в manualSongs
-    var sortField = FavoriteSortField.NONE
+    var sortField = SongSortField.NONE
         private set
     var sortAscending = true
         private set
@@ -45,50 +44,6 @@ class FavoritesViewModel(
     private var lastQuery = ""
 
     init { refreshFavoriteIds() }
-
-    /** Включает сортировку (NONE - вернуть свой порядок) и перестраивает списки. */
-    fun setSort(field: FavoriteSortField, ascending: Boolean) {
-        sortField = field
-        sortAscending = ascending
-        viewModelScope.launch { setSongs(manualSongs) }
-    }
-
-    //все изменения списка проходят здесь: запоминаем свой порядок, показываем и играем в порядке сортировки
-    private suspend fun setSongs(songs: List<Song>) {
-        manualSongs = songs
-        if (sortField == FavoriteSortField.DATE_ADDED) {
-            try { datesAdded = favoriteRepository.getDatesAdded(songs.map { it.id }) } catch (e: Exception) { Log.d(TAG, "dates error ${e.message}") }
-        }
-        val sorted = sortSongs(songs)
-        _favoriteSongs.value = sorted
-        _filteredFavoriteSongs.value = if (lastQuery.isEmpty()) sorted else sorted.filterSongsByQuery(lastQuery)
-    }
-
-    private fun sortSongs(songs: List<Song>): List<Song> {
-        val result = when (sortField) {
-            FavoriteSortField.NONE -> return songs
-            FavoriteSortField.TITLE -> sortByText(songs) { it.title }
-            FavoriteSortField.ALBUM -> sortByText(songs) { it.albumName.orEmpty() }
-            FavoriteSortField.ARTIST -> sortByText(songs) { it.artist }
-            FavoriteSortField.DURATION -> songs.sortedBy { it.duration }
-            FavoriteSortField.DATE_ADDED -> songs.sortedBy { datesAdded[it.id] ?: 0L }
-        }
-        return if (sortAscending) result else result.reversed()
-    }
-
-    //текст: сначала русские буквы, потом латинские, потом всё остальное (цифры и знаки); внутри групп по алфавиту
-    private fun sortByText(songs: List<Song>, text: (Song) -> String): List<Song> =
-        songs.map { song ->
-            val t = text(song).trim()
-            val first = t.firstOrNull()
-            val group = when {
-                first == null -> 3
-                first in 'а'..'я' || first in 'А'..'Я' || first == 'ё' || first == 'Ё' -> 0
-                first in 'a'..'z' || first in 'A'..'Z' -> 1
-                else -> 2
-            }
-            Triple(group, t.lowercase(), song)
-        }.sortedWith(compareBy<Triple<Int, String, Song>>({ it.first }, { it.second })).map { it.third }
 
     fun refreshFavoriteIds() {
         viewModelScope.launch {
@@ -99,6 +54,26 @@ class FavoritesViewModel(
             }
         }
     }
+
+    /** Включает сортировку (NONE - вернуть свой порядок) и перестраивает списки. */
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        viewModelScope.launch { setSongs(manualSongs) }
+    }
+
+    //все изменения списка проходят здесь: запоминаем свой порядок, показываем и играем в порядке сортировки
+    private suspend fun setSongs(songs: List<Song>) {
+        manualSongs = songs
+        if (sortField == SongSortField.DATE_ADDED) {
+            try { datesAdded = favoriteRepository.getDatesAdded(songs.map { it.id }) } catch (e: Exception) { Log.d(TAG, "dates error ${e.message}") }
+        }
+        val sorted = sortSongs(songs)
+        _favoriteSongs.value = sorted
+        _filteredFavoriteSongs.value = if (lastQuery.isEmpty()) sorted else sorted.filterSongsByQuery(lastQuery)
+    }
+
+    private fun sortSongs(songs: List<Song>): List<Song> = sortSongsBy(songs, sortField, sortAscending, datesAdded)
 
     fun getFavoriteSongs():List<Song> {
         return favoriteSongs.value
