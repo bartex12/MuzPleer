@@ -2,6 +2,7 @@ package com.example.muzpleer.ui.local.frags
 
 import com.example.muzpleer.util.indexOfSong
 import com.example.muzpleer.util.accentColor
+import com.example.muzpleer.util.showStripByDefault
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
@@ -155,6 +156,9 @@ class FavoritesFragment: Fragment() {
 
     override fun onResume() {
         super.onResume()
+        //после настроек и других экранов панель снова по настройке
+        stripVisible = showStripByDefault()
+        applyStripState()
         // Также сбрасываем при возобновлении фрагмента
         resetEditModeOnStart()
 
@@ -167,7 +171,7 @@ class FavoritesFragment: Fragment() {
 
         //при уходе с экрана поиск закрывается: при возврате список не должен остаться урезанным
         //полоска со значками при уходе с экрана снова видна
-        stripVisible = true
+        stripVisible = showStripByDefault()
         if (_binding != null) { applyStripState(); updateStripIcons(); hideSortPanel(false) }
         hideKeyboard()
         searchMenuItem?.collapseActionView()
@@ -213,7 +217,7 @@ class FavoritesFragment: Fragment() {
         }
     }
 
-    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var stripVisible = showStripByDefault()   //по умолчанию как в настройках («Панель с настройками»), после возврата на экран тоже
     private var eyeItem: MenuItem? = null
 
     fun initMenu() {

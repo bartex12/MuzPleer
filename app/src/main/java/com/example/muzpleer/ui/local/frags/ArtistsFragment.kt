@@ -1,6 +1,7 @@
 package com.example.muzpleer.ui.local.frags
 
 import com.example.muzpleer.util.accentColor
+import com.example.muzpleer.util.showStripByDefault
 import com.example.muzpleer.util.SongSortField
 import android.os.Bundle
 import android.util.Log
@@ -37,7 +38,7 @@ class ArtistsFragment:Fragment() {
     private lateinit var adapter: ArtistsAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
-    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var stripVisible = showStripByDefault()   //по умолчанию как в настройках («Панель с настройками»), после возврата на экран тоже
     private var eyeItem: MenuItem? = null
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
@@ -193,6 +194,9 @@ class ArtistsFragment:Fragment() {
 
     override fun onResume() {
         super.onResume()
+        //после настроек и других экранов панель снова по настройке
+        stripVisible = showStripByDefault()
+        applyStripState()
         // Сбрасываем режим редактирования при возвращении
         resetEditModeOnStart()
         // Обновляем меню
@@ -207,7 +211,7 @@ class ArtistsFragment:Fragment() {
         // Сбрасываем режим редактирования при уходе
         resetEditModeOnPause()
         //полоска со значками при уходе с экрана снова видна, панель сортировки убрана
-        stripVisible = true
+        stripVisible = showStripByDefault()
         applyStripState()
         binding.sortPanel.hide(false)
 
