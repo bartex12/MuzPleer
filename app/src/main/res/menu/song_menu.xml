@@ -6,22 +6,16 @@
         android:orderInCategory="100"
         android:title="@string/search"
         android:icon="@android:drawable/ic_menu_search"
-        app:showAsAction="always"
+        app:showAsAction="collapseActionView|ifRoom"
         app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
+    <!-- Показать или убрать полоску со значками под тулбаром -->
     <item
-        android:id="@+id/action_to"
+        android:id="@+id/action_toggle_strip"
         android:orderInCategory="200"
-        android:title="К треку"
-        android:icon="@drawable/outline_flag_24"
-        app:showAsAction="always" />
-
-    <item
-        android:id="@+id/action_shuffle"
-        android:title="Shuffle"
-        android:orderInCategory="300"
-        android:icon="@drawable/icons8_data_white_24"
-        app:showAsAction="always"/>
+        android:title="@string/strip_toggle"
+        android:icon="@drawable/ic_visibility_24"
+        app:showAsAction="ifRoom" />
 
     <item
         android:id="@+id/updateSongs"

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/sortHeader"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:text="@string/sort_by"
+        android:textColor="@color/white"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <RadioButton
+        android:id="@+id/sortNone"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:checked="true"
+        android:paddingStart="8dp"
+        android:text="@string/sort_none"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortTitle"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_title"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortAlbum"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_album"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortArtist"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_artist"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortDuration"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_duration"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortDate"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_date_added"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <CheckBox
+        android:id="@+id/sortAscending"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:checked="true"
+        android:paddingStart="8dp"
+        android:text="@string/sort_ascending"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+</merge>

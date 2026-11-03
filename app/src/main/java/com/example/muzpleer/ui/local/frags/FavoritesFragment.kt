@@ -31,7 +31,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
-import com.example.muzpleer.ui.local.viewmodel.FavoriteSortField
+import com.example.muzpleer.util.SongSortField
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
@@ -268,74 +268,27 @@ class FavoritesFragment: Fragment() {
         updateStripIcons()
     }
 
-    private val sortOptions get() = listOf(
-        binding.sortNone to FavoriteSortField.NONE,
-        binding.sortTitle to FavoriteSortField.TITLE,
-        binding.sortAlbum to FavoriteSortField.ALBUM,
-        binding.sortArtist to FavoriteSortField.ARTIST,
-        binding.sortDuration to FavoriteSortField.DURATION,
-        binding.sortDate to FavoriteSortField.DATE_ADDED
-    )
-
     //панель «Сортировать по»: «Без сортировки» - свой порядок, заданный перетаскиванием (по умолчанию)
     private fun setupSortPanel() {
-        for ((button, field) in sortOptions) {
-            button.setOnClickListener {
-                favoritesViewModel.setSort(field, binding.sortAscending.isChecked)
-                if (field != FavoriteSortField.NONE && isEditMode) toggleEditMode()
-                updateSortUi()
-            }
+        binding.sortPanel.bind({ favoritesViewModel.sortField }, { favoritesViewModel.sortAscending }) { field, asc ->
+            favoritesViewModel.setSort(field, asc)
+            if (field != SongSortField.NONE && isEditMode) toggleEditMode()
+            updateSortUi()
         }
-        binding.sortAscending.setOnCheckedChangeListener { _, checked ->
-            if (checked != favoritesViewModel.sortAscending) {
-                favoritesViewModel.setSort(favoritesViewModel.sortField, checked)
-            }
-        }
-        //заголовок: нажатие и свайп вниз сворачивают панель
-        val detector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
-            override fun onDown(e: android.view.MotionEvent) = true
-            override fun onSingleTapUp(e: android.view.MotionEvent): Boolean { hideSortPanel(); return true }
-            override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, vx: Float, vy: Float): Boolean {
-                if (vy > 600) { hideSortPanel(); return true }
-                return false
-            }
-        })
-        binding.sortHeader.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
         updateSortUi()
     }
 
+    //значок сортировки окрашен цветом акцента, пока сортировка включена
     private fun updateSortUi() {
         if (_binding == null) return
-        for ((button, field) in sortOptions) button.isChecked = favoritesViewModel.sortField == field
-        binding.sortAscending.isChecked = favoritesViewModel.sortAscending
-        val active = favoritesViewModel.sortField != FavoriteSortField.NONE
+        val active = favoritesViewModel.sortField != SongSortField.NONE
         binding.stripSort.imageTintList = android.content.res.ColorStateList.valueOf(
             if (active) requireContext().accentColor() else ContextCompat.getColor(requireContext(), R.color.white))
     }
 
-    private fun toggleSortPanel() {
-        if (binding.sortPanel.visibility == View.VISIBLE) hideSortPanel() else showSortPanel()
-    }
+    private fun toggleSortPanel() = binding.sortPanel.toggle()
 
-    private fun showSortPanel() {
-        val panel = binding.sortPanel
-        updateSortUi()
-        panel.visibility = View.VISIBLE
-        panel.post {
-            if (_binding == null) return@post
-            panel.translationY = panel.height.toFloat()
-            panel.animate().translationY(0f).setDuration(200).start()
-        }
-    }
-
-    private fun hideSortPanel(animate: Boolean = true) {
-        val panel = binding.sortPanel
-        if (panel.visibility != View.VISIBLE) return
-        if (!animate) { panel.visibility = View.GONE; return }
-        panel.animate().translationY(panel.height.toFloat()).setDuration(200).withEndAction {
-            if (_binding != null) { panel.visibility = View.GONE; panel.translationY = 0f }
-        }.start()
-    }
+    private fun hideSortPanel(animate: Boolean = true) = binding.sortPanel.hide(animate)
 
     private fun applyStripState() {
         binding.favoriteStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
@@ -407,8 +360,9 @@ class FavoritesFragment: Fragment() {
 
     private fun toggleEditMode() {
         //перетаскивание меняет свой порядок: при сортировке переключаемся на «Без сортировки»
-        if (!isEditMode && favoritesViewModel.sortField != FavoriteSortField.NONE) {
-            favoritesViewModel.setSort(FavoriteSortField.NONE, favoritesViewModel.sortAscending)
+        if (!isEditMode && favoritesViewModel.sortField != SongSortField.NONE) {
+            favoritesViewModel.setSort(SongSortField.NONE, favoritesViewModel.sortAscending)
+            binding.sortPanel.refresh()
             updateSortUi()
         }
         val newEditMode = !isEditMode
