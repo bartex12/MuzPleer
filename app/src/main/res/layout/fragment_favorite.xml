@@ -131,6 +131,17 @@
             android:textStyle="bold" />
 
         <RadioButton
+            android:id="@+id/sortNone"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:buttonTint="?attr/appAccent"
+            android:checked="true"
+            android:paddingStart="8dp"
+            android:text="@string/sort_none"
+            android:textColor="@color/white"
+            android:textSize="15sp" />
+
+        <RadioButton
             android:id="@+id/sortTitle"
             android:layout_width="match_parent"
             android:layout_height="40dp"

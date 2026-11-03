@@ -269,6 +269,7 @@ class FavoritesFragment: Fragment() {
     }
 
     private val sortOptions get() = listOf(
+        binding.sortNone to FavoriteSortField.NONE,
         binding.sortTitle to FavoriteSortField.TITLE,
         binding.sortAlbum to FavoriteSortField.ALBUM,
         binding.sortArtist to FavoriteSortField.ARTIST,
@@ -276,13 +277,12 @@ class FavoritesFragment: Fragment() {
         binding.sortDate to FavoriteSortField.DATE_ADDED
     )
 
-    //панель «Сортировать по»: пункт выбирается нажатием, повторное нажатие возвращает свой порядок
+    //панель «Сортировать по»: «Без сортировки» - свой порядок, заданный перетаскиванием (по умолчанию)
     private fun setupSortPanel() {
         for ((button, field) in sortOptions) {
             button.setOnClickListener {
-                val newField = if (favoritesViewModel.sortField == field) FavoriteSortField.NONE else field
-                favoritesViewModel.setSort(newField, binding.sortAscending.isChecked)
-                if (newField != FavoriteSortField.NONE && isEditMode) toggleEditMode()
+                favoritesViewModel.setSort(field, binding.sortAscending.isChecked)
+                if (field != FavoriteSortField.NONE && isEditMode) toggleEditMode()
                 updateSortUi()
             }
         }
@@ -402,10 +402,10 @@ class FavoritesFragment: Fragment() {
     }
 
     private fun toggleEditMode() {
-        //перетаскивание меняет свой порядок, а при сортировке на экране другой порядок
+        //перетаскивание меняет свой порядок: при сортировке переключаемся на «Без сортировки»
         if (!isEditMode && favoritesViewModel.sortField != FavoriteSortField.NONE) {
-            Toast.makeText(requireContext(), getString(R.string.sort_edit_blocked), Toast.LENGTH_LONG).show()
-            return
+            favoritesViewModel.setSort(FavoriteSortField.NONE, favoritesViewModel.sortAscending)
+            updateSortUi()
         }
         val newEditMode = !isEditMode
         isEditMode = newEditMode
