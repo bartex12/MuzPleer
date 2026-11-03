@@ -36,7 +36,9 @@ class SortPanelView @JvmOverloads constructor(
             findViewById<RadioButton>(R.id.sortTitle) to SongSortField.TITLE,
             findViewById<RadioButton>(R.id.sortAlbum) to SongSortField.ALBUM,
             findViewById<RadioButton>(R.id.sortArtist) to SongSortField.ARTIST,
+            findViewById<RadioButton>(R.id.sortAlbumCount) to SongSortField.ALBUM_COUNT,
             findViewById<RadioButton>(R.id.sortCount) to SongSortField.COUNT,
+            findViewById<RadioButton>(R.id.sortPath) to SongSortField.PATH,
             findViewById<RadioButton>(R.id.sortDuration) to SongSortField.DURATION,
             findViewById<RadioButton>(R.id.sortDate) to SongSortField.DATE_ADDED
         )
