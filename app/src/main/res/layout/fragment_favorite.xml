@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/favoriteStrip"
         tools:listitem="@layout/item_music" />
 
     <ImageView
@@ -45,4 +45,53 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/emptyImageViewFavorite"
             tools:visibility="visible"/>
+    <!-- Полоска со значками: цвет и высота как у вкладок; прячется значком глаза в тулбаре -->
+    <LinearLayout
+        android:id="@+id/favoriteStrip"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="?attr/appPanelLight"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageButton
+            android:id="@+id/stripGoTo"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="К треку"
+            android:src="@drawable/outline_flag_24"
+            app:tint="@color/white" />
+        <ImageButton
+            android:id="@+id/stripShuffle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Случайный порядок"
+            android:src="@drawable/icons8_data_white_24"
+            app:tint="@color/white" />
+        <ImageButton
+            android:id="@+id/stripEdit"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Редактировать порядок"
+            android:src="@drawable/baseline_edit_note_24"
+            app:tint="@color/white" />
+        <ImageButton
+            android:id="@+id/stripSort"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Сортировка"
+            android:src="@drawable/ic_sort_24"
+            app:tint="@color/white" />
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

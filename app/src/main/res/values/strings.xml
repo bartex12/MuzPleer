@@ -19,6 +19,9 @@
     <string name="album_art_description">Обложка альбома</string>
     <string name="folders">Папки</string>
     <string name="forExit">Для выхода нажмите  НАЗАД  ещё раз</string>
+    <string name="strip_toggle">Показать или скрыть значки</string>
+    <string name="strip_sort">Сортировка</string>
+    <string name="strip_in_development">В разработке</string>
     <string name="search">Поиск</string>
     <string name="search_song">поиск трека</string>
     <string name="search_album">поиск альбома</string>
