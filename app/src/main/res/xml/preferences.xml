@@ -19,15 +19,6 @@
         android:summaryOn="@string/show_screen"
         android:summaryOff="@string/hide_screen" />
 
-    <CheckBoxPreference
-        android:key="pref_show_strip"
-        android:layout="@layout/preference_item_white"
-        android:widgetLayout="@layout/preference_widget_checkbox_white"
-        android:title="@string/pref_show_strip_title"
-        android:summary="@string/pref_show_strip_summary"
-        app:defaultValue="false"
-        app:icon="@drawable/ic_visibility_24" />
-
     <Preference
         android:key="pref_splash_image"
         android:layout="@layout/preference_item_white"
@@ -39,6 +30,15 @@
         android:layout="@layout/preference_item_white"
         android:title="@string/sleep_timer_title"
         app:icon="@drawable/ic_timer_24" />
+
+    <CheckBoxPreference
+        android:key="pref_show_strip"
+        android:layout="@layout/preference_item_white"
+        android:widgetLayout="@layout/preference_widget_checkbox_white"
+        android:title="@string/pref_show_strip_title"
+        android:summary="@string/pref_show_strip_summary"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_visibility_24" />
 
     <Preference
         android:key="pref_duplicates"
