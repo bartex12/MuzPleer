@@ -31,6 +31,7 @@ import com.example.muzpleer.model.SongAndPlaylist
 import com.example.muzpleer.ui.local.adapters.FavoritesAdapter
 import com.example.muzpleer.ui.local.adapters.touch.ItemTouchHelperCallback
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
+import com.example.muzpleer.ui.local.viewmodel.FavoriteSortField
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
@@ -167,7 +168,7 @@ class FavoritesFragment: Fragment() {
         //при уходе с экрана поиск закрывается: при возврате список не должен остаться урезанным
         //полоска со значками при уходе с экрана снова видна
         stripVisible = true
-        if (_binding != null) { applyStripState(); updateStripIcons() }
+        if (_binding != null) { applyStripState(); updateStripIcons(); hideSortPanel(false) }
         hideKeyboard()
         searchMenuItem?.collapseActionView()
         currentSearchQuery = ""
@@ -261,11 +262,79 @@ class FavoritesFragment: Fragment() {
             Toast.makeText(context, if (newShuffleState) "Случайный порядок включен" else "Прямой порядок включен", Toast.LENGTH_SHORT).show()
         }
         binding.stripEdit.setOnClickListener { toggleEditMode() }
-        binding.stripSort.setOnClickListener {
-            Toast.makeText(requireContext(), getString(R.string.strip_in_development), Toast.LENGTH_SHORT).show()
-        }
+        binding.stripSort.setOnClickListener { toggleSortPanel() }
+        setupSortPanel()
         applyStripState()
         updateStripIcons()
+    }
+
+    private val sortOptions get() = listOf(
+        binding.sortNone to FavoriteSortField.NONE,
+        binding.sortTitle to FavoriteSortField.TITLE,
+        binding.sortAlbum to FavoriteSortField.ALBUM,
+        binding.sortArtist to FavoriteSortField.ARTIST,
+        binding.sortDuration to FavoriteSortField.DURATION,
+        binding.sortDate to FavoriteSortField.DATE_ADDED
+    )
+
+    //панель «Сортировать по»: «Без сортировки» - свой порядок, заданный перетаскиванием (по умолчанию)
+    private fun setupSortPanel() {
+        for ((button, field) in sortOptions) {
+            button.setOnClickListener {
+                favoritesViewModel.setSort(field, binding.sortAscending.isChecked)
+                if (field != FavoriteSortField.NONE && isEditMode) toggleEditMode()
+                updateSortUi()
+            }
+        }
+        binding.sortAscending.setOnCheckedChangeListener { _, checked ->
+            if (checked != favoritesViewModel.sortAscending) {
+                favoritesViewModel.setSort(favoritesViewModel.sortField, checked)
+            }
+        }
+        //заголовок: нажатие и свайп вниз сворачивают панель
+        val detector = android.view.GestureDetector(requireContext(), object : android.view.GestureDetector.SimpleOnGestureListener() {
+            override fun onDown(e: android.view.MotionEvent) = true
+            override fun onSingleTapUp(e: android.view.MotionEvent): Boolean { hideSortPanel(); return true }
+            override fun onFling(e1: android.view.MotionEvent?, e2: android.view.MotionEvent, vx: Float, vy: Float): Boolean {
+                if (vy > 600) { hideSortPanel(); return true }
+                return false
+            }
+        })
+        binding.sortHeader.setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+        updateSortUi()
+    }
+
+    private fun updateSortUi() {
+        if (_binding == null) return
+        for ((button, field) in sortOptions) button.isChecked = favoritesViewModel.sortField == field
+        binding.sortAscending.isChecked = favoritesViewModel.sortAscending
+        val active = favoritesViewModel.sortField != FavoriteSortField.NONE
+        binding.stripSort.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (active) requireContext().accentColor() else ContextCompat.getColor(requireContext(), R.color.white))
+    }
+
+    private fun toggleSortPanel() {
+        if (binding.sortPanel.visibility == View.VISIBLE) hideSortPanel() else showSortPanel()
+    }
+
+    private fun showSortPanel() {
+        val panel = binding.sortPanel
+        updateSortUi()
+        panel.visibility = View.VISIBLE
+        panel.post {
+            if (_binding == null) return@post
+            panel.translationY = panel.height.toFloat()
+            panel.animate().translationY(0f).setDuration(200).start()
+        }
+    }
+
+    private fun hideSortPanel(animate: Boolean = true) {
+        val panel = binding.sortPanel
+        if (panel.visibility != View.VISIBLE) return
+        if (!animate) { panel.visibility = View.GONE; return }
+        panel.animate().translationY(panel.height.toFloat()).setDuration(200).withEndAction {
+            if (_binding != null) { panel.visibility = View.GONE; panel.translationY = 0f }
+        }.start()
     }
 
     private fun applyStripState() {
@@ -322,7 +391,11 @@ class FavoritesFragment: Fragment() {
             }
         })
         searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                //клавиатура закрыла бы выдвинутую панель сортировки и список: панель убираем
+                if (_binding != null) hideSortPanel()
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 currentSearchQuery = ""
@@ -333,6 +406,11 @@ class FavoritesFragment: Fragment() {
     }
 
     private fun toggleEditMode() {
+        //перетаскивание меняет свой порядок: при сортировке переключаемся на «Без сортировки»
+        if (!isEditMode && favoritesViewModel.sortField != FavoriteSortField.NONE) {
+            favoritesViewModel.setSort(FavoriteSortField.NONE, favoritesViewModel.sortAscending)
+            updateSortUi()
+        }
         val newEditMode = !isEditMode
         isEditMode = newEditMode
         adapter.setEditMode(newEditMode)

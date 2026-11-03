@@ -17,6 +17,9 @@ import kotlinx.coroutines.launch
  * Всё, что относится к избранному: список избранных песен, поиск, добавление и удаление,
  * порядок, позиция прокрутки. Раньше это жило в SharedViewModel.
  */
+/** По какому полю отсортирован список избранного; NONE - свой порядок, заданный перетаскиванием. */
+enum class FavoriteSortField { NONE, TITLE, ALBUM, ARTIST, DURATION, DATE_ADDED }
+
 class FavoritesViewModel(
     private val favoriteRepository: FavoriteRepository,
     private val helper: IPreferenceHelper
@@ -32,7 +35,60 @@ class FavoritesViewModel(
     private val _favoriteIds = MutableLiveData<Set<Long>>(emptySet())
     val favoriteIds: LiveData<Set<Long>> = _favoriteIds
 
+    //сортировка списка: хранится здесь, переживает поворот экрана; свой порядок песен лежит в manualSongs
+    var sortField = FavoriteSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+    private var manualSongs: List<Song> = listOf()
+    private var datesAdded: Map<Long, Long> = emptyMap()
+    private var lastQuery = ""
+
     init { refreshFavoriteIds() }
+
+    /** Включает сортировку (NONE - вернуть свой порядок) и перестраивает списки. */
+    fun setSort(field: FavoriteSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        viewModelScope.launch { setSongs(manualSongs) }
+    }
+
+    //все изменения списка проходят здесь: запоминаем свой порядок, показываем и играем в порядке сортировки
+    private suspend fun setSongs(songs: List<Song>) {
+        manualSongs = songs
+        if (sortField == FavoriteSortField.DATE_ADDED) {
+            try { datesAdded = favoriteRepository.getDatesAdded(songs.map { it.id }) } catch (e: Exception) { Log.d(TAG, "dates error ${e.message}") }
+        }
+        val sorted = sortSongs(songs)
+        _favoriteSongs.value = sorted
+        _filteredFavoriteSongs.value = if (lastQuery.isEmpty()) sorted else sorted.filterSongsByQuery(lastQuery)
+    }
+
+    private fun sortSongs(songs: List<Song>): List<Song> {
+        val result = when (sortField) {
+            FavoriteSortField.NONE -> return songs
+            FavoriteSortField.TITLE -> sortByText(songs) { it.title }
+            FavoriteSortField.ALBUM -> sortByText(songs) { it.albumName.orEmpty() }
+            FavoriteSortField.ARTIST -> sortByText(songs) { it.artist }
+            FavoriteSortField.DURATION -> songs.sortedBy { it.duration }
+            FavoriteSortField.DATE_ADDED -> songs.sortedBy { datesAdded[it.id] ?: 0L }
+        }
+        return if (sortAscending) result else result.reversed()
+    }
+
+    //текст: сначала русские буквы, потом латинские, потом всё остальное (цифры и знаки); внутри групп по алфавиту
+    private fun sortByText(songs: List<Song>, text: (Song) -> String): List<Song> =
+        songs.map { song ->
+            val t = text(song).trim()
+            val first = t.firstOrNull()
+            val group = when {
+                first == null -> 3
+                first in 'а'..'я' || first in 'А'..'Я' || first == 'ё' || first == 'Ё' -> 0
+                first in 'a'..'z' || first in 'A'..'Z' -> 1
+                else -> 2
+            }
+            Triple(group, t.lowercase(), song)
+        }.sortedWith(compareBy<Triple<Int, String, Song>>({ it.first }, { it.second })).map { it.third }
 
     fun refreshFavoriteIds() {
         viewModelScope.launch {
@@ -49,6 +105,7 @@ class FavoritesViewModel(
     }
 
     internal fun filterFavoriteSongs(query: String) {
+        lastQuery = query
         _filteredFavoriteSongs.value = (favoriteSongs.value ?: listOf()).filterSongsByQuery(query)
     }
 
@@ -60,9 +117,7 @@ class FavoritesViewModel(
         viewModelScope.launch {
             try {
                 val songs = favoriteRepository.getOrderedFavorites()
-                //val songs = favoriteRepository.getAllFavorites()
-                _favoriteSongs.value = songs
-                _filteredFavoriteSongs.value = songs
+                setSongs(songs)
                 refreshFavoriteIds()
             } catch (e: Exception) {
                 Log.d(TAG, "***FavoritesViewModel loadFavoriteSongs error = ${e.message}")
@@ -79,8 +134,7 @@ class FavoritesViewModel(
             val isNowFavorite = favoriteRepository.toggleFavorite(song.id)
             // Обновляем список избранного
             val songs = favoriteRepository.getAllFavorites()
-            _favoriteSongs.value = songs
-            _filteredFavoriteSongs.value = songs
+            setSongs(songs)
             refreshFavoriteIds()
         }
     }
@@ -113,16 +167,14 @@ class FavoritesViewModel(
             favoriteRepository.updateFavoriteOrder(updatedFavorites)
 
             // Обновляем LiveData
-            _favoriteSongs.value = orderedSongs
-            _filteredFavoriteSongs.value = orderedSongs
+            setSongs(orderedSongs)
         }
     }
 
     fun getOrderedFavoriteSong() {
         viewModelScope.launch {
             val songs= favoriteRepository.getOrderedFavorites()
-            _favoriteSongs.value=songs
-            _filteredFavoriteSongs.value=songs
+            setSongs(songs)
             refreshFavoriteIds()
         }
     }
@@ -138,6 +190,7 @@ class FavoritesViewModel(
             //сохраняем картинку из ресурсов в кэш и получаем ссылку
             val newArtUriString = saveDefaultCoverToCache(context)
             track.artUri = newArtUriString
+            manualSongs = manualSongs.map { if (it.id == track.id) it.copy(artUri = newArtUriString) else it }
             // Обновляем  избранное
             _favoriteSongs.value = _favoriteSongs.value?.map {fav->
                 if (fav.id == track.id) fav.copy(artUri = newArtUriString) else fav
