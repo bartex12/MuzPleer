@@ -12,6 +12,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.AlbumRepository
 import com.example.muzpleer.room.entity.AlbumFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.SongSortField
+import com.example.muzpleer.util.sortItemsBy
 import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
@@ -39,6 +41,23 @@ class AlbumsViewModel(
 
     private val _filteredListAlbumSong = MutableLiveData<List<Song>>()  //фильтрованный поиском список песен конкретного альбома
     val filteredListAlbumSong: LiveData<List<Song>> = _filteredListAlbumSong
+
+    //сортировка списка альбомов: «Без сортировки» - свой порядок, заданный перетаскиванием
+    var sortField = SongSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        _filteredAlbums.value = _filteredAlbums.value  //тот же список заново: экран пересортирует его
+    }
+
+    /** Порядок альбомов для показа; при «Без сортировки» список не меняется. */
+    fun sortForDisplay(list: List<Album>): List<Album> = sortItemsBy(
+        list, sortField, sortAscending,
+        { it.title }, { it.songs.size }, { a -> a.songs.sumOf { it.duration.coerceAtLeast(0L) } })
 
     fun getPositionAlbum(): Int { return helper.getPositionAlbum() }
     fun savePositionAlbum(position: Int) { helper.savePositionAlbum(position) }

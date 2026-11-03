@@ -3,7 +3,7 @@ package com.example.muzpleer.util
 import com.example.muzpleer.model.Song
 
 /** По какому полю отсортирован список песен; NONE - порядок вкладки по умолчанию. */
-enum class SongSortField { NONE, TITLE, ALBUM, ARTIST, DURATION, DATE_ADDED }
+enum class SongSortField { NONE, TITLE, ALBUM, ARTIST, COUNT, DURATION, DATE_ADDED }
 
 /**
  * Сортировка списка песен. [datesAdded] - дата добавления файла по id песни (нужна для DATE_ADDED).
@@ -20,14 +20,36 @@ fun sortSongsBy(
         SongSortField.TITLE -> sortByText(songs) { it.title }
         SongSortField.ALBUM -> sortByText(songs) { it.albumName.orEmpty() }
         SongSortField.ARTIST -> sortByText(songs) { it.artist }
+        SongSortField.COUNT -> return songs
         SongSortField.DURATION -> songs.sortedBy { it.duration }
         SongSortField.DATE_ADDED -> songs.sortedBy { datesAdded[it.id] ?: 0L }
     }
     return if (ascending) result else result.reversed()
 }
 
+/**
+ * Сортировка альбомов, плейлистов и т.п.: по названию, числу треков или общей продолжительности.
+ * Для NONE и неподходящих полей список возвращается как есть.
+ */
+fun <T> sortItemsBy(
+    items: List<T>,
+    field: SongSortField,
+    ascending: Boolean,
+    title: (T) -> String,
+    count: (T) -> Int,
+    duration: (T) -> Long
+): List<T> {
+    val result = when (field) {
+        SongSortField.TITLE -> sortByText(items, title)
+        SongSortField.COUNT -> items.sortedBy(count)
+        SongSortField.DURATION -> items.sortedBy(duration)
+        else -> return items
+    }
+    return if (ascending) result else result.reversed()
+}
+
 //текст: сначала русские буквы, потом латинские, потом всё остальное (цифры и знаки); внутри групп по алфавиту
-private fun sortByText(songs: List<Song>, text: (Song) -> String): List<Song> =
+private fun <T> sortByText(songs: List<T>, text: (T) -> String): List<T> =
     songs.map { song ->
         val t = text(song).trim()
         val first = t.firstOrNull()
@@ -38,4 +60,4 @@ private fun sortByText(songs: List<Song>, text: (Song) -> String): List<Song> =
             else -> 2
         }
         Triple(group, t.lowercase(), song)
-    }.sortedWith(compareBy<Triple<Int, String, Song>>({ it.first }, { it.second })).map { it.third }
+    }.sortedWith(compareBy<Triple<Int, String, T>>({ it.first }, { it.second })).map { it.third }

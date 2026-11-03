@@ -36,10 +36,14 @@ class SortPanelView @JvmOverloads constructor(
             findViewById<RadioButton>(R.id.sortTitle) to SongSortField.TITLE,
             findViewById<RadioButton>(R.id.sortAlbum) to SongSortField.ALBUM,
             findViewById<RadioButton>(R.id.sortArtist) to SongSortField.ARTIST,
+            findViewById<RadioButton>(R.id.sortCount) to SongSortField.COUNT,
             findViewById<RadioButton>(R.id.sortDuration) to SongSortField.DURATION,
             findViewById<RadioButton>(R.id.sortDate) to SongSortField.DATE_ADDED
         )
         ascending = findViewById(R.id.sortAscending)
+        //по умолчанию нужны пункты для списка песен; вкладки с другими критериями задают свой набор через setAvailable
+        setAvailable(setOf(SongSortField.NONE, SongSortField.TITLE, SongSortField.ALBUM,
+            SongSortField.ARTIST, SongSortField.DURATION, SongSortField.DATE_ADDED))
         for ((button, field) in options) {
             button.setOnClickListener {
                 onChange(field, ascending.isChecked)
@@ -59,6 +63,11 @@ class SortPanelView @JvmOverloads constructor(
             }
         })
         findViewById<TextView>(R.id.sortHeader).setOnTouchListener { _, event -> detector.onTouchEvent(event) }
+    }
+
+    /** Какие пункты показывать (остальные скрыты). */
+    fun setAvailable(fields: Set<SongSortField>) {
+        for ((button, field) in options) button.visibility = if (field in fields) View.VISIBLE else View.GONE
     }
 
     /** Подключает панель к состоянию сортировки вкладки. */
