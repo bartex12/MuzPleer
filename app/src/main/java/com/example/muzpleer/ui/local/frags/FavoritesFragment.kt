@@ -1,7 +1,6 @@
 package com.example.muzpleer.ui.local.frags
 
 import com.example.muzpleer.util.indexOfSong
-import com.example.muzpleer.util.applyShuffleIcon
 import com.example.muzpleer.util.accentColor
 import android.content.Context
 import android.os.Bundle
@@ -35,7 +34,6 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
-import com.example.muzpleer.util.syncShuffleIcon
 import com.google.android.material.snackbar.Snackbar
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
@@ -136,6 +134,7 @@ class FavoritesFragment: Fragment() {
         //восстанавливаем позицию списка после поворота или возвращения на экран и при новой загрузке
         binding.favoriteRecyclerView.layoutManager?.scrollToPosition(favoritesViewModel.getPositionFavoriteSong())
 
+        setupStrip()
         initMenu()
     }
 
@@ -158,8 +157,7 @@ class FavoritesFragment: Fragment() {
         // Также сбрасываем при возобновлении фрагмента
         resetEditModeOnStart()
 
-        // Обновляем меню
-        activity?.invalidateOptionsMenu()
+        updateStripIcons()
     }
 
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
@@ -167,6 +165,9 @@ class FavoritesFragment: Fragment() {
         super.onPause()
 
         //при уходе с экрана поиск закрывается: при возврате список не должен остаться урезанным
+        //полоска со значками при уходе с экрана снова видна
+        stripVisible = true
+        if (_binding != null) { applyStripState(); updateStripIcons() }
         hideKeyboard()
         searchMenuItem?.collapseActionView()
         currentSearchQuery = ""
@@ -211,87 +212,92 @@ class FavoritesFragment: Fragment() {
         }
     }
 
+    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var eyeItem: MenuItem? = null
+
     fun initMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
                 menuInflater.inflate(R.menu.menu_favorites, menu)
-                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
                 favMenu = menu
                 setupSearchItem(menu)
-
-                // Показываем/скрываем пункт в зависимости от режима
-                val editItem = menu.findItem(R.id.action_edit_order_favorite)
-                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
+                eyeItem = menu.findItem(R.id.action_toggle_strip)
+                updateEyeIcon()
             }
+
             override fun onPrepareMenu(menu: Menu) {
-                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
                 super.onPrepareMenu(menu)
-                val editItem = menu.findItem(R.id.action_edit_order_favorite)
-                //поиск нужен, только если в избранном есть треки
                 menu.findItem(R.id.search_toolbar_favorite)?.isVisible = totalSongsCount > 0
-
-                // Меняем цвет в зависимости от режима
-                val color = if (isEditMode) {
-                    requireContext().accentColor()
-                } else {
-                    ContextCompat.getColor(requireContext(), R.color.white)
-                }
-                editItem?.icon?.setTint(color)
-
-                // Обновляем текст кнопки
-                editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
-
-                // вычисляем количество песен в списке
-                val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
-                Log.d(TAG, "$$$$$ SongPlaylistFragment onPrepareMenu songsCount = $songsCount ")
-                // Простое условие - больше  7 песен
-                menu.findItem(R.id.action_go_to_song_favorite)?.isVisible = songsCount > 7
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when(menuItem.itemId){
-                    R.id.action_go_to_song_favorite->{
-                        val favoriteSongs = favoritesViewModel.getFavoriteSongs() //список песен артиста
-                        val currentSong = viewModel.getCurrentSong()
-                        val indexOfSong = favoriteSongs.indexOfSong(currentSong)
-                        Log.d(TAG, "$$$ FavoritesFragment onMenuItemSelected indexOfSong = $indexOfSong")
-                        (binding.favoriteRecyclerView.layoutManager as LinearLayoutManager).let{
-                            if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
-                        }
-                        return true
-                    }
-
-                    R.id.action_edit_order_favorite -> {
-                        toggleEditMode()
-                        true
-                    }
-
-                    R.id.action_shuffle->{
-                        val newShuffleState = playerViewModel.setPlaybackMode()
-                        // Меняем иконку в зависимости от состояния
-                        if (newShuffleState) {
-                            menuItem.applyShuffleIcon(requireContext(), true)
-                            Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
-                        } else {
-                            menuItem.applyShuffleIcon(requireContext(), false)
-                            Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
-                        }
-                        return   true
-                    }
+                if (menuItem.itemId == R.id.action_toggle_strip) {
+                    stripVisible = !stripVisible
+                    applyStripState()
+                    return true
                 }
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
+    //значки полоски под списком: переход к треку, случайный порядок, порядок строк, сортировка
+    private fun setupStrip() {
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripGoTo, "К треку")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripShuffle, "Случайный порядок")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripSort, getString(R.string.strip_sort))
+        binding.stripGoTo.setOnClickListener {
+            val favoriteSongs = favoritesViewModel.getFavoriteSongs()
+            val indexOfSong = favoriteSongs.indexOfSong(viewModel.getCurrentSong())
+            (binding.favoriteRecyclerView.layoutManager as LinearLayoutManager).let {
+                if (indexOfSong >= 0) it.scrollToPositionWithOffset(indexOfSong, 0)
+                else { it.scrollToPosition(0); Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", Toast.LENGTH_SHORT).show() }
+            }
+        }
+        binding.stripShuffle.setOnClickListener {
+            val newShuffleState = playerViewModel.setPlaybackMode()
+            updateStripIcons()
+            Toast.makeText(context, if (newShuffleState) "Случайный порядок включен" else "Прямой порядок включен", Toast.LENGTH_SHORT).show()
+        }
+        binding.stripEdit.setOnClickListener { toggleEditMode() }
+        binding.stripSort.setOnClickListener {
+            Toast.makeText(requireContext(), getString(R.string.strip_in_development), Toast.LENGTH_SHORT).show()
+        }
+        applyStripState()
+        updateStripIcons()
+    }
+
+    private fun applyStripState() {
+        binding.favoriteStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        updateEyeIcon()
+    }
+
+    private fun updateEyeIcon() {
+        eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+    }
+
+    //цвета значков: случайный порядок и режим правки порядка окрашены цветом акцента, когда включены
+    private fun updateStripIcons() {
+        if (_binding == null) return
+        val ctx = requireContext()
+        val white = ContextCompat.getColor(ctx, R.color.white)
+        val accent = ctx.accentColor()
+        val shuffle = playerViewModel.isShuffleMode()
+        binding.stripShuffle.setImageResource(if (shuffle) R.drawable.baseline_shuffle_24 else R.drawable.icons8_data_white_24)
+        binding.stripShuffle.imageTintList = android.content.res.ColorStateList.valueOf(if (shuffle) accent else white)
+        binding.stripEdit.imageTintList = android.content.res.ColorStateList.valueOf(if (isEditMode) accent else white)
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(
+            binding.stripEdit, if (isEditMode) "Редактирование порядка" else "Редактировать порядок")
+    }
+
     private var favMenu: Menu? = null
 
     private fun updateMenuVisibility() {
-        val menu = favMenu ?: return
-        menu.findItem(R.id.search_toolbar_favorite)?.isVisible = totalSongsCount > 0
+        if (_binding == null) return
+        favMenu?.findItem(R.id.search_toolbar_favorite)?.isVisible = totalSongsCount > 0
         val songsCount = favoritesViewModel.filteredFavoriteSongs.value?.size ?: 0
-        menu.findItem(R.id.action_go_to_song_favorite)?.isVisible = songsCount > 7
+        binding.stripGoTo.visibility = if (songsCount > 7) View.VISIBLE else View.GONE
     }
 
     //строка поиска в тулбаре, как в списке «Все треки»
@@ -339,8 +345,7 @@ class FavoritesFragment: Fragment() {
             itemTouchHelper.attachToRecyclerView(null) // Отключаем перетаскивание
            // saveOrderChanges()
         }
-        // Обновляем меню
-        activity?.invalidateOptionsMenu()
+        updateStripIcons()
     }
 
     private fun showEditModeHint() {
