@@ -26,6 +26,7 @@
     <string name="sort_title">Заголовку</string>
     <string name="sort_album">Альбому</string>
     <string name="sort_artist">Исполнителю</string>
+    <string name="sort_count">Количеству треков</string>
     <string name="sort_duration">Продолжительности</string>
     <string name="sort_date_added">Дате добавления</string>
     <string name="sort_ascending">По возрастанию</string>

@@ -5,16 +5,67 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools" >
 
+    <!-- Полоска со значками под тулбаром: белая линия 1dp, цвет и высота как у вкладок; прячется значком глаза в тулбаре -->
+    <LinearLayout
+        android:id="@+id/listStrip"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/white" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?attr/appPanelLight"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/stripGoTo"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="К элементу с играющим треком"
+                android:src="@drawable/outline_flag_24"
+                app:tint="@color/white" />
+            <ImageButton
+                android:id="@+id/stripEdit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Редактировать порядок"
+                android:src="@drawable/baseline_edit_note_24"
+                app:tint="@color/white" />
+            <ImageButton
+                android:id="@+id/stripSort"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Сортировка"
+                android:src="@drawable/ic_sort_24"
+                app:tint="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playlistRecyclerView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingBottom="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/sortPanel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listStrip"
         tools:listitem="@layout/item_playlist"/>
 
     <ImageView
@@ -69,4 +120,17 @@
         android:contentDescription="@string/new_playlist"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"/>
+    <!-- Панель сортировки над вкладками: высота по содержимому -->
+    <com.example.muzpleer.ui.local.view.SortPanelView
+        android:id="@+id/sortPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/appPanel"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

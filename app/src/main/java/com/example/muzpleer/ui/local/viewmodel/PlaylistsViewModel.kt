@@ -12,6 +12,8 @@ import com.example.muzpleer.model.Playlist
 import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.PlaylistRepository
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.SongSortField
+import com.example.muzpleer.util.sortItemsBy
 import com.example.muzpleer.util.UserMessenger
 import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
@@ -72,6 +74,23 @@ class PlaylistsViewModel(
     internal fun filterPlaylistSongs(query: String) {
         _currentFilteredPlaylistSongs.value = (currentPlaylistSongs.value ?: listOf()).filterSongsByQuery(query)
     }
+
+    //сортировка списка плейлистов: «Без сортировки» - свой порядок, заданный перетаскиванием
+    var sortField = SongSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        _filteredPlaylists.value = _filteredPlaylists.value  //тот же список заново: экран пересортирует его
+    }
+
+    /** Порядок плейлистов для показа; при «Без сортировки» список не меняется. */
+    fun sortForDisplay(list: List<Playlist>): List<Playlist> = sortItemsBy(
+        list, sortField, sortAscending,
+        { it.playlistName }, { it.playlistSongs.size }, { p -> p.playlistSongs.sumOf { it.duration.coerceAtLeast(0L) } })
 
     fun getPositionPlaylist(): Int{  return helper.getPositionPlaylist() }
 
