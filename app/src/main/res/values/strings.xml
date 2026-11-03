@@ -22,6 +22,14 @@
     <string name="strip_toggle">Показать или скрыть значки</string>
     <string name="strip_sort">Сортировка</string>
     <string name="strip_in_development">В разработке</string>
+    <string name="sort_by">Сортировать по</string>
+    <string name="sort_title">Заголовку</string>
+    <string name="sort_album">Альбому</string>
+    <string name="sort_artist">Исполнителю</string>
+    <string name="sort_duration">Продолжительности</string>
+    <string name="sort_date_added">Дате добавления</string>
+    <string name="sort_ascending">По возрастанию</string>
+    <string name="sort_edit_blocked">Свой порядок меняется при выключенной сортировке: нажмите на выбранный пункт сортировки ещё раз</string>
     <string name="search">Поиск</string>
     <string name="search_song">поиск трека</string>
     <string name="search_album">поиск альбома</string>
