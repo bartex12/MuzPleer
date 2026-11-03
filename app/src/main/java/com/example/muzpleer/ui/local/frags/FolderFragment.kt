@@ -1,6 +1,7 @@
 package com.example.muzpleer.ui.local.frags
 
 import com.example.muzpleer.util.accentColor
+import com.example.muzpleer.util.SongSortField
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -38,6 +39,8 @@ class FolderFragment : Fragment(){
     private lateinit var adapter: FoldersAdapter
     private lateinit var itemTouchHelper: ItemTouchHelper
     private var isEditMode = false
+    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var eyeItem: MenuItem? = null
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
 
@@ -91,12 +94,60 @@ class FolderFragment : Fragment(){
         foldersViewModel.filteredFolders.observe(viewLifecycleOwner) { filteredFolders ->
             Log.d(TAG,"35 FolderFragment onViewCreated filteredFolders.observe: filteredFolders.size= ${filteredFolders.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
-            adapter.folders = filteredFolders  //передаём данные в адаптер
+            adapter.folders = foldersViewModel.sortForDisplay(filteredFolders)  //передаём данные в адаптер (порядок как выбран в панели сортировки)
             // Управляем видимостью в зависимости от состояния
             updateEmptyState(filteredFolders)
         }
         //восстанавливаем позицию списка после поворота или возвращения на экран
         binding.foldersRecyclerView.layoutManager?.scrollToPosition(foldersViewModel.getPositionFolder())
+
+        setupStrip()
+    }
+
+    //значки полоски под тулбаром: переход к играющему треку, порядок строк, сортировка
+    private fun setupStrip() {
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripGoTo, "К играющему треку")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripSort, getString(R.string.strip_sort))
+        binding.stripGoTo.setOnClickListener {
+            //к строке, где играющий трек (она подсвечена эквалайзером)
+            val song = viewModel.getCurrentSong()
+            binding.foldersRecyclerView.scrollToPlayingRow(adapter.folders.indexOfFirst { f -> song != null && f.path.trimEnd('/') == song.folderPath.trimEnd('/') })
+        }
+        binding.stripEdit.setOnClickListener {
+            //перетаскивание меняет свой порядок: при сортировке переключаемся на «Без сортировки»
+            if (!isEditMode && foldersViewModel.sortField != SongSortField.NONE) {
+                foldersViewModel.setSort(SongSortField.NONE, foldersViewModel.sortAscending)
+                binding.sortPanel.refresh()
+                updateStripIcons()
+            }
+            toggleEditMode()
+        }
+        binding.stripSort.setOnClickListener { binding.sortPanel.toggle() }
+        binding.sortPanel.setAvailable(setOf(SongSortField.NONE, SongSortField.TITLE, SongSortField.COUNT, SongSortField.PATH, SongSortField.DURATION))
+        binding.sortPanel.bind({ foldersViewModel.sortField }, { foldersViewModel.sortAscending }) { field, asc ->
+            foldersViewModel.setSort(field, asc)
+            if (field != SongSortField.NONE && isEditMode) toggleEditMode()
+            updateStripIcons()
+        }
+        applyStripState()
+        updateStripIcons()
+    }
+
+    private fun applyStripState() {
+        _binding?.listStrip?.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+    }
+
+    //режим правки порядка и включённая сортировка окрашены цветом акцента
+    private fun updateStripIcons() {
+        if (_binding == null) return
+        val white = ContextCompat.getColor(requireContext(), R.color.white)
+        val accent = requireContext().accentColor()
+        binding.stripEdit.imageTintList = android.content.res.ColorStateList.valueOf(if (isEditMode) accent else white)
+        binding.stripSort.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (foldersViewModel.sortField != SongSortField.NONE) accent else white)
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(
+            binding.stripEdit, if (isEditMode) "Редактирование порядка" else "Редактировать порядок")
     }
 
     /**
@@ -140,6 +191,7 @@ class FolderFragment : Fragment(){
         resetEditModeOnStart()
         // Обновляем меню
         requireActivity().invalidateOptionsMenu()
+        updateStripIcons()
     }
 
     //запоминаем  позицию списка, на которой сделан клик - на случай поворота экрана
@@ -148,6 +200,10 @@ class FolderFragment : Fragment(){
 
         // Сбрасываем режим редактирования при уходе
         resetEditModeOnPause()
+        //полоска со значками при уходе с экрана снова видна, панель сортировки убрана
+        stripVisible = true
+        applyStripState()
+        binding.sortPanel.hide(false)
 
         //определяем первую видимую позицию
         val manager = binding.foldersRecyclerView.layoutManager as LinearLayoutManager
@@ -196,7 +252,9 @@ class FolderFragment : Fragment(){
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.menu_other, menu)
+        inflater.inflate(R.menu.menu_strip_search, menu)
+        eyeItem = menu.findItem(R.id.action_toggle_strip)
+        applyStripState()
 
         val searchItem: MenuItem = menu.findItem(R.id.search_toolbar_other)
         val searchView =searchItem.actionView as SearchView
@@ -220,7 +278,11 @@ class FolderFragment : Fragment(){
         })
         // Сбрасываем флаг поиска при закрытии SearchView
         searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                //клавиатура закрыла бы выдвинутую панель сортировки и список: панель убираем
+                if (_binding != null) binding.sortPanel.hide()
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 isSearchActive = false
@@ -231,35 +293,12 @@ class FolderFragment : Fragment(){
         super.onCreateOptionsMenu(menu, inflater)
     }
 
-    override fun onPrepareOptionsMenu(menu: Menu) {
-        super.onPrepareOptionsMenu(menu)
-        menu.findItem(R.id.action_go_to_song)?.isVisible = true
-
-        // Настраиваем кнопку редактирования
-        val editItem = menu.findItem(R.id.action_edit_order)
-        // Меняем текст
-        editItem?.title = if (isEditMode) "Редактирование порядка" else "Редактировать порядок"
-
-        // Меняем цвет в зависимости от режима
-        val color = if (isEditMode) {
-            requireContext().accentColor()
-        } else {
-            ContextCompat.getColor(requireContext(), R.color.white)
-        }
-        editItem?.icon?.setTint(color)
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when(item.itemId){
-            R.id.action_go_to_song -> {
-                //к строке, где играющий трек (она подсвечена эквалайзером)
-                val song = viewModel.getCurrentSong()
-                binding.foldersRecyclerView.scrollToPlayingRow(adapter.folders.indexOfFirst { f -> song != null && f.path.trimEnd('/') == song.folderPath.trimEnd('/') })
+            R.id.action_toggle_strip -> {
+                stripVisible = !stripVisible
+                applyStripState()
                 return true
-            }
-            R.id.action_edit_order -> {
-                toggleEditMode()
-                true
             }
         }
         return super.onOptionsItemSelected(item)
@@ -277,8 +316,7 @@ class FolderFragment : Fragment(){
             itemTouchHelper.attachToRecyclerView(null) // Отключаем перетаскивание
         }
 
-        // Обновляем меню
-        activity?.invalidateOptionsMenu()
+        updateStripIcons()
     }
     private fun showEditModeHint() {
         Snackbar.make(binding.root, "Перетаскивайте треки для изменения порядка",

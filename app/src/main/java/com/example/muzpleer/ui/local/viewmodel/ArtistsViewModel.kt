@@ -13,6 +13,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.ArtistRepository
 import com.example.muzpleer.room.entity.ArtistFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.SongSortField
+import com.example.muzpleer.util.sortItemsBy
 import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
@@ -40,6 +42,23 @@ class ArtistsViewModel(
 
     private val _filteredListArtistSong = MutableLiveData<List<Song>>()
     val filteredListArtistSong: LiveData<List<Song>> = _filteredListArtistSong
+
+    //сортировка списка: «Без сортировки» - свой порядок, заданный перетаскиванием
+    var sortField = SongSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        _filteredArtists.value = _filteredArtists.value  //тот же список заново: экран пересортирует его
+    }
+
+    /** Порядок для показа; при «Без сортировки» список не меняется. */
+    fun sortForDisplay(list: List<Artist>): List<Artist> = sortItemsBy(
+        list, sortField, sortAscending,
+        { it.name }, { it.songs.size }, { a -> a.songs.sumOf { it.duration.coerceAtLeast(0L) } }, { "" }, { it.albums.size })
 
     fun getPositionArtist(): Int { return helper.getPositionArtist() }
     fun savePositionArtist(position: Int) { helper.savePositionArtist(position) }

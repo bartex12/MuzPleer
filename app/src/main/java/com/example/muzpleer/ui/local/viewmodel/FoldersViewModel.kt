@@ -13,6 +13,8 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.FolderRepository
 import com.example.muzpleer.room.entity.FolderFile
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
+import com.example.muzpleer.util.SongSortField
+import com.example.muzpleer.util.sortItemsBy
 import com.example.muzpleer.util.isExistingLocalFile
 import com.example.muzpleer.util.saveDefaultCoverToCache
 import kotlinx.coroutines.launch
@@ -40,6 +42,23 @@ class FoldersViewModel(
 
     private val _filteredListFolderSong = MutableLiveData<List<Song>>()
     val filteredListFolderSong: LiveData<List<Song>> = _filteredListFolderSong
+
+    //сортировка списка: «Без сортировки» - свой порядок, заданный перетаскиванием
+    var sortField = SongSortField.NONE
+        private set
+    var sortAscending = true
+        private set
+
+    fun setSort(field: SongSortField, ascending: Boolean) {
+        sortField = field
+        sortAscending = ascending
+        _filteredFolders.value = _filteredFolders.value  //тот же список заново: экран пересортирует его
+    }
+
+    /** Порядок для показа; при «Без сортировки» список не меняется. */
+    fun sortForDisplay(list: List<Folder>): List<Folder> = sortItemsBy(
+        list, sortField, sortAscending,
+        { it.name }, { it.songs.size }, { f -> f.songs.sumOf { it.duration.coerceAtLeast(0L) } }, { it.path })
 
     fun getPositionFolder(): Int { return helper.getPositionFolder() }
     fun savePositionFolder(position: Int) { helper.savePositionFolder(position) }

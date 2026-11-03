@@ -53,12 +53,32 @@
         android:textSize="15sp" />
 
     <RadioButton
+        android:id="@+id/sortAlbumCount"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_album_count"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
         android:id="@+id/sortCount"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         android:buttonTint="?attr/appAccent"
         android:paddingStart="8dp"
         android:text="@string/sort_count"
+        android:textColor="@color/white"
+        android:textSize="15sp" />
+
+    <RadioButton
+        android:id="@+id/sortPath"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:buttonTint="?attr/appAccent"
+        android:paddingStart="8dp"
+        android:text="@string/sort_path"
         android:textColor="@color/white"
         android:textSize="15sp" />
 
