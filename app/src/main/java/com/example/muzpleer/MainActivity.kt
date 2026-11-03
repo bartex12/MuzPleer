@@ -422,16 +422,8 @@ class MainActivity : AppCompatActivity() {
             }
         }
         if (currentFragment is TabLocalFragment) {
-            val currentPosition = currentFragment.viewPager.currentItem
-            val tabTitle = when (currentPosition) {
-                0 -> "Треки"
-                1 -> "Папки"
-                2 -> "Избранное"
-                3 -> "Плейлисты"
-                4 -> "Альбомы"
-                5 -> "Исполнители"
-                else -> "Музыка на ладони"
-            }
+            //название текущей вкладки и число строк в её списке
+            val tabTitle = currentFragment.currentToolbarTitle() ?: "Музыка на ладони"
             binding.appBarMain.mainTitle.text = tabTitle
         } else {
             // Если не на вкладках, ставим стандартный заголовок
