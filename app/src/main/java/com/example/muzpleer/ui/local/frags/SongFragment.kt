@@ -37,6 +37,7 @@ import com.example.muzpleer.ui.player.PlayerViewModel
 import com.example.muzpleer.util.SongSortField
 import androidx.core.content.ContextCompat
 import com.example.muzpleer.util.accentColor
+import com.example.muzpleer.util.showStripByDefault
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SongFragment : Fragment() {
@@ -55,7 +56,7 @@ class SongFragment : Fragment() {
     private lateinit var navController: NavController
     // Флаг, чтобы различать состояния "список пуст изначально" и "ничего не найдено"
     private var isSearchActive = false
-    private var stripVisible = true   //полоска со значками видна по умолчанию и после возврата на экран
+    private var stripVisible = showStripByDefault()   //по умолчанию как в настройках («Панель с настройками»), после возврата на экран тоже
     private var eyeItem: MenuItem? = null
     private var searchMenuItem: MenuItem? = null //пункт поиска, чтобы закрыть его при уходе с экрана
 
@@ -210,6 +211,9 @@ class SongFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        //после настроек и других экранов панель снова по настройке
+        stripVisible = showStripByDefault()
+        applyStripState()
         val pos = viewModel.getPositionSong()
         Log.d( TAG,"1---SongsFragment onResume PositionSong = $pos ")
         //восстанавливаем позицию списка после поворота или возвращения на экран и при новой загрузке
@@ -234,7 +238,7 @@ class SongFragment : Fragment() {
                 ?.hideSoftInputFromWindow(v.windowToken, 0)
         }
         //полоска со значками при уходе с экрана снова видна, панель сортировки убрана
-        stripVisible = true
+        stripVisible = showStripByDefault()
         applyStripState()
         binding.sortPanel.hide(false)
         //сворачиваем строку поиска (слушатель сворачивания сбросит фильтр)
