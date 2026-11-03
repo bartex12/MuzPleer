@@ -307,6 +307,8 @@ class FavoritesFragment: Fragment() {
         val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
         searchView.setIconifiedByDefault(true)
         searchView.queryHint = getString(R.string.search_favorite)
+        //строка поиска раскрывается не на весь тулбар, чтобы значок глаза справа оставался на месте
+        searchView.maxWidth = (resources.displayMetrics.widthPixels * 0.5f).toInt()
         //сохраняем состояние поиска при пересоздании меню и повороте экрана
         if (currentSearchQuery.isNotEmpty()) {
             searchItem.expandActionView()
