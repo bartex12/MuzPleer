@@ -72,6 +72,10 @@ class FavoriteRepository(
         return fromSongFileListToSongList(songsFile)
     }
 
+    /** Дата добавления файла на устройство (мс) по id песни - для сортировки избранного. */
+    suspend fun getDatesAdded(ids: List<Long>): Map<Long, Long> =
+        ids.associateWith { songDao.getById(it)?.dateAdded ?: 0L }
+
     suspend  fun updateFavoriteAtrUri(favoriteId: Long, newArtUriString:String){
         favoriteDao.updateCoverPath(favoriteId, newArtUriString)
     }
