@@ -391,7 +391,11 @@ class FavoritesFragment: Fragment() {
             }
         })
         searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem): Boolean = true
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                //клавиатура закрыла бы выдвинутую панель сортировки и список: панель убираем
+                if (_binding != null) hideSortPanel()
+                return true
+            }
 
             override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
                 currentSearchQuery = ""
