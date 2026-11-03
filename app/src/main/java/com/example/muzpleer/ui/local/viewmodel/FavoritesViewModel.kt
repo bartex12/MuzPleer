@@ -45,6 +45,16 @@ class FavoritesViewModel(
 
     init { refreshFavoriteIds() }
 
+    fun refreshFavoriteIds() {
+        viewModelScope.launch {
+            try {
+                _favoriteIds.value = favoriteRepository.getAllFavoriteSongs().map { it.songId }.toSet()
+            } catch (e: Exception) {
+                Log.d(TAG, "***FavoritesViewModel refreshFavoriteIds error = ${e.message}")
+            }
+        }
+    }
+
     /** Включает сортировку (NONE - вернуть свой порядок) и перестраивает списки. */
     fun setSort(field: SongSortField, ascending: Boolean) {
         sortField = field
