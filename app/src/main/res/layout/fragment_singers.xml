@@ -26,33 +26,86 @@
             android:background="?attr/appPanelLight"
             android:orientation="horizontal">
 
-            <ImageButton
+            <FrameLayout
                 android:id="@+id/stripGoTo"
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="К элементу с играющим треком"
+                android:clickable="true"
+                android:contentDescription="К треку"
+                android:focusable="true">
+                <ImageView
+                android:id="@+id/stripGoToIcon"
+                android:scaleType="center"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
+                android:importantForAccessibility="no"
                 android:src="@drawable/outline_flag_24"
                 app:tint="@color/white" />
-            <ImageButton
-                android:id="@+id/stripEdit"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="К треку"
+                    android:textColor="@color/white"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="1">
+                <ImageButton
+                android:id="@+id/stripEdit"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Редактировать порядок"
                 android:src="@drawable/baseline_edit_note_24"
                 app:tint="@color/white" />
-            <ImageButton
-                android:id="@+id/stripSort"
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="Порядок"
+                    android:textColor="@color/white"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
-                android:layout_weight="1"
+                android:layout_weight="1">
+                <ImageButton
+                android:id="@+id/stripSort"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Сортировка"
                 android:src="@drawable/ic_sort_24"
                 app:tint="@color/white" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="Сортировка"
+                    android:textColor="@color/white"
+                    android:textSize="10sp" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 
