@@ -5,35 +5,112 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/input_layout_search_allTracks"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <!-- Полоска со значками под тулбаром: белая линия 1dp, цвет и высота как у вкладок; прячется значком глаза в тулбаре -->
+    <LinearLayout
+        android:id="@+id/songListStrip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:hint="@string/search_text"
-        android:theme="@style/WhiteTextInputLayoutOverlay"
-        app:boxCornerRadiusBottomEnd="20dp"
-        app:boxCornerRadiusTopStart="20dp"
-        app:counterEnabled="true"
-        app:counterMaxLength="30"
-        app:counterTextColor="@android:color/white"
-        app:endIconCheckable="true"
-        app:endIconDrawable="@drawable/baseline_search_24"
-        app:endIconMode="custom"
-        app:endIconTint="@android:color/white"
-        app:helperText="Найдите трек в списке треков"
-        app:helperTextTextColor="@android:color/white"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_edit_text_search_allTracks"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white"/>
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="1dp"
+            android:background="@color/white" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?attr/appPanelLight"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:id="@+id/stripGoTo"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="К треку"
+                android:focusable="true">
+                <ImageView
+                android:id="@+id/stripGoToIcon"
+                android:scaleType="center"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/outline_flag_24"
+                app:tint="@color/white" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="К треку"
+                    android:textColor="@color/white"
+                    android:tag="stripLabel"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                <ImageButton
+                android:id="@+id/stripShuffle"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Случайный порядок"
+                android:src="@drawable/icons8_data_white_24"
+                app:tint="@color/white" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="Перемешивание"
+                    android:textColor="@color/white"
+                    android:tag="stripLabel"
+                    android:textSize="10sp" />
+            </FrameLayout>
+            <FrameLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1">
+                <ImageButton
+                android:id="@+id/stripSort"
+                    android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="14dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Сортировка"
+                android:src="@drawable/ic_sort_24"
+                app:tint="@color/white" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:layout_marginBottom="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:text="Сортировка"
+                    android:textColor="@color/white"
+                    android:tag="stripLabel"
+                    android:textSize="10sp" />
+            </FrameLayout>
+        </LinearLayout>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/alltracksRecyclerView"
@@ -42,10 +119,10 @@
         android:clipToPadding="false"
         android:paddingBottom="8dp"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/sortPanel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search_allTracks"
+        app:layout_constraintTop_toBottomOf="@id/songListStrip"
         tools:listitem="@layout/item_music"/>
 
     <ImageView
@@ -58,7 +135,7 @@
         android:src="@drawable/muz_player62"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search_allTracks"
+        app:layout_constraintTop_toBottomOf="@id/songListStrip"
         tools:visibility="visible"/>
 
     <TextView
@@ -75,4 +152,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/emptyImageViewFavoriteAllTrack"
         tools:visibility="visible"/>
+
+    <!-- Панель сортировки над вкладками: высота по содержимому -->
+    <com.example.muzpleer.ui.local.view.SortPanelView
+        android:id="@+id/sortPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/appPanel"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

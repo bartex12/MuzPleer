@@ -1,23 +1,17 @@
 package com.example.muzpleer.ui.local.frags
 
 import com.example.muzpleer.util.indexOfSong
-import com.example.muzpleer.util.applyShuffleIcon
 import android.content.Context
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.util.Log
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.os.bundleOf
 import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
@@ -28,6 +22,11 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
+import androidx.core.content.ContextCompat
+import com.example.muzpleer.util.accentColor
+import com.example.muzpleer.util.showStripByDefault
+import com.example.muzpleer.util.SongSortField
 import com.example.muzpleer.databinding.FragmentAlltracksBinding
 import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.SourceType
@@ -39,9 +38,6 @@ import com.example.muzpleer.ui.local.viewmodel.FavoritesViewModel
 import com.example.muzpleer.ui.local.viewmodel.PlaylistsViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.ui.player.PlayerViewModel
-import com.example.muzpleer.util.syncShuffleIcon
-import com.example.muzpleer.util.toast
-import com.google.android.material.textfield.TextInputLayout
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
 class SongListAlbumFragment:Fragment() {
@@ -85,7 +81,7 @@ class SongListAlbumFragment:Fragment() {
             //очередь собираем из списка, который показан на экране (иначе порядок воспроизведения не совпадёт с видимым);
             //при поиске на экране не весь список, поэтому тогда берём полный список в том же порядке
             val shown = this.adapter.data
-            val playlist = if (shown.size == totalSongsCount) shown else (albumsViewModel.listAlbumSong.value ?: viewModel.getPlaylist())
+            val playlist = if (shown.size == totalSongsCount) shown else viewModel.sortListSongs(albumsViewModel.listAlbumSong.value ?: viewModel.getPlaylist())
 
             viewModel.setPlaybackSource(PlaybackSource(SourceType.ALBUM, id = arguments?.getLong("albumId") ?: -1L, name = albumName.orEmpty()))
             viewModel.setSongAndPlaylist(
@@ -102,8 +98,9 @@ class SongListAlbumFragment:Fragment() {
             adapter = this@SongListAlbumFragment.adapter
         }
 
-        // Настраиваем поиск
-        setupSearch()
+        adapter.showAlbumInsteadOfArtist = false
+        viewModel.resetListSortIfOther(sortKey)
+        setupStrip()
 
         if (arguments?.getLong("albumId") != null)  {
             val albumId = arguments?.getLong("albumId")!!
@@ -114,7 +111,7 @@ class SongListAlbumFragment:Fragment() {
             // Слушаем ОБЩИЙ список  песен (не отфильтрованный)
             albumsViewModel.listAlbumSong.observe(viewLifecycleOwner) { albumSongs ->
                 totalSongsCount = albumSongs.size
-                updateSearchVisibility()
+                updateMenuVisibility()  //строка поиска в тулбаре есть, только если в списке есть треки
                 Log.d(TAG, "###SongListAlbumFragment totalSongsCount: $totalSongsCount")
             }
 
@@ -122,7 +119,8 @@ class SongListAlbumFragment:Fragment() {
                 Log.d(TAG, "41!@# SongListAlbumFragment arguments filteredListAlbumSong size ${albumSongs.size}")
                 //здесь нельзя делать сортировку, иначе собьётся перемещение !!!
                 //adapter.data = getSortedDataSong(albumSongs)
-                adapter.data = albumSongs
+                shownSongs = albumSongs
+                adapter.data = viewModel.sortListSongs(albumSongs)
 
                 // Обновляем видимость пустого состояния (только для фильтрации)
                 val showEmptyState = albumSongs.isEmpty() //пусто после поиска
@@ -142,7 +140,7 @@ class SongListAlbumFragment:Fragment() {
                 }
 
                 // обновляем меню при загрузке данных
-                requireActivity().invalidateOptionsMenu()
+                updateMenuVisibility()
             }
             //обновление обложки при её замене
             viewModel.coverImageUri.observe(viewLifecycleOwner) { uri ->
@@ -160,6 +158,8 @@ class SongListAlbumFragment:Fragment() {
         super.onDestroyView()
         // Сбрасываем заголовок при уходе с фрагмента
         (requireActivity() as? MainActivity)?.resetToTabTitle()
+        listMenu = null
+        searchMenuItem = null
         _binding = null
     }
 
@@ -179,205 +179,172 @@ class SongListAlbumFragment:Fragment() {
         }
     }
 
-    private fun setupSearch() {
-        // Устанавливаем слушатель на иконку поиска
-        binding.inputLayoutSearchAllTracks.setEndIconOnClickListener {
-            performSearch()
-        }
+    private var stripVisible = showStripByDefault()   //по умолчанию как в настройках («Панель с настройками»)
+    private var eyeItem: MenuItem? = null
+    private var listMenu: Menu? = null
+    private var searchMenuItem: MenuItem? = null
+    private var currentSearchQuery = ""
+    private val sortKey get() = "album:${arguments?.getLong("albumId")}"
+    private var shownSongs: List<Song> = listOf()  //список после поиска, до сортировки
 
-        // Устанавливаем слушатель на нажатие Enter на клавиатуре
-        binding.inputEditTextSearchAllTracks.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                performSearch()
-                hideKeyboard()
-                return@setOnEditorActionListener true
-            }
-            false
-        }
+    //пункты сортировки у каждого списка свои
+    private val sortFields = setOf(SongSortField.NONE, SongSortField.TITLE, SongSortField.ARTIST, SongSortField.DURATION)
 
-        // Устанавливаем TextWatcher для поиска при вводе текста
-        binding.inputEditTextSearchAllTracks.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
-                // Не нужно
-            }
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                // Ищем при каждом изменении текста
-                s?.let { query ->
-                    albumsViewModel.filterAlbumSongs(query.toString())
-                }
-            }
-
-            override fun afterTextChanged(s: Editable?) {
-                val hasText = s?.isNotEmpty() == true
-                binding.inputLayoutSearchAllTracks.endIconMode =
-                    if (hasText) TextInputLayout.END_ICON_CLEAR_TEXT
-                    else TextInputLayout.END_ICON_CUSTOM
-                binding.inputLayoutSearchAllTracks.setEndIconDrawable(
-                    if (hasText) R.drawable.baseline_close_24
-                    else R.drawable.baseline_search_24
-                )
-            }
-        })
-
-        // Очистка по нажатию на иконку
-        binding.inputLayoutSearchAllTracks.setEndIconOnClickListener {
-            if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
-                binding.inputEditTextSearchAllTracks.text?.clear()
-                albumsViewModel.filterAlbumSongs("")
-            } else {
-                performSearch()
-            }
-        }
-
-        // Перехватываем нажатие кнопки "Назад" для поля ввода
-        setupBackButtonHandler()
+    override fun onResume() {
+        super.onResume()
+        //после других экранов панель снова по настройке
+        stripVisible = showStripByDefault()
+        applyStripState()
+        updateStripIcons()
     }
 
-    // Перехватываем события клавиатуры для кнопки "Назад"
-    private fun setupBackButtonHandler() {
-        binding.inputEditTextSearchAllTracks.setOnKeyListener { _, keyCode, event ->
-            if (keyCode == KeyEvent.KEYCODE_BACK && event.action == KeyEvent.ACTION_UP) {
-                if (binding.inputEditTextSearchAllTracks.hasFocus()) {
-                    // Скрываем клавиатуру и убираем фокус ТОЛЬКО при нажатии Back
-                    hideKeyboardAndClearFocus()
-                    return@setOnKeyListener true
-                }
-            }
-            false
-        }
+    override fun onPause() {
+        super.onPause()
+        //при уходе с экрана поиск закрывается, панель снова по настройке
+        stripVisible = showStripByDefault()
+        if (_binding != null) { applyStripState(); updateStripIcons(); hideSortPanel(false); hideKeyboard() }
+        searchMenuItem?.collapseActionView()
+        currentSearchQuery = ""
+        albumsViewModel.filterAlbumSongs("")
     }
 
-    private fun hideKeyboardAndClearFocus() {
-        // Убираем фокус с поля
-        binding.inputEditTextSearchAllTracks.clearFocus()
-
-        // Гарантированно скрываем курсор
-        binding.inputEditTextSearchAllTracks.isCursorVisible = false
-
-        //стираем текст в поле ввода и показываем весь список
-        if (binding.inputEditTextSearchAllTracks.text?.isNotEmpty() == true) {
-            binding.inputEditTextSearchAllTracks.text?.clear()
-            albumsViewModel.filterAlbumSongs("")
-        }
-
-        // Скрываем клавиатуру
-        hideKeyboard()
-
-        Log.d(TAG, "SongListAlbumFragment hideKeyboardAndClearFocus: фокус снят, курсор скрыт")
-    }
-
-    private fun performSearch() {
-        val query = binding.inputEditTextSearchAllTracks.text.toString().trim()
-        if (query.isNotEmpty()) {
-            albumsViewModel.filterAlbumSongs(query)
-            hideKeyboard()
-        } else {
-            toast("Введите текст для поиска")
-        }
-    }
-
-    private fun updateSearchVisibility() {
-        // Показываем строку поиска только если ЕСТЬ песни в списке
-        val shouldShowSearch = totalSongsCount > 0
-
-        if (shouldShowSearch) {
-            // Показываем строку поиска с анимацией
-            if (binding.inputLayoutSearchAllTracks.visibility != View.VISIBLE) {
-                binding.inputLayoutSearchAllTracks.visibility = View.VISIBLE
-                binding.inputLayoutSearchAllTracks.alpha = 0f
-                binding.inputLayoutSearchAllTracks.animate()
-                    .alpha(1f)
-                    .setDuration(300)
-                    .start()
-
-                // Обновляем constraints для RecyclerView
-                val params = binding.alltracksRecyclerView.layoutParams as ConstraintLayout.LayoutParams
-                params.topToTop = ConstraintLayout.LayoutParams.UNSET
-                params.topToBottom = binding.inputLayoutSearchAllTracks.id
-                binding.alltracksRecyclerView.layoutParams = params
-            }
-        } else {
-            // Скрываем строку поиска с анимацией
-            if (binding.inputLayoutSearchAllTracks.visibility != View.GONE) {
-                binding.inputLayoutSearchAllTracks.animate()
-                    .alpha(0f)
-                    .setDuration(300)
-                    .withEndAction {
-                        binding.inputLayoutSearchAllTracks.visibility = View.GONE
-                        // Обновляем constraints для RecyclerView
-                        val params = binding.alltracksRecyclerView.layoutParams as ConstraintLayout.LayoutParams
-                        params.topToBottom = ConstraintLayout.LayoutParams.UNSET
-                        params.topToTop = ConstraintLayout.LayoutParams.PARENT_ID
-                        binding.alltracksRecyclerView.layoutParams = params
-                    }
-                    .start()
-
-                // Очищаем текст поиска
-                binding.inputEditTextSearchAllTracks.text?.clear()
-                albumsViewModel.filterAlbumSongs("")
-                hideKeyboard()
-            }
-        }
-
-        Log.d(TAG, "SongListAlbumFragment updateSearchVisibility: totalSongsCount=$totalSongsCount, shouldShowSearch=$shouldShowSearch")
-    }
-
-    private fun hideKeyboard() {
-        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(binding.inputEditTextSearchAllTracks.windowToken, 0)
-    }
-
-
-    fun initMenu() {
+    private fun initMenu() {
         val menuHost: MenuHost = requireActivity()
         menuHost.addMenuProvider(object : MenuProvider {
-
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-                menuInflater.inflate(R.menu.menu_other_2, menu)
-                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
+                menuInflater.inflate(R.menu.menu_strip_search, menu)
+                listMenu = menu
+                setupSearchItem(menu)
+                eyeItem = menu.findItem(R.id.action_toggle_strip)
+                updateEyeIcon()
+                updateMenuVisibility()
             }
 
             override fun onPrepareMenu(menu: Menu) {
-                menu.syncShuffleIcon(requireContext(), playerViewModel.isShuffleMode())
-                menu.findItem(R.id.action_edit_order2)?.isVisible = false
-                var songsCount = 0
-                songsCount =  albumsViewModel.filteredListAlbumSong.value?.size?:0
-                Log.d(TAG, "$$$$$ SongListAlbumFragment onPrepareMenu songsCount = $songsCount ")
-                // Простое условие - больше 7 песен
-                menu.findItem(R.id.action_go_to_song2)?.isVisible = songsCount > 7
+                menu.findItem(R.id.search_toolbar_other)?.isVisible = totalSongsCount > 0
             }
 
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-                when(menuItem.itemId){
-                    R.id.action_go_to_song2->{
-                        val albumSongs = albumsViewModel.listAlbumSong.value //список песен альюома
-                        val currentSong = viewModel.getCurrentSong()
-                        if (albumSongs!=null){
-                            val indexOfSong = albumSongs.indexOfSong(currentSong)
-                            Log.d(TAG, "1$$$ SongListAlbumFragment onMenuItemSelected indexOfSong = $indexOfSong")
-                            (binding.alltracksRecyclerView.layoutManager as LinearLayoutManager).let{
-                                if(indexOfSong >= 0 ) it.scrollToPositionWithOffset(indexOfSong, 0) else { it.scrollToPosition(0); android.widget.Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", android.widget.Toast.LENGTH_SHORT).show() }
-                            }
-                        }
-                        return true
-                    }
-                    R.id.action_shuffle->{
-                        val newShuffleState = playerViewModel.setPlaybackMode()
-                        // Меняем иконку в зависимости от состояния
-                        if (newShuffleState) {
-                            menuItem.applyShuffleIcon(requireContext(), true)
-                            Toast.makeText(context, "Случайный порядок включен", Toast.LENGTH_SHORT).show()
-                        } else {
-                            menuItem.applyShuffleIcon(requireContext(), false)
-                            Toast.makeText(context, "Прямой порядок включен", Toast.LENGTH_SHORT).show()
-                        }
-                        return   true
-                    }
+                if (menuItem.itemId == R.id.action_toggle_strip) {
+                    stripVisible = !stripVisible
+                    applyStripState()
+                    return true
                 }
                 return false
             }
         }, viewLifecycleOwner, Lifecycle.State.RESUMED)
+    }
+
+    //строка поиска в тулбаре, как в списке «Все треки»
+    private fun setupSearchItem(menu: Menu) {
+        val searchItem = menu.findItem(R.id.search_toolbar_other) ?: return
+        searchMenuItem = searchItem
+        val searchView = searchItem.actionView as androidx.appcompat.widget.SearchView
+        searchView.setIconifiedByDefault(true)
+        searchView.queryHint = getString(R.string.search_song)
+        if (currentSearchQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(currentSearchQuery, false)
+        }
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?) = false
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                currentSearchQuery = newText.orEmpty()
+                albumsViewModel.filterAlbumSongs(currentSearchQuery)
+                return true
+            }
+        })
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                //клавиатура закрыла бы выдвинутую панель сортировки и список: панель убираем
+                if (_binding != null) hideSortPanel()
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                currentSearchQuery = ""
+                albumsViewModel.filterAlbumSongs("")
+                return true
+            }
+        })
+    }
+
+    //пункты меню обновляем на месте: пересоздание меню во время ввода закрыло бы строку поиска
+    private fun updateMenuVisibility() {
+        if (_binding == null) return
+        listMenu?.findItem(R.id.search_toolbar_other)?.isVisible = totalSongsCount > 0
+        binding.stripGoTo.visibility = if (shownSongs.size > 7) View.VISIBLE else View.GONE
+    }
+
+    //значки полоски: переход к треку, случайный порядок, сортировка
+    private fun setupStrip() {
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripGoTo, "К треку")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripShuffle, "Случайный порядок")
+        androidx.appcompat.widget.TooltipCompat.setTooltipText(binding.stripSort, getString(R.string.strip_sort))
+        binding.stripGoTo.setOnClickListener {
+            //ищем в том списке, что на экране (с учётом сортировки и поиска)
+            val indexOfSong = adapter.data.indexOfSong(viewModel.getCurrentSong())
+            (binding.alltracksRecyclerView.layoutManager as LinearLayoutManager).let {
+                if (indexOfSong >= 0) it.scrollToPositionWithOffset(indexOfSong, 0)
+                else { it.scrollToPosition(0); Toast.makeText(requireContext(), "Играющий трек в этом списке не найден", Toast.LENGTH_SHORT).show() }
+            }
+        }
+        binding.stripShuffle.setOnClickListener {
+            val newShuffleState = playerViewModel.setPlaybackMode()
+            updateStripIcons()
+            Toast.makeText(context, if (newShuffleState) "Случайный порядок включен" else "Прямой порядок включен", Toast.LENGTH_SHORT).show()
+        }
+        binding.stripSort.setOnClickListener { binding.sortPanel.toggle() }
+        setupSortPanel()
+        applyStripState()
+        updateStripIcons()
+    }
+
+    //панель «Сортировать по»: «Без сортировки» - порядок списка по умолчанию
+    private fun setupSortPanel() {
+        binding.sortPanel.setAvailable(sortFields)
+        binding.sortPanel.bind({ viewModel.listSortField }, { viewModel.listSortAscending }) { field, asc ->
+            viewModel.setListSort(sortKey, field, asc)
+            adapter.data = viewModel.sortListSongs(shownSongs)
+            updateSortUi()
+        }
+        updateSortUi()
+    }
+
+    //значок сортировки окрашен цветом акцента, пока сортировка включена
+    private fun updateSortUi() {
+        if (_binding == null) return
+        val active = viewModel.listSortField != SongSortField.NONE
+        binding.stripSort.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (active) requireContext().accentColor() else ContextCompat.getColor(requireContext(), R.color.white))
+    }
+
+    private fun hideSortPanel(animate: Boolean = true) = binding.sortPanel.hide(animate)
+
+    private fun applyStripState() {
+        binding.songListStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        binding.songListStrip.applyStripLabels()
+        updateEyeIcon()
+    }
+
+    private fun updateEyeIcon() {
+        eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
+    }
+
+    //случайный порядок окрашен цветом акцента, когда включён
+    private fun updateStripIcons() {
+        if (_binding == null) return
+        val ctx = requireContext()
+        val shuffle = playerViewModel.isShuffleMode()
+        binding.stripShuffle.setImageResource(if (shuffle) R.drawable.baseline_shuffle_24 else R.drawable.icons8_data_white_24)
+        binding.stripShuffle.imageTintList = android.content.res.ColorStateList.valueOf(
+            if (shuffle) ctx.accentColor() else ContextCompat.getColor(ctx, R.color.white))
+    }
+
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
 }

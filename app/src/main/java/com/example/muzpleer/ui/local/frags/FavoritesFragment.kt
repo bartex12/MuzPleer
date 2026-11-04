@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import com.example.muzpleer.databinding.FragmentFavoriteBinding
 import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.SourceType
@@ -296,6 +297,7 @@ class FavoritesFragment: Fragment() {
 
     private fun applyStripState() {
         binding.favoriteStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        binding.favoriteStrip.applyStripLabels()
         updateEyeIcon()
     }
 

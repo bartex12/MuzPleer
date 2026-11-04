@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.util.scrollToPlayingRow
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import com.example.muzpleer.databinding.FragmentSingersBinding
 import com.example.muzpleer.model.Artist
 import com.example.muzpleer.ui.local.adapters.ArtistsAdapter
@@ -143,6 +144,7 @@ class ArtistsFragment:Fragment() {
 
     private fun applyStripState() {
         _binding?.listStrip?.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        _binding?.listStrip?.applyStripLabels()
         eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
     }
 

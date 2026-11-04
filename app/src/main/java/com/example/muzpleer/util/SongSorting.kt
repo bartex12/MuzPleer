@@ -20,7 +20,8 @@ fun sortSongsBy(
         SongSortField.TITLE -> sortByText(songs) { it.title }
         SongSortField.ALBUM -> sortByText(songs) { it.albumName.orEmpty() }
         SongSortField.ARTIST -> sortByText(songs) { it.artist }
-        SongSortField.ALBUM_COUNT, SongSortField.COUNT, SongSortField.PATH -> return songs
+        SongSortField.PATH -> sortByText(songs) { getNormalizedPath(it.mediaUri) }
+        SongSortField.ALBUM_COUNT, SongSortField.COUNT -> return songs
         SongSortField.DURATION -> songs.sortedBy { it.duration }
         SongSortField.DATE_ADDED -> songs.sortedBy { datesAdded[it.id] ?: 0L }
     }

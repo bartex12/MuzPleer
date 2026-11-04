@@ -40,6 +40,15 @@
         app:defaultValue="false"
         app:icon="@drawable/ic_visibility_24" />
 
+    <CheckBoxPreference
+        android:key="pref_show_strip_text"
+        android:layout="@layout/preference_item_white"
+        android:widgetLayout="@layout/preference_widget_checkbox_white"
+        android:title="@string/pref_show_strip_text_title"
+        android:summary="@string/pref_show_strip_text_summary"
+        app:defaultValue="false"
+        app:icon="@drawable/ic_text_fields_24" />
+
     <Preference
         android:key="pref_duplicates"
         android:layout="@layout/preference_item_white"

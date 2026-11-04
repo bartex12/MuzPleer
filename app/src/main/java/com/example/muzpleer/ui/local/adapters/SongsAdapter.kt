@@ -63,6 +63,9 @@ class SongsAdapter(
         private const val FAV_PAYLOAD = "fav"
     }
 
+    //в списке треков исполнителя вместо его имени (оно везде одно) показываем альбом трека
+    var showAlbumInsteadOfArtist = false
+
     var data:List<Song> = listOf()
         @SuppressLint("NotifyDataSetChanged")
         set(value){
@@ -149,7 +152,9 @@ class SongsAdapter(
             Log.d(TAG, "WWW-1 SongAdapter track.title = ${track.title}  ")
 
             binding.trackTitle.text = track.title
-            binding.trackArtist.text = track.artist
+            binding.trackArtist.text = if (showAlbumInsteadOfArtist)
+                track.albumName?.takeIf { it.isNotBlank() } ?: "Неизвестный альбом"
+            else track.artist
             binding.trackDuration.text = track.duration.formatAsTime()
 
             Log.d(TAG, "WWW 1 SongAdapter bind track.artUri =  ${track.artUri}")
