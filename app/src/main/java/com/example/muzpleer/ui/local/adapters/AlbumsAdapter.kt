@@ -32,6 +32,7 @@ import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
 import com.example.muzpleer.util.getTracksCountString
+import com.example.muzpleer.util.formatTotalDuration
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -84,7 +85,8 @@ class AlbumsAdapter(
         fun bind(album: Album) {
             binding.albumTitle.text = album.title
             binding.albumArtist.text = album.artist
-            binding.tracksCount.text = getTracksCountString( album.songs.size)
+            binding.tracksCount.text = getTracksCountString(album.songs.size) + " " +
+                album.songs.sumOf { it.duration.coerceAtLeast(0L) }.formatTotalDuration()
 
             album.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение

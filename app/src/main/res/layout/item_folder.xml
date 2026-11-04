@@ -60,17 +60,6 @@
                 android:textColor="@color/whisper"
                 android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
 
-            <TextView
-                android:id="@+id/tvFolderPath"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:textColor="@color/whisper"
-                android:text="Очень длинный путь к папке с музыкой в несколько уровней вложенности"
-                android:textAppearance="@style/TextAppearance.AppCompat.Caption"/>
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -23,6 +23,16 @@ fun Long.formatDuration(): String {
 }
 
 
+/** Суммарное время для подписей списков: 3:34 или 1:12:24 (минуты без ведущего нуля). */
+fun Long.formatTotalDuration(): String {
+    val seconds = coerceAtLeast(0L) / 1000
+    val hours = seconds / 3600
+    val minutes = (seconds % 3600) / 60
+    val sec = seconds % 60
+    return if (hours > 0) String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, sec)
+    else String.format(Locale.getDefault(), "%d:%02d", minutes, sec)
+}
+
 fun Long.formatAsTime(): String {
     val seconds = this / 1000
     val minutes = seconds / 60

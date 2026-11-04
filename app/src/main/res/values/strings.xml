@@ -110,6 +110,8 @@
     <string name="show_screen">Показываем при запуске</string>
     <string name="hide_screen">Не показываем при запуске</string>
 
+    <string name="show_folder_path">Показать путь к папке</string>
+    <string name="folder_path_copied">Путь скопирован</string>
     <plurals name="delete_songs_message">
         <item quantity="one">Удалить %1$d трек из плейлиста &quot;%2$s&quot;?</item>
         <item quantity="few">Удалить %1$d треки из плейлиста &quot;%2$s&quot;?</item>
