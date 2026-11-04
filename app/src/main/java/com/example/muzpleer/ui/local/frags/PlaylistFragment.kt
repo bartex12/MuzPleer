@@ -107,6 +107,8 @@ class PlaylistFragment():Fragment() {
             Log.d(TAG,"53 PlaylistFragment onViewCreated filteredPlaylists.observe: filteredPlaylists.size= ${filteredPlaylists.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.playlist = playlistsViewModel.sortForDisplay(filteredPlaylists)  //передаём данные в адаптер (порядок как выбран в панели сортировки)
+            //значок «К треку» нужен, только если список не помещается на экране
+            binding.stripGoTo.visibility = if (filteredPlaylists.size > 7) View.VISIBLE else View.GONE
 
             // Управляем видимостью в зависимости от состояния
             updateEmptyState(filteredPlaylists)

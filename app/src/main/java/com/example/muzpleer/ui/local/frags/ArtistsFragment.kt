@@ -100,6 +100,8 @@ class ArtistsFragment:Fragment() {
             Log.d(TAG,"34 ArtistsFragment onViewCreated filteredArtists.observe: filteredArtists.size= ${filteredArtists.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.artists = artistsViewModel.sortForDisplay(filteredArtists)  //передаём данные в адаптер (порядок как выбран в панели сортировки)
+            //значок «К треку» нужен, только если список не помещается на экране
+            binding.stripGoTo.visibility = if (filteredArtists.size > 7) View.VISIBLE else View.GONE
             // Управляем видимостью в зависимости от состояния
             updateEmptyState(filteredArtists)
         }
