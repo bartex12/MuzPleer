@@ -3,51 +3,80 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools" >
+    xmlns:tools="http://schemas.android.com/tools">
 
-
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/input_layout_search_allTracksPlaylist"
-        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+    <!-- Полоска со значками под тулбаром: белая линия 1dp, цвет и высота как у вкладок; прячется значком глаза в тулбаре -->
+    <LinearLayout
+        android:id="@+id/playlistSongsStrip"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
-        android:hint="@string/search_text"
-        android:theme="@style/WhiteTextInputLayoutOverlay"
-        app:boxCornerRadiusBottomEnd="20dp"
-        app:boxCornerRadiusTopStart="20dp"
-        app:counterEnabled="true"
-        app:counterMaxLength="30"
-        app:counterTextColor="@android:color/white"
-        app:endIconCheckable="true"
-        app:endIconDrawable="@drawable/baseline_search_24"
-        app:endIconMode="custom"
-        app:endIconTint="@android:color/white"
-        app:helperText="Найдите трек в списке треков"
+        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/input_edit_text_search_allTracksPlaylist"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textColor="@android:color/white" />
-    </com.google.android.material.textfield.TextInputLayout>
+            android:layout_height="1dp"
+            android:background="@color/white" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:background="?attr/appPanelLight"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/stripGoTo"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="К треку"
+                android:src="@drawable/outline_flag_24"
+                app:tint="@color/white" />
+            <ImageButton
+                android:id="@+id/stripShuffle"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Случайный порядок"
+                android:src="@drawable/icons8_data_white_24"
+                app:tint="@color/white" />
+            <ImageButton
+                android:id="@+id/stripEdit"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Редактировать порядок"
+                android:src="@drawable/baseline_edit_note_24"
+                app:tint="@color/white" />
+            <ImageButton
+                android:id="@+id/stripSort"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Сортировка"
+                android:src="@drawable/ic_sort_24"
+                app:tint="@color/white" />
+        </LinearLayout>
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/alltracksPlaylistRecyclerView"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:clipToPadding="false"
         android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        android:clipToPadding="false"
+        android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search_allTracksPlaylist"
-        tools:listitem="@layout/item_music"/>
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/playlistSongsStrip"
+        app:layout_constraintBottom_toTopOf="@id/sortPanel"
+        tools:listitem="@layout/item_music" />
 
     <ImageView
         android:id="@+id/emptyImageViewPlaylist"
@@ -59,22 +88,35 @@
         android:src="@drawable/answer300"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/input_layout_search_allTracksPlaylist"
+        app:layout_constraintTop_toBottomOf="@id/playlistSongsStrip"
         tools:visibility="visible"/>
 
-    <TextView
-        android:id="@+id/tvEmptyPlaylistSong"
-        android:layout_width="wrap_content"
+        <TextView
+            android:id="@+id/tvEmptyPlaylistSong"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text = "Здесь пока нет ни одного трека"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:layout_marginTop="18dp"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/emptyImageViewPlaylist"
+            tools:visibility="visible"/>
+
+    <!-- Панель сортировки над вкладками: высота по содержимому -->
+    <com.example.muzpleer.ui.local.view.SortPanelView
+        android:id="@+id/sortPanel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Здесь пока нет ни одного трека"
-        android:textStyle="bold"
-        android:textSize="18sp"
-        android:textColor="@color/white"
+        android:background="?attr/appPanel"
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="4dp"
         android:visibility="gone"
-        android:layout_marginTop="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/emptyImageViewPlaylist"
-        app:layout_constraintVertical_bias="0.19"
-        tools:visibility="visible" />
+        app:layout_constraintStart_toStartOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

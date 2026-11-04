@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/search_toolbar_playlist_songs"
+        android:orderInCategory="100"
+        android:title="@string/search"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="collapseActionView|ifRoom"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
+
+    <!-- Показать или убрать полоску со значками под тулбаром -->
+    <item
+        android:id="@+id/action_toggle_strip"
+        android:orderInCategory="200"
+        android:title="@string/strip_toggle"
+        android:icon="@drawable/ic_visibility_off_24"
+        app:showAsAction="ifRoom" />
+</menu>
