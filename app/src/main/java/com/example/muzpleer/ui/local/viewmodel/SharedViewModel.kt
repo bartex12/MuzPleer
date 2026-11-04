@@ -169,6 +169,27 @@ class SharedViewModel(
         }
     }
 
+    //сортировка в списках треков альбома, исполнителя, папки: «Без сортировки» - порядок списка по умолчанию
+    var listSortField = SongSortField.NONE
+        private set
+    var listSortAscending = true
+        private set
+    private var listSortKey = ""  //для какого списка действует сортировка
+
+    fun setListSort(key: String, field: SongSortField, ascending: Boolean) {
+        listSortKey = key
+        listSortField = field
+        listSortAscending = ascending
+    }
+
+    /** При открытии другого списка сортировка сбрасывается на «Без сортировки». */
+    fun resetListSortIfOther(key: String) {
+        if (listSortKey != key) setListSort(key, SongSortField.NONE, true)
+    }
+
+    /** Порядок треков для показа и воспроизведения; при «Без сортировки» список не меняется. */
+    fun sortListSongs(list: List<Song>): List<Song> = sortSongsBy(list, listSortField, listSortAscending)
+
     fun getSortedSongs(): List<Song> {
         val source = getSongs()
         val key = Triple(sortField, sortAscending, System.identityHashCode(datesAdded))
