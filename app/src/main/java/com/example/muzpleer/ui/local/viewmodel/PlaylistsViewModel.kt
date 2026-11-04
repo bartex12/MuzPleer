@@ -13,6 +13,7 @@ import com.example.muzpleer.model.Song
 import com.example.muzpleer.repository.PlaylistRepository
 import com.example.muzpleer.ui.local.helper.IPreferenceHelper
 import com.example.muzpleer.util.SongSortField
+import com.example.muzpleer.util.sortSongsBy
 import com.example.muzpleer.util.sortItemsBy
 import com.example.muzpleer.util.UserMessenger
 import com.example.muzpleer.util.isExistingLocalFile
@@ -86,6 +87,32 @@ class PlaylistsViewModel(
         sortAscending = ascending
         _filteredPlaylists.value = _filteredPlaylists.value  //тот же список заново: экран пересортирует его
     }
+
+    //сортировка треков внутри открытого плейлиста: «Без сортировки» - порядок плейлиста, заданный перетаскиванием
+    var songSortField = SongSortField.NONE
+        private set
+    var songSortAscending = true
+        private set
+    private var songSortPlaylistId = -1L  //для какого плейлиста действует сортировка
+
+    fun setSongSort(playlistId: Long, field: SongSortField, ascending: Boolean) {
+        songSortPlaylistId = playlistId
+        songSortField = field
+        songSortAscending = ascending
+        _currentFilteredPlaylistSongs.value = _currentFilteredPlaylistSongs.value  //тот же список заново: экран пересортирует его
+    }
+
+    /** При открытии другого плейлиста сортировка сбрасывается на «Без сортировки». */
+    fun resetSongSortIfOtherPlaylist(playlistId: Long) {
+        if (songSortPlaylistId != playlistId) {
+            songSortPlaylistId = playlistId
+            songSortField = SongSortField.NONE
+            songSortAscending = true
+        }
+    }
+
+    /** Порядок треков плейлиста для показа и воспроизведения; при «Без сортировки» список не меняется. */
+    fun sortSongsForDisplay(list: List<Song>): List<Song> = sortSongsBy(list, songSortField, songSortAscending)
 
     /** Порядок плейлистов для показа; при «Без сортировки» список не меняется. */
     fun sortForDisplay(list: List<Playlist>): List<Playlist> = sortItemsBy(
