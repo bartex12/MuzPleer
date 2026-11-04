@@ -98,6 +98,8 @@ class AlbumFragment: Fragment() {
             Log.d(TAG,"33 AlbumFragment onViewCreated filteredAlbums.observe: filteredAlbums.size= ${filteredAlbums.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.albums = albumsViewModel.sortForDisplay(filteredAlbums)  //передаём данные в адаптер (порядок как выбран в панели сортировки)
+            //значок «К треку» нужен, только если список не помещается на экране
+            binding.stripGoTo.visibility = if (filteredAlbums.size > 7) View.VISIBLE else View.GONE
             // Управляем видимостью в зависимости от состояния
             updateEmptyState(filteredAlbums)
         }

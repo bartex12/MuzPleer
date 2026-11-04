@@ -96,6 +96,8 @@ class FolderFragment : Fragment(){
             Log.d(TAG,"35 FolderFragment onViewCreated filteredFolders.observe: filteredFolders.size= ${filteredFolders.size} ")
             //здесь нельзя делать сортировку, иначе собьётся перемещение папок
             adapter.folders = foldersViewModel.sortForDisplay(filteredFolders)  //передаём данные в адаптер (порядок как выбран в панели сортировки)
+            //значок «К треку» нужен, только если список не помещается на экране
+            binding.stripGoTo.visibility = if (filteredFolders.size > 7) View.VISIBLE else View.GONE
             // Управляем видимостью в зависимости от состояния
             updateEmptyState(filteredFolders)
         }
