@@ -169,6 +169,7 @@ class FoldersAdapter(
         popup.isOutsideTouchable = true
         popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
 
+        popupView.findViewById<View>(R.id.dividerShowPath).visibility = View.VISIBLE
         popupView.findViewById<TextView>(R.id.itemShowPath).apply {
             visibility = View.VISIBLE
             setOnClickListener {
