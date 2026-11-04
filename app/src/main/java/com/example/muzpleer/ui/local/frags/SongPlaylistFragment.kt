@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import com.example.muzpleer.databinding.FragmentAlltracksForPlaylistBinding
 import com.example.muzpleer.model.PlaybackSource
 import com.example.muzpleer.model.SourceType
@@ -360,6 +361,7 @@ class SongPlaylistFragment:Fragment() {
 
     private fun applyStripState() {
         binding.playlistSongsStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        binding.playlistSongsStrip.applyStripLabels()
         updateEyeIcon()
     }
 

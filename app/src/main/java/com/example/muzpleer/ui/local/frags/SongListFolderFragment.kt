@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.util.scrollToPlayingRow
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import androidx.core.content.ContextCompat
 import com.example.muzpleer.util.accentColor
 import com.example.muzpleer.util.showStripByDefault
@@ -339,6 +340,7 @@ class SongListFolderFragment:Fragment() {
 
     private fun applyStripState() {
         binding.songListStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        binding.songListStrip.applyStripLabels()
         updateEyeIcon()
     }
 

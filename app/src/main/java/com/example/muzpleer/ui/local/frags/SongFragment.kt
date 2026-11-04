@@ -18,6 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager.widget.ViewPager
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import com.example.muzpleer.databinding.FragmentSongsBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.model.PlaybackSource
@@ -158,6 +159,7 @@ class SongFragment : Fragment() {
 
     private fun applyStripState() {
         _binding?.songsStrip?.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        _binding?.songsStrip?.applyStripLabels()
         eyeItem?.setIcon(if (stripVisible) R.drawable.ic_visibility_24 else R.drawable.ic_visibility_off_24)
     }
 

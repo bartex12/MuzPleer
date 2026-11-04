@@ -22,6 +22,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import com.example.muzpleer.util.applyStripLabels
 import androidx.core.content.ContextCompat
 import com.example.muzpleer.util.accentColor
 import com.example.muzpleer.util.showStripByDefault
@@ -321,6 +322,7 @@ class SongListArtistFragment:Fragment() {
 
     private fun applyStripState() {
         binding.songListStrip.visibility = if (stripVisible) View.VISIBLE else View.GONE
+        binding.songListStrip.applyStripLabels()
         updateEyeIcon()
     }
 

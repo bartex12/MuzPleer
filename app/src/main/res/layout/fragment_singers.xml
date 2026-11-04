@@ -54,6 +54,7 @@
                     android:maxLines="1"
                     android:text="К треку"
                     android:textColor="@color/white"
+                    android:tag="stripLabel"
                     android:textSize="10sp" />
             </FrameLayout>
             <FrameLayout
@@ -79,6 +80,7 @@
                     android:maxLines="1"
                     android:text="Порядок"
                     android:textColor="@color/white"
+                    android:tag="stripLabel"
                     android:textSize="10sp" />
             </FrameLayout>
             <FrameLayout
@@ -104,6 +106,7 @@
                     android:maxLines="1"
                     android:text="Сортировка"
                     android:textColor="@color/white"
+                    android:tag="stripLabel"
                     android:textSize="10sp" />
             </FrameLayout>
         </LinearLayout>
