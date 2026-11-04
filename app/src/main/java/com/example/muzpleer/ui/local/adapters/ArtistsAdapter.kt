@@ -33,6 +33,7 @@ import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.ArtistsViewModel
 import com.example.muzpleer.util.getAlbumsCountString
 import com.example.muzpleer.util.getTracksCountString
+import com.example.muzpleer.util.formatTotalDuration
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -93,6 +94,8 @@ class ArtistsAdapter(
             binding.tvTracksCount.text =buildString {
                 append("${getAlbumsCountString(artist.albums.size)}, ")
                 append(getTracksCountString(artist.songs.size))
+                append(", ")
+                append(artist.songs.sumOf { it.duration.coerceAtLeast(0L) }.formatTotalDuration())
             }
 
             artist.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->

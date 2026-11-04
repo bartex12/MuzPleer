@@ -1,6 +1,8 @@
 package com.example.muzpleer.ui.local.adapters
 
 import android.annotation.SuppressLint
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -13,6 +15,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.graphics.drawable.toDrawable
 import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleOwner
@@ -32,6 +36,7 @@ import com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment.LevelType
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.FoldersViewModel
 import com.example.muzpleer.util.getTracksCountString
+import com.example.muzpleer.util.formatTotalDuration
 import com.example.muzpleer.util.isContentProviderUri
 import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
@@ -84,8 +89,8 @@ class FoldersAdapter(
         @SuppressLint("ClickableViewAccessibility")
         fun bind(folder: Folder) {
             binding.tvFolderName.text = folder.name
-            binding.tvFolderPath.text = folder.path
-            binding.tvTracksCount.text = getTracksCountString(folder.songs.size)
+            binding.tvTracksCount.text = getTracksCountString(folder.songs.size) + " " +
+                folder.songs.sumOf { it.duration.coerceAtLeast(0L) }.formatTotalDuration()
 
             folder.artworkUri?.takeIf { it.toString().isNotBlank() }?.let{artUri->
                 // Загружаем изображение
@@ -164,6 +169,14 @@ class FoldersAdapter(
         popup.isOutsideTouchable = true
         popup.setBackgroundDrawable(Color.TRANSPARENT.toDrawable()) // важно для закрытия тапом вне
 
+        popupView.findViewById<TextView>(R.id.itemShowPath).apply {
+            visibility = View.VISIBLE
+            setOnClickListener {
+                popup.dismiss()
+                showFolderPathDialog(context, folder)
+            }
+        }
+
         popupView.findViewById<TextView>(R.id.itemLevelChangeCover).setOnClickListener {
             navigateToChangeLevelCover(view, folder)
             popup.dismiss()
@@ -175,6 +188,22 @@ class FoldersAdapter(
         )
 
         popup.showAsDropDown(view, 0, - popupView.measuredHeight)
+    }
+
+    /** Окно с путём к папке и кнопками «Копировать» и «Закрыть». */
+    private fun showFolderPathDialog(context: Context, folder: Folder) {
+        val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_folder_path, null)
+        dialogView.findViewById<TextView>(R.id.tvFolderPathFull).text = folder.path
+        val dialog = AlertDialog.Builder(context).setView(dialogView).create()
+        dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
+        dialogView.findViewById<View>(R.id.btnPathCopy).setOnClickListener {
+            val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            cm.setPrimaryClip(ClipData.newPlainText("path", folder.path))
+            Toast.makeText(context, R.string.folder_path_copied, Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+        dialogView.findViewById<View>(R.id.btnPathClose).setOnClickListener { dialog.dismiss() }
+        dialog.show()
     }
 
     private fun navigateToChangeLevelCover(view: View,  folder: Folder) {
