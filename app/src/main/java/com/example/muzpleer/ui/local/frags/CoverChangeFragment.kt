@@ -114,22 +114,24 @@ class CoverChangeFragment : Fragment() {
         }
 
         binding.coverImageView.setOnClickListener {
+            //PhotoView присылает одиночное касание с задержкой: экран к этому моменту мог уже закрыться
+            val b = _binding ?: return@setOnClickListener
             isExpanded = !isExpanded
             //
             TransitionManager.beginDelayedTransition(
-                binding.coverContainer, TransitionSet()
+                b.coverContainer, TransitionSet()
                     .addTransition(ChangeBounds())
                     .addTransition(ChangeImageTransform())
             )
-            val params = binding.coverImageView.layoutParams as ConstraintLayout.LayoutParams
+            val params = b.coverImageView.layoutParams as ConstraintLayout.LayoutParams
             if (isExpanded) {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
                 params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
                 //на всю видимую область прокручиваемой части
-                params.height = binding.coverScroll.height
+                params.height = b.coverScroll.height
                 params.dimensionRatio = ""
-                binding.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+                b.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 // Возвращаем оригинальные размеры
                 params.topMargin = 0
@@ -137,10 +139,10 @@ class CoverChangeFragment : Fragment() {
                 params.width = size
                 params.height = size
                 params.dimensionRatio = null
-                binding.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
+                b.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
 
-            binding.coverImageView.layoutParams = params
+            b.coverImageView.layoutParams = params
         }
     }
 
