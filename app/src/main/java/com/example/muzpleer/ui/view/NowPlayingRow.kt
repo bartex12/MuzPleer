@@ -1,7 +1,6 @@
 package com.example.muzpleer.ui.view
 
 import android.content.Context
-import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 import android.widget.TextView
@@ -24,7 +23,6 @@ class NowPlayingRow @JvmOverloads constructor(
         findViewWithTag<TextView>(TAG_TITLE)?.let { title ->
             //играющий трек: заголовок цвета акцента (вариант вместо жирного шрифта)
             if (normalTitleColors == null) normalTitleColors = title.textColors
-            title.setTypeface(null, Typeface.NORMAL)
             if (selected) title.setTextColor(context.accentColor())
             else title.setTextColor(normalTitleColors)
         }
