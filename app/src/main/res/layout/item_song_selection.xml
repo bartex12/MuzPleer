@@ -24,7 +24,7 @@
         android:layout_height="48dp"
         android:layout_marginStart="4dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/muz_player5"
+        android:src="@drawable/muz_player3"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/checkbox"
         app:layout_constraintTop_toTopOf="parent" />

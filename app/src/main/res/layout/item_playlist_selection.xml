@@ -12,7 +12,7 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:scaleType="centerCrop"
-        android:src="@drawable/muz_player2"
+        android:src="@drawable/muz_player3"
         android:padding="4dp"
         android:contentDescription="@string/album_art_description"
         app:layout_constraintStart_toStartOf="parent"
