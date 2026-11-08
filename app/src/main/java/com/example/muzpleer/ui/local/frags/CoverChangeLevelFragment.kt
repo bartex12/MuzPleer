@@ -26,6 +26,10 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.lifecycleScope
 import com.example.muzpleer.databinding.FragmentCoverChangeBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
@@ -120,6 +124,7 @@ class CoverChangeLevelFragment: Fragment() {
 
         //обеспечивает установку обложки при открытии CoverChangeLevelFragment и замене обложки через pickImage
         viewModel.coverImageUriLevel.observe(viewLifecycleOwner) { uri ->
+            updateRestoreAvailability(uri)
             Log.d(TAG, "3--- CoverChangeLevelFragment coverImageUriLevel.observe: uri = $uri ")
 
             uri?.let{artUri->
@@ -217,8 +222,23 @@ class CoverChangeLevelFragment: Fragment() {
         }
     }
 
+    private var restoreItem: android.view.MenuItem? = null
+    private var coverIsDefault = false  //на экране уже картинка по умолчанию: возвращаться не к чему
+
+    //значок «Вернуться к изображению по умолчанию» скрываем, пока на экране картинка по умолчанию
+    private fun updateRestoreAvailability(uri: Uri?) {
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isDefault = withContext(Dispatchers.IO) { com.example.muzpleer.util.isDefaultCover(appContext, uri) }
+            coverIsDefault = isDefault
+            restoreItem?.isVisible = !isDefault
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
         inflater.inflate(R.menu.menu_restore_cover, menu)
+        restoreItem = menu.findItem(R.id.action_restore_cover)
+        restoreItem?.isVisible = !coverIsDefault
         super.onCreateOptionsMenu(menu, inflater)
     }
 
@@ -249,6 +269,7 @@ class CoverChangeLevelFragment: Fragment() {
     override fun onDestroyView() {
         // Восстанавливаем предыдущий заголовок при уходе с фрагмента
         restorePreviousTitle()
+        restoreItem = null
         _binding = null
         super.onDestroyView()
     }
