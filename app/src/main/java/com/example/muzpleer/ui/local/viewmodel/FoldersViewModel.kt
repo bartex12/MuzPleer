@@ -157,11 +157,15 @@ class FoldersViewModel(
      * Сохраняет обложку папки. Выбранную картинку сначала копируем в память приложения:
      * временный content-URI позже может перестать читаться, и обложка пропадала бы.
      */
-    fun saveCoverFolderToDatabase(context: Context, uri: Uri, folderId: Long) {
+    fun saveCoverFolderToDatabase(context: Context, uri: Uri, folderId: Long, onDone: () -> Unit = {}) {
         Log.d(TAG, "6--- FoldersViewModel saveCoverFolderToDatabase uri = $uri folderId = $folderId")
         viewModelScope.launch {
-            val savedPath = copyCoverOrKeepUri(context, uri, "folder", folderId)
-            folderRepository.updateFolderArtUri(folderId, savedPath)
+            val savedPath = try {
+                copyCoverOrKeepUri(context, uri, "folder", folderId)
+                    .also { folderRepository.updateFolderArtUri(folderId, it) }
+            } finally {
+                onDone()  //экран закрываем после записи в базу (и при ошибке тоже)
+            }
             loadFolders() // Обновляем список папок
             //проверка
             val folderFile = folderRepository.getFolderFileById(folderId)

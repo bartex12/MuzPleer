@@ -135,7 +135,7 @@ class CoverChangeFragment : Fragment() {
             } else {
                 // Возвращаем оригинальные размеры
                 params.topMargin = 0
-                val size = (240 * resources.displayMetrics.density).toInt()
+                val size = (280 * resources.displayMetrics.density).toInt()
                 params.width = size
                 params.height = size
                 params.dimensionRatio = null

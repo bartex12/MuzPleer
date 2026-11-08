@@ -465,11 +465,15 @@ class PlaylistsViewModel(
      * Сохраняет обложку плейлиста. Выбранную картинку сначала копируем в память приложения:
      * временный content-URI позже может перестать читаться, и обложка пропадала бы.
      */
-    fun saveCoverPlaylistToDatabase(context: Context, uri: Uri, playlistId: Long) {
+    fun saveCoverPlaylistToDatabase(context: Context, uri: Uri, playlistId: Long, onDone: () -> Unit = {}) {
         Log.d(TAG, "6--- PlaylistsViewModel saveCoverPlaylistToDatabase uri = $uri playlistId = $playlistId")
         viewModelScope.launch {
-            val savedPath = copyCoverOrKeepUri(context, uri, "playlist", playlistId)
-            playlistRepository.updatePlaylistArtUri(playlistId, savedPath)
+            try {
+                val savedPath = copyCoverOrKeepUri(context, uri, "playlist", playlistId)
+                playlistRepository.updatePlaylistArtUri(playlistId, savedPath)
+            } finally {
+                onDone()  //экран закрываем после записи в базу (и при ошибке тоже)
+            }
             loadPlaylists() // Обновляем список
         }
     }
