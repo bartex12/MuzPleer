@@ -25,6 +25,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
+import android.net.Uri
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.lifecycleScope
 import com.example.muzpleer.databinding.FragmentCoverChangeBinding
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.util.isContentProviderUri
@@ -65,6 +70,7 @@ class CoverChangeFragment : Fragment() {
 
         //обеспечивает установку обложки при открытии CoverChangeFragment и замене обложки через pickImage
         viewModel.coverImageUri.observe(viewLifecycleOwner) { uri ->
+            updateRestoreAvailability(uri)
             Log.d(TAG, "4*** CoverChangeFragment coverImageUri.observe: uri = $uri ")
 
             uri?.let{artUri->
@@ -135,7 +141,7 @@ class CoverChangeFragment : Fragment() {
             } else {
                 // Возвращаем оригинальные размеры
                 params.topMargin = 0
-                val size = (240 * resources.displayMetrics.density).toInt()
+                val size = (280 * resources.displayMetrics.density).toInt()
                 params.width = size
                 params.height = size
                 params.dimensionRatio = null
@@ -146,14 +152,32 @@ class CoverChangeFragment : Fragment() {
         }
     }
 
+    private var restoreItem: android.view.MenuItem? = null
+    private var coverIsDefault = false  //на экране уже картинка по умолчанию: возвращаться не к чему
+
+    //значок «Вернуться к изображению по умолчанию» скрываем, пока на экране картинка по умолчанию
+    private fun updateRestoreAvailability(uri: Uri?) {
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isDefault = withContext(Dispatchers.IO) { com.example.muzpleer.util.isDefaultCover(appContext, uri) }
+            coverIsDefault = isDefault
+            restoreItem?.isVisible = !isDefault
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
         inflater.inflate(R.menu.menu_restore_cover, menu)
+        restoreItem = menu.findItem(R.id.action_restore_cover)
+        restoreItem?.isVisible = !coverIsDefault
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         if (item.itemId == R.id.action_restore_cover) {
-            viewModel.restoreDefaultCover()
+            //сначала спрашиваем: показываем, какое изображение вернётся
+            com.example.muzpleer.ui.local.helper.showRestoreCoverDialog(requireContext(), viewModel.getCoverImageUri()) {
+                if (_binding != null) viewModel.restoreDefaultCover()
+            }
             return true
         }
         return super.onOptionsItemSelected(item)
@@ -168,6 +192,7 @@ class CoverChangeFragment : Fragment() {
     override fun onDestroyView() {
         // Восстанавливаем предыдущий заголовок при уходе с фрагмента
         restorePreviousTitle()
+        restoreItem = null
         _binding = null
         super.onDestroyView()
     }

@@ -116,3 +116,26 @@ fun copyAlbumArtToCache(context: Context, sourceUri: Uri): String? {
 /** true, если [path] - путь к существующему локальному файлу (а не пустая строка, content-URI или потерянный файл). */
 fun isExistingLocalFile(path: String?): Boolean =
     !path.isNullOrBlank() && path.startsWith("/") && File(path).exists()
+
+/**
+ * Это картинка по умолчанию (R.drawable.muz_player3)? Верно, если обложки нет, это сам ресурс
+ * или файл, побайтно совпадающий с ним (обложку по умолчанию сохраняют в кэш и в память приложения копиями).
+ * Читает файлы: вызывать не из главного потока.
+ */
+fun isDefaultCover(context: Context, uri: Uri?): Boolean {
+    if (uri == null || uri.toString().isBlank()) return true
+    val resUri = "android.resource://${context.packageName}/${R.drawable.muz_player3}".toUri()
+    if (uri == resUri) return true
+    return try {
+        //файл заведомо другого размера отсеиваем без чтения
+        val file = if (uri.scheme == null) File(uri.toString()) else null
+        val resSize = context.resources.openRawResourceFd(R.drawable.muz_player3).use { it.length }
+        if (file != null && (!file.exists() || (resSize > 0 && file.length() != resSize))) return false
+        val a = context.contentResolver.openInputStream(resUri)?.use { it.readBytes() } ?: return false
+        val b = (if (file != null) file.inputStream() else context.contentResolver.openInputStream(uri))
+            ?.use { it.readBytes() } ?: return false
+        a.contentEquals(b)
+    } catch (e: Exception) {
+        false
+    }
+}

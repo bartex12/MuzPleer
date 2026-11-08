@@ -26,7 +26,11 @@ import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.request.RequestListener
 import com.example.muzpleer.MainActivity
 import com.example.muzpleer.R
-import com.example.muzpleer.databinding.FragmentCoverChangeLevelBinding
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import androidx.lifecycle.lifecycleScope
+import com.example.muzpleer.databinding.FragmentCoverChangeBinding
 import com.example.muzpleer.di.App
 import com.example.muzpleer.ui.local.viewmodel.SharedViewModel
 import com.example.muzpleer.ui.local.viewmodel.AlbumsViewModel
@@ -39,12 +43,12 @@ import com.example.muzpleer.util.isContentProviderUriPicker
 import java.io.File
 
 
-//Фрагмент CoverChangeLevelFragment с макетом fragment_cover_change_level -
+//Фрагмент CoverChangeLevelFragment с макетом fragment_cover_change -
 // экран для замены обложки с выбором места загрузки картинки обложки
 // и сохранения в кэш диска и в базу для  альбомов, папок, артистов, плейлистов?
 
 class CoverChangeLevelFragment: Fragment() {
-    private var _binding: FragmentCoverChangeLevelBinding? = null
+    private var _binding: FragmentCoverChangeBinding? = null
     private val binding get() = _binding!!
     private var isExpanded = false
     private val viewModel: SharedViewModel by activityViewModels()
@@ -82,32 +86,32 @@ class CoverChangeLevelFragment: Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = FragmentCoverChangeLevelBinding.inflate(inflater, container, false)
+        _binding = FragmentCoverChangeBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     //для альбомов: показываем новую обложку и сохраняем её в базу
-    private fun saveAlbumCover(uri: Uri, albumId: Long) {
+    private fun saveAlbumCover(uri: Uri, albumId: Long, onDone: () -> Unit = {}) {
         viewModel.setCoverImageUriLevel(uri)
-        albumsViewModel.saveCoverAlbumToDatabase(requireContext(), uri, albumId)
+        albumsViewModel.saveCoverAlbumToDatabase(requireContext(), uri, albumId, onDone)
     }
 
     //для исполнителей: показываем новую обложку и сохраняем её в базу
-    private fun saveArtistCover(uri: Uri, artistId: Long) {
+    private fun saveArtistCover(uri: Uri, artistId: Long, onDone: () -> Unit = {}) {
         viewModel.setCoverImageUriLevel(uri)
-        artistsViewModel.saveCoverArtistToDatabase(requireContext(), uri, artistId)
+        artistsViewModel.saveCoverArtistToDatabase(requireContext(), uri, artistId, onDone)
     }
 
     //для папок: показываем новую обложку и сохраняем её в базу
-    private fun saveFolderCover(uri: Uri, folderId: Long) {
+    private fun saveFolderCover(uri: Uri, folderId: Long, onDone: () -> Unit = {}) {
         viewModel.setCoverImageUriLevel(uri)
-        foldersViewModel.saveCoverFolderToDatabase(requireContext(), uri, folderId)
+        foldersViewModel.saveCoverFolderToDatabase(requireContext(), uri, folderId, onDone)
     }
 
     //для плейлистов: показываем новую обложку и сохраняем её в базу
-    private fun savePlaylistCover(uri: Uri, playlistId: Long) {
+    private fun savePlaylistCover(uri: Uri, playlistId: Long, onDone: () -> Unit = {}) {
         viewModel.setCoverImageUriLevel(uri)
-        playlistsViewModel.saveCoverPlaylistToDatabase(requireContext(), uri, playlistId)
+        playlistsViewModel.saveCoverPlaylistToDatabase(requireContext(), uri, playlistId, onDone)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -120,6 +124,7 @@ class CoverChangeLevelFragment: Fragment() {
 
         //обеспечивает установку обложки при открытии CoverChangeLevelFragment и замене обложки через pickImage
         viewModel.coverImageUriLevel.observe(viewLifecycleOwner) { uri ->
+            updateRestoreAvailability(uri)
             Log.d(TAG, "3--- CoverChangeLevelFragment coverImageUriLevel.observe: uri = $uri ")
 
             uri?.let{artUri->
@@ -127,30 +132,30 @@ class CoverChangeLevelFragment: Fragment() {
                 try {
                     if (isContentProviderUri(artUri.toString())){
                         // Загрузка обложки из  content:/com.android.providers.downloads
-                        showImageWithGlide(binding.root.context, artUri, binding.coverImageViewLevel)
+                        showImageWithGlide(binding.root.context, artUri, binding.coverImageView)
                     }else  if (isContentProviderUriPicker(artUri.toString())){
                         // Загрузка обложки из picker
                         val  photoPickerUri =artUri.toString().toUri()
-                        showImageWithGlide(binding.root.context, photoPickerUri, binding.coverImageViewLevel)
+                        showImageWithGlide(binding.root.context, photoPickerUri, binding.coverImageView)
                     }else if (artUri.toString().contains("://")){
                         // любой другой uri (галерея MIUI, content://media/..., file://, android.resource://)
-                        showImageWithGlide(binding.root.context, artUri, binding.coverImageViewLevel)
+                        showImageWithGlide(binding.root.context, artUri, binding.coverImageView)
                     }else{
                         // Загрузка обложки из кэша приложения
-                        showImageWithGlide(binding.root.context, File(artUri.toString()), binding.coverImageViewLevel)
+                        showImageWithGlide(binding.root.context, File(artUri.toString()), binding.coverImageView)
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "❌ CoverChangeLevelFragment exception when loading: ${e.message}")
-                    binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+                    binding.coverImageView.setImageResource(R.drawable.muz_player3)
                 }
             }?: run {
                 //обложки нет: отменяем незавершённую загрузку прежней картинки, иначе она появится поверх заглушки
-                Glide.with(binding.root.context).clear(binding.coverImageViewLevel)
-                binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+                Glide.with(binding.root.context).clear(binding.coverImageView)
+                binding.coverImageView.setImageResource(R.drawable.muz_player3)
             }
         }
 
-        binding.usePhonePhotosLevel.setOnClickListener {
+        binding.usePhonePhotos.setOnClickListener {
             pickImage.launch("image/*")
         }
 
@@ -167,62 +172,88 @@ class CoverChangeLevelFragment: Fragment() {
         } ?: previousTitle
         com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
 
-        binding.saveButtonLevel.setOnClickListener {
-            viewModel.getCoverImageUriLevel()?. let{curUri->
-                Log.d(TAG, "4--- CoverChangeLevelFragment saveButtonLevel: curUri = $curUri")
+        binding.saveButton.setOnClickListener {
+            //повторное нажатие блокируем; назад уходим после записи в базу, чтобы список показал новую обложку
+            binding.saveButton.isEnabled = false
+            val goBack = { if (_binding != null) findNavController().navigateUp() }
+            val curUri = viewModel.getCoverImageUriLevel()
+            if (curUri == null) {
+                goBack()
+            } else {
+                Log.d(TAG, "4--- CoverChangeLevelFragment saveButton: curUri = $curUri")
                 when (levelType) {
-                    LevelType.PLAYLIST -> savePlaylistCover(curUri, levelId)
-                    LevelType.ALBUM -> { saveAlbumCover(curUri, levelId) }
-                    LevelType.ARTIST -> { saveArtistCover(curUri, levelId) } //+
-                    LevelType.FOLDER -> { saveFolderCover(curUri, levelId) } //+
+                    LevelType.PLAYLIST -> savePlaylistCover(curUri, levelId, goBack)
+                    LevelType.ALBUM -> saveAlbumCover(curUri, levelId, goBack)
+                    LevelType.ARTIST -> saveArtistCover(curUri, levelId, goBack)
+                    LevelType.FOLDER -> saveFolderCover(curUri, levelId, goBack)
                 }
             }
-            findNavController().navigateUp() // переходим  назад, откуда пришли
         }
 
-        binding.coverImageViewLevel.setOnClickListener {
+        binding.coverImageView.setOnClickListener {
+            //PhotoView присылает одиночное касание с задержкой: экран к этому моменту мог уже закрыться
+            val b = _binding ?: return@setOnClickListener
             isExpanded = !isExpanded
             //
             TransitionManager.beginDelayedTransition(
-                binding.coverContainer, TransitionSet()
+                b.coverContainer, TransitionSet()
                     .addTransition(ChangeBounds())
                     .addTransition(ChangeImageTransform())
             )
-            val params = binding.coverImageViewLevel.layoutParams as ConstraintLayout.LayoutParams
+            val params = b.coverImageView.layoutParams as ConstraintLayout.LayoutParams
             if (isExpanded) {
                 // Оставляем существующие constraints, но меняем размеры
                 params.topMargin = 0
                 params.width = ConstraintLayout.LayoutParams.MATCH_PARENT
                 //на всю видимую область прокручиваемой части
-                params.height = binding.coverScroll.height
+                params.height = b.coverScroll.height
                 params.dimensionRatio = ""
-                binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
+                b.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             } else {
                 // Возвращаем оригинальные размеры
                 params.topMargin = 0
-                val size = (240 * resources.displayMetrics.density).toInt()
+                val size = (280 * resources.displayMetrics.density).toInt()
                 params.width = size
                 params.height = size
                 params.dimensionRatio = null
-                binding.coverImageViewLevel.scaleType = ImageView.ScaleType.FIT_CENTER
+                b.coverImageView.scaleType = ImageView.ScaleType.FIT_CENTER
             }
-            binding.coverImageViewLevel.layoutParams = params
+            b.coverImageView.layoutParams = params
+        }
+    }
+
+    private var restoreItem: android.view.MenuItem? = null
+    private var coverIsDefault = false  //на экране уже картинка по умолчанию: возвращаться не к чему
+
+    //значок «Вернуться к изображению по умолчанию» скрываем, пока на экране картинка по умолчанию
+    private fun updateRestoreAvailability(uri: Uri?) {
+        val appContext = requireContext().applicationContext
+        viewLifecycleOwner.lifecycleScope.launch {
+            val isDefault = withContext(Dispatchers.IO) { com.example.muzpleer.util.isDefaultCover(appContext, uri) }
+            coverIsDefault = isDefault
+            restoreItem?.isVisible = !isDefault
         }
     }
 
     override fun onCreateOptionsMenu(menu: android.view.Menu, inflater: android.view.MenuInflater) {
         inflater.inflate(R.menu.menu_restore_cover, menu)
+        restoreItem = menu.findItem(R.id.action_restore_cover)
+        restoreItem?.isVisible = !coverIsDefault
         super.onCreateOptionsMenu(menu, inflater)
     }
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         if (item.itemId == R.id.action_restore_cover) {
-            val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
-            when (levelType) {
-                LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
-                LevelType.ALBUM -> saveAlbumCover(uri, levelId)
-                LevelType.ARTIST -> saveArtistCover(uri, levelId)
-                LevelType.FOLDER -> saveFolderCover(uri, levelId)
+            //сначала спрашиваем: показываем, какое изображение вернётся
+            com.example.muzpleer.ui.local.helper.showRestoreCoverDialog(requireContext(), viewModel.getCoverImageUriLevel()) {
+                if (_binding == null) return@showRestoreCoverDialog
+                val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
+                when (levelType) {
+                    LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
+                    LevelType.ALBUM -> saveAlbumCover(uri, levelId)
+                    LevelType.ARTIST -> saveArtistCover(uri, levelId)
+                    LevelType.FOLDER -> saveFolderCover(uri, levelId)
+                }
             }
             return true
         }
@@ -238,6 +269,7 @@ class CoverChangeLevelFragment: Fragment() {
     override fun onDestroyView() {
         // Восстанавливаем предыдущий заголовок при уходе с фрагмента
         restorePreviousTitle()
+        restoreItem = null
         _binding = null
         super.onDestroyView()
     }
@@ -271,7 +303,7 @@ class CoverChangeLevelFragment: Fragment() {
                     isFirstResource: Boolean
                 ): Boolean {
                     // крэш, нужно binding вводить в функцию, как сделано в PlaylistsSelectionAdapter
-                   // binding.coverImageViewLevel.setImageResource(R.drawable.muz_player3)
+                   // binding.coverImageView.setImageResource(R.drawable.muz_player3)
                     Log.d(TAG, "❌CoverChangeLevelFragment Glide load failed for URI: $artUri? ${e?.message}")
                     return false
                 }

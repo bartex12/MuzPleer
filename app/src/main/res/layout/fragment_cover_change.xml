@@ -39,7 +39,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Использовать фотографии в телефоне"
+                android:text="Найти фото в телефоне"
                 android:textColor="@color/white"
                 app:backgroundTint="?attr/appPanelLight"
                 app:cornerRadius="8dp"

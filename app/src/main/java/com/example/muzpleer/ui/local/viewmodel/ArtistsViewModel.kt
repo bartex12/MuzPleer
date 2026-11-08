@@ -150,11 +150,15 @@ class ArtistsViewModel(
      * Сохраняет обложку исполнителя. Выбранную картинку сначала копируем в память приложения:
      * временный content-URI позже может перестать читаться, и обложка пропадала бы.
      */
-    fun saveCoverArtistToDatabase(context: Context, uri: Uri, artistId: Long) {
+    fun saveCoverArtistToDatabase(context: Context, uri: Uri, artistId: Long, onDone: () -> Unit = {}) {
         Log.d(TAG, "6--- ArtistsViewModel saveCoverArtistToDatabase uri = $uri artistId = $artistId")
         viewModelScope.launch {
-            val savedPath = copyCoverOrKeepUri(context, uri, "artist", artistId)
-            artistsRepository.updateArtistArtUri(artistId, savedPath)
+            try {
+                val savedPath = copyCoverOrKeepUri(context, uri, "artist", artistId)
+                artistsRepository.updateArtistArtUri(artistId, savedPath)
+            } finally {
+                onDone()  //экран закрываем после записи в базу (и при ошибке тоже)
+            }
             loadArtists() // Обновляем список артистов
         }
     }

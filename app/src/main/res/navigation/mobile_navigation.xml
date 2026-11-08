@@ -246,7 +246,7 @@
         android:id="@+id/coverChangeLevelFragment"
         android:name="com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment"
         android:label="Изменение обложки"
-        tools:layout="@layout/fragment_cover_change_level"/>
+        tools:layout="@layout/fragment_cover_change"/>
     <fragment
         android:id="@+id/removeSongsFromPlaylistFragment"
         android:name="com.example.muzpleer.ui.local.frags.playlist.RemoveSongsFromPlaylistFragment"

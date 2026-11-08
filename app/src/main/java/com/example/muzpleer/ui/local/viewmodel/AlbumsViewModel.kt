@@ -145,11 +145,15 @@ class AlbumsViewModel(
      * временный content-URI из picker позже перестаёт читаться, и обложка пропадала.
      * [albumId] здесь - значение, которое приходит из экрана замены обложки (id строки в базе).
      */
-    fun saveCoverAlbumToDatabase(context: Context, uri: android.net.Uri, albumId: Long) {
+    fun saveCoverAlbumToDatabase(context: Context, uri: android.net.Uri, albumId: Long, onDone: () -> Unit = {}) {
         Log.d(TAG, "6--- AlbumsViewModel saveCoverAlbumToDatabase uri = $uri albumId = $albumId")
         viewModelScope.launch {
-            val savedPath = copyCoverOrKeepUri(context, uri, "album", albumId)
-            albumRepository.updateAlbumArtUri(albumId, savedPath)
+            val savedPath = try {
+                copyCoverOrKeepUri(context, uri, "album", albumId)
+                    .also { albumRepository.updateAlbumArtUri(albumId, it) }
+            } finally {
+                onDone()  //экран закрываем после записи в базу (и при ошибке тоже)
+            }
             loadAlbums() // Обновляем список альбомов
 
             //проверка
