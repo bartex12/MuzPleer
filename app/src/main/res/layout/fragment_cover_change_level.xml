@@ -43,7 +43,7 @@
                 android:background="@drawable/item_list_effects_revers_button"
                 android:letterSpacing="0"
                 android:maxLines="1"
-                android:text="Использовать фотографии в телефоне"
+                android:text="Найти фото в телефоне"
                 android:textColor="@color/white"
                 android:textSize="13sp"
                 app:backgroundTint="@null"
