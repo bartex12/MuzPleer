@@ -29,15 +29,21 @@
             android:id="@+id/ivRestoreCurrent"
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:layout_marginEnd="12dp"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
             android:src="@drawable/muz_player3" />
 
+        <!-- Жирная стрелка: текущая картинка меняется на стандартную -->
+        <ImageView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginHorizontal="6dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_arrow_bold_right_24" />
+
         <ImageView
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:layout_marginStart="12dp"
             android:contentDescription="@null"
             android:scaleType="centerCrop"
             android:src="@drawable/muz_player3" />
