@@ -35,18 +35,17 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/usePhonePhotosLevel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:background="@drawable/item_list_effects_revers_button"
-                android:letterSpacing="0"
-                android:maxLines="1"
                 android:text="Найти фото в телефоне"
                 android:textColor="@color/white"
-                android:textSize="13sp"
-                app:backgroundTint="@null"
+                app:backgroundTint="?attr/appPanelLight"
+                app:cornerRadius="8dp"
+                app:strokeColor="@color/white"
+                app:strokeWidth="1dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/coverImageViewLevel" />
@@ -63,18 +62,17 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/saveButtonLevel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:background="@drawable/item_list_effects_revers_button"
-        android:letterSpacing="0"
-        android:maxLines="1"
         android:text="Сохранить"
         android:textColor="@color/white"
-        android:textSize="13sp"
-        app:backgroundTint="@null"
+        app:backgroundTint="?attr/appPanelLight"
+        app:cornerRadius="8dp"
+        app:strokeColor="@color/white"
+        app:strokeWidth="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
