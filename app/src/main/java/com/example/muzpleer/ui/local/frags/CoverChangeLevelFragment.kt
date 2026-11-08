@@ -224,12 +224,16 @@ class CoverChangeLevelFragment: Fragment() {
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
         if (item.itemId == R.id.action_restore_cover) {
-            val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
-            when (levelType) {
-                LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
-                LevelType.ALBUM -> saveAlbumCover(uri, levelId)
-                LevelType.ARTIST -> saveArtistCover(uri, levelId)
-                LevelType.FOLDER -> saveFolderCover(uri, levelId)
+            //сначала спрашиваем: показываем, какое изображение вернётся
+            com.example.muzpleer.ui.local.helper.showRestoreCoverDialog(requireContext()) {
+                if (_binding == null) return@showRestoreCoverDialog
+                val uri: Uri = "android.resource://${(App.instance).packageName}/${R.drawable.muz_player3}".toUri()
+                when (levelType) {
+                    LevelType.PLAYLIST -> savePlaylistCover(uri, levelId)
+                    LevelType.ALBUM -> saveAlbumCover(uri, levelId)
+                    LevelType.ARTIST -> saveArtistCover(uri, levelId)
+                    LevelType.FOLDER -> saveFolderCover(uri, levelId)
+                }
             }
             return true
         }
