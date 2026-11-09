@@ -69,7 +69,7 @@ class CoverChangeLevelFragment: Fragment() {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 Log.d(TAG, "1---CoverChangeLevelFragment registerForActivityResult uri = $it ")
-                viewModel.updateCoverImageLevel(it)
+                openCrop(it)
             }
         }
 
@@ -114,12 +114,25 @@ class CoverChangeLevelFragment: Fragment() {
         playlistsViewModel.saveCoverPlaylistToDatabase(requireContext(), uri, playlistId, onDone)
     }
 
+    //после выбора фото открываем экран редактирования: пользователь рамкой выбирает кусок для обложки
+    private fun openCrop(uri: Uri) {
+        findNavController().navigate(
+            R.id.cropCoverFragment,
+            android.os.Bundle().apply {
+                putString(CropCoverFragment.ARG_URI, uri.toString())
+                putBoolean(CropCoverFragment.ARG_LEVEL, true)
+                putString(CropCoverFragment.ARG_TITLE, previousTitle)
+            }
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
-        previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
+        //при возврате с экрана редактирования фото заголовок уже известен - не затираем его
+        if (previousTitle.isEmpty()) previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
         Log.d(TAG, "5*** CoverChangeLevelFragment onViewCreated previousTitle = $previousTitle")
 
         //обеспечивает установку обложки при открытии CoverChangeLevelFragment и замене обложки через pickImage
