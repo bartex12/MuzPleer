@@ -47,7 +47,7 @@ class CoverChangeFragment : Fragment() {
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let {
             Log.d(TAG, "!!!CoverChangeFragment registerForActivityResult uri = $it ")
-            viewModel.updateCoverImage(it)
+            openCrop(it)
         }
     }
 
@@ -60,12 +60,25 @@ class CoverChangeFragment : Fragment() {
         return binding.root
     }
 
+    //после выбора фото открываем экран редактирования: пользователь рамкой выбирает кусок для обложки
+    private fun openCrop(uri: Uri) {
+        findNavController().navigate(
+            R.id.cropCoverFragment,
+            android.os.Bundle().apply {
+                putString(CropCoverFragment.ARG_URI, uri.toString())
+                putBoolean(CropCoverFragment.ARG_LEVEL, false)
+                putString(CropCoverFragment.ARG_TITLE, previousTitle)
+            }
+        )
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
 
         // Сохраняем текущий заголовок перед сменой
-        previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
+        //при возврате с экрана редактирования фото заголовок уже известен - не затираем его
+        if (previousTitle.isEmpty()) previousTitle = (requireActivity() as? MainActivity)?.getCurrentTitle() ?: "Музыка на ладони"
         Log.d(TAG, "5*** CoverChangeFragment onViewCreated previousTitle = $previousTitle")
 
         //обеспечивает установку обложки при открытии CoverChangeFragment и замене обложки через pickImage

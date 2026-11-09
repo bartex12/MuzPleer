@@ -243,6 +243,10 @@
             app:destination="@id/playerFragment" />
     </fragment>
     <fragment
+        android:id="@+id/cropCoverFragment"
+        android:name="com.example.muzpleer.ui.local.frags.CropCoverFragment"
+        android:label="Редактировать фото" />
+    <fragment
         android:id="@+id/coverChangeLevelFragment"
         android:name="com.example.muzpleer.ui.local.frags.CoverChangeLevelFragment"
         android:label="Изменение обложки"
