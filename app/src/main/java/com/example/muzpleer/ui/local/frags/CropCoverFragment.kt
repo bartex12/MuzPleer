@@ -146,7 +146,8 @@ class CropCoverFragment : Fragment() {
             }
             val uri = Uri.fromFile(file)
             if (isLevel) vm.updateCoverImageLevel(uri) else vm.updateCoverImage(uri)
-            nav.navigateUp()
+            val popTo = requireArguments().getInt(ARG_POP_TO, 0)
+            if (popTo == 0 || !nav.popBackStack(popTo, false)) nav.navigateUp()
         }
     }
 
@@ -184,6 +185,8 @@ class CropCoverFragment : Fragment() {
         const val ARG_URI = "uri"
         const val ARG_LEVEL = "level"
         const val ARG_TITLE = "title"
+        /** id экрана обложки, на который вернуться после сохранения (0 - просто назад) */
+        const val ARG_POP_TO = "popTo"
         private const val MAX_SIDE = 2048
         private const val OUT_SIZE = 800
     }

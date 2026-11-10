@@ -117,7 +117,16 @@ class CoverChangeFragment : Fragment() {
         //поиск картинки в интернете: в запрос подставляем исполнителя и название выбранной песни
         val song = viewModel.getSelectedSong()
         val query = song?.let { "${it.artist.takeUnless { a -> a.isBlank() || a == "<unknown>" }.orEmpty()} ${it.title}".trim() }.orEmpty()
-        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query) {
+            findNavController().navigate(
+                R.id.generateCoverFragment,
+                android.os.Bundle().apply {
+                    putBoolean(GenerateCoverFragment.ARG_LEVEL, false)
+                    putString(GenerateCoverFragment.ARG_TITLE, previousTitle)
+                    putInt(GenerateCoverFragment.ARG_POP_TO, R.id.coverChangeFragment)
+                }
+            )
+        }
 
         binding.saveButton.setOnClickListener {
             //назад уходим после записи в базу: список, на который вернёмся, читает песни из базы

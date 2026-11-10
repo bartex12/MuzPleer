@@ -243,6 +243,11 @@
             app:destination="@id/playerFragment" />
     </fragment>
     <fragment
+        android:id="@+id/generateCoverFragment"
+        android:name="com.example.muzpleer.ui.local.frags.GenerateCoverFragment"
+        android:label="@string/gen_cover_title"
+        tools:layout="@layout/fragment_generate_cover" />
+    <fragment
         android:id="@+id/cropCoverFragment"
         android:name="com.example.muzpleer.ui.local.frags.CropCoverFragment"
         android:label="Редактировать фото" />
