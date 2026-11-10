@@ -2,6 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/action_cover_hint"
+        android:title="Подсказка"
+        android:icon="@drawable/outline_info_24"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_restore_cover"
         android:title="Вернуться к изображению по умолчанию"
         android:icon="@drawable/delete_history_24px"

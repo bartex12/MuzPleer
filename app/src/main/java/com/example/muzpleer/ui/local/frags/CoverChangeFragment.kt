@@ -186,6 +186,10 @@ class CoverChangeFragment : Fragment() {
     }
 
     override fun onOptionsItemSelected(item: android.view.MenuItem): Boolean {
+        if (item.itemId == R.id.action_cover_hint) {
+            com.example.muzpleer.ui.local.helper.showCoverHintDialog(requireContext())
+            return true
+        }
         if (item.itemId == R.id.action_restore_cover) {
             //сначала спрашиваем: показываем, какое изображение вернётся
             com.example.muzpleer.ui.local.helper.showRestoreCoverDialog(requireContext(), viewModel.getCoverImageUri()) {
