@@ -39,6 +39,17 @@ object CoverWebSearch {
             if (hasQuery) "https://www.pexels.com/ru-ru/search/$q/" else "https://www.pexels.com/ru-ru/")
         addChip(group, "На Pixabay",
             if (hasQuery) "https://pixabay.com/ru/images/search/$q/" else "https://pixabay.com/ru/")
+
+        //заглушка: генерация изображения пока не реализована
+        val gen = Chip(ctx).apply {
+            text = ctx.getString(R.string.cover_search_generate)
+            isCheckable = false
+            isClickable = true
+            setOnClickListener {
+                Toast.makeText(context, R.string.cover_search_generate_soon, Toast.LENGTH_SHORT).show()
+            }
+        }
+        group.addView(gen, ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
 
     private fun addChip(group: ChipGroup, text: String, url: String) {
