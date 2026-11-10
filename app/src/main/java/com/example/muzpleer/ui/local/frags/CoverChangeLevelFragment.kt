@@ -183,7 +183,16 @@ class CoverChangeLevelFragment: Fragment() {
             LevelType.PLAYLIST -> playlistsViewModel.playlists.value
                 ?.find { it.id == levelId }?.playlistName
         } ?: previousTitle
-        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query)
+        com.example.muzpleer.util.CoverWebSearch.setup(binding.webSearch.chipsWebSearch, query) {
+            findNavController().navigate(
+                R.id.generateCoverFragment,
+                android.os.Bundle().apply {
+                    putBoolean(GenerateCoverFragment.ARG_LEVEL, true)
+                    putString(GenerateCoverFragment.ARG_TITLE, previousTitle)
+                    putInt(GenerateCoverFragment.ARG_POP_TO, R.id.coverChangeLevelFragment)
+                }
+            )
+        }
 
         binding.saveButton.setOnClickListener {
             //повторное нажатие блокируем; назад уходим после записи в базу, чтобы список показал новую обложку

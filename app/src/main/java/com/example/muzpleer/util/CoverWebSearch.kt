@@ -17,7 +17,7 @@ import com.google.android.material.chip.ChipGroup
  */
 object CoverWebSearch {
 
-    fun setup(group: ChipGroup, query: String) {
+    fun setup(group: ChipGroup, query: String, onGenerate: () -> Unit) {
         val ctx = group.context
         val q = Uri.encode(query.trim())
         val hasQuery = query.isNotBlank()
@@ -40,14 +40,12 @@ object CoverWebSearch {
         addChip(group, "На Pixabay",
             if (hasQuery) "https://pixabay.com/ru/images/search/$q/" else "https://pixabay.com/ru/")
 
-        //заглушка: генерация изображения пока не реализована
+        //генерация картинки: открывает экран генерации
         val gen = Chip(ctx).apply {
             text = ctx.getString(R.string.cover_search_generate)
             isCheckable = false
             isClickable = true
-            setOnClickListener {
-                Toast.makeText(context, R.string.cover_search_generate_soon, Toast.LENGTH_SHORT).show()
-            }
+            setOnClickListener { onGenerate() }
         }
         group.addView(gen, ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT))
     }
